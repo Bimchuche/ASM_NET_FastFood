@@ -1,100 +1,92 @@
 # 🍔 Fast Food Shop (ASM1_NET)
 
-Một ứng dụng web thương mại điện tử bán đồ ăn nhanh được xây dựng bằng **ASP.NET Core 8.0** và **Entity Framework Core**. Hệ thống cung cấp đầy đủ quy trình từ đặt hàng, giao hàng đến quản trị.
+**Fast Food Shop** là một hệ thống website thương mại điện tử chuyên nghiệp cung cấp giải pháp đặt món ăn nhanh, quản lý cửa hàng và giao hàng. Dự án được xây dựng trên nền tảng **ASP.NET Core 8.0** với kiến trúc hiện đại, bảo mật và dễ mở rộng.
 
-## 🚀 Tính Năng Chính
+## 🌟 Chức Năng Nổi Bật
 
-### 👤 Khách Hàng (Customer)
+### 🛒 Dành Cho Khách Hàng (Customer)
 
-- **Đăng ký/Đăng nhập**: Hỗ trợ đăng nhập qua tài khoản Google.
-- **Duyệt món ăn**: Xem danh sách món ăn, combo, tìm kiếm và lọc theo danh mục.
-- **Giỏ hàng**: Thêm/sửa/xóa món trong giỏ hàng.
-- **Đặt hàng (Checkout)**: Nhập thông tin giao hàng, chọn phương thức thanh toán.
-- **Lịch sử đơn hàng**: Xem lại các đơn đã đặt và **hủy đơn hàng** (khi trạng thái là Pending).
+- **Tài Khoản & Bảo Mật**:
+  - Đăng ký và Đăng nhập dễ dàng.
+  - **Đăng nhập bằng Google** (OAuth 2.0) tiện lợi.
+  - Quản lý thông tin cá nhân, cập nhật địa chỉ giao hàng.
+- **Trải Nghiệm Mua Sắm**:
+  - Xem danh sách Món ăn (Food) và Combo khuyến mãi.
+  - Tìm kiếm thông minh và Lọc món ăn theo Danh mục.
+  - Xem chi tiết món ăn với hình ảnh trực quan.
+- **Giỏ Hàng & Đặt Hàng**:
+  - Thêm/Sửa/Xóa món trong Giỏ hàng real-time.
+  - **Checkout (Thanh toán)**: Quy trình đặt hàng 3 bước (Thông tin - Xác nhận - Hoàn tất).
+  - Hỗ trợ nhiều phương thức thanh toán (COD, v.v.).
+- **Quản Lý Đơn Hàng**:
+  - Xem lại **Lịch sử đơn hàng** đã đặt.
+  - Theo dõi trạng thái đơn hàng (Đang xử lý, Đang giao, Hoàn tất).
+  - **Hủy đơn hàng chủ động**: Khách hàng có thể hủy đơn ngay lập tức nếu đơn chưa được xử lý.
 
-### 🛠 Quản Trị Viên (Admin)
+### 🛠 Dành Cho Quản Trị Viên (Admin)
 
-- **Dashboard**: Thống kê doanh thu, đơn hàng, hoạt động.
-- **Quản lý Sản phẩm**: Thêm, sửa, xóa (Soft Delete) Món ăn và Combo.
-- **Quản lý Đơn hàng**: Xem chi tiết, cập nhật trạng thái đơn hàng.
-- **Nhật ký hoạt động (Activity Log)**: Theo dõi lích sử thao tác của hệ thống (Login, Order, CRUD).
-- **Thùng rác**: Khôi phục các dữ liệu đã bị xóa tạm thời.
+- **Dashboard (Bảng điều khiển)**:
+  - Xem tổng quan báo cáo doanh thu, số lượng đơn hàng, món ăn bán chạy.
+- **Quản Lý Sản Phẩm (Món ăn & Combo)**:
+  - Thêm mới, Cập nhật, Xóa (Soft Delete) món ăn và Combo.
+  - Quản lý danh mục món ăn (Category).
+- **Quản Lý Đơn Hàng**:
+  - Duyệt đơn hàng, Gán Shipper, Cập nhật trạng thái.
+  - Xem chi tiết từng đơn hàng.
+- **Hệ Thống Nhật Ký Hoạt Động (Activity Logs)**:
+  - **Theo dõi toàn diện**: Ghi lại mọi hành động quan trọng (Đăng nhập, Tạo đơn, Xóa món, Restore...).
+  - **Bộ lọc mạnh mẽ**: Lọc theo thời gian, loại hành động, người thực hiện.
+- **Quản Lý Thùng Rác (Trash/Recycle Bin)**:
+  - Cơ chế **Soft Delete** giữ lại dữ liệu an toàn.
+  - Khôi phục (Restore) hoặc Xóa vĩnh viễn các đối tượng (User, Food, Order) đã xóa.
+- **Quản Lý Tài Khoản**:
+  - Quản lý danh sách người dùng, phân quyền (Admin, Staff, Customer).
 
-### 🚚 Nhân Viên Giao Hàng (Shipper)
+### 🚚 Dành Cho Shipper (Nhân viên giao hàng)
 
-- **Danh sách đơn**: Xem các đơn hàng được phân công hoặc cần giao.
-- **Cập nhật**: Đổi trạng thái đơn hàng thành "Đang giao", "Đã giao".
-
----
-
-## 🛠 Công Nghệ Sử Dụng
-
-- **Backend**: ASP.NET Core 8.0 (MVC)
-- **Database**: SQL Server (Entity Framework Core Code-First)
-- **Frontend**: Razor Views, Bootstrap 5, CSS/JS tùy chỉnh.
-- **Authentication**: ASP.NET Core Identity (Cookie Auth) & Google OAuth.
-- **Logging**: Custom Activity Logging Service.
-
----
-
-## ⚙️ Cài Đặt & Chạy Dự Án
-
-### Yêu cầu
-
-- [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
-- SQL Server
-
-### Các bước
-
-1. **Clone dự án**
-
-   ```bash
-   git clone https://github.com/your-username/ASM1_NET.git
-   cd ASM1_NET
-   ```
-
-2. **Cấu hình Database**
-   Mở file `appsettings.json` và cập nhật chuỗi kết nối `DefaultConnection` phù hợp với SQL Server của bạn:
-
-   ```json
-   "ConnectionStrings": {
-     "DefaultConnection": "Server=YOUR_SERVER;Database=FastFoodShopDb;Trusted_Connection=True;TrustServerCertificate=True"
-   }
-   ```
-
-3. **Cập nhật Database (Migrations)**
-   Mở terminal tại thư mục dự án và chạy:
-
-   ```bash
-   dotnet ef database update
-   ```
-
-4. **Chạy ứng dụng**
-
-   ```bash
-   dotnet run
-   ```
+- **Quản Lý Giao Vận**:
+  - Xem danh sách đơn hàng được phân công.
+  - Cập nhật trạng thái giao hàng (Đang giao $\to$ Thành công/Thất bại).
+  - Xem chi tiết địa chỉ và số điện thoại khách hàng.
 
 ---
 
-## 📂 Cấu Trúc Thư Mục
+## 💻 Công Nghệ & Kỹ Thuật
 
-- `Areas/Admin`: Các trang quản trị (Dashboard, Products, Activity Logs).
-- `Areas/Shipper`: Giao diện dành cho Shipper.
-- `Controllers`: Các Controller chính (Home, Order, Cart).
-- `Models`: Các Entity (User, Food, Order, ActivityLog...).
-- `Services`: Các service xử lý logic (ActivityLogService, EmailService).
-- `Views`: Giao diện người dùng (Razor Pages).
+- **Backend Framework**: ASP.NET Core 8.0 MVC
+- **Database**: SQL Server 2019+
+- **ORM**: Entity Framework Core (Code-First Approach)
+- **Frontend**: Razor Views (CSHTML), Bootstrap 5, Custom CSS/JS
+- **Authentication**: ASP.NET Core Identity & Cookie Auth
+- **Logging**: Custom Async Activity Logging Service
+- **Design Pattern**: Repository Pattern, Dependency Injection (DI), ViewModel
+
+## 🚀 Hướng Dẫn Cài Đặt
+
+1.  **Clone Source Code**:
+
+    ```bash
+    git clone https://github.com/Bimchuche/ASM_NET_FastFood.git
+    cd ASM_NET_FastFood
+    ```
+
+2.  **Cấu Hình Database**:
+    - Mở `appsettings.json`.
+    - Chỉnh sửa `DefaultConnection` trỏ đến SQL Server của bạn.
+
+3.  **Khởi Tạo Database**:
+
+    ```bash
+    dotnet ef database update
+    ```
+
+4.  **Chạy Dự Án**:
+    ```bash
+    dotnet run
+    ```
+
+    - Truy cập Web: `http://localhost:5000`
 
 ---
 
-## 📝 Nhật Ký Cập Nhật (Gần đây)
-
-- [x] Thêm tính năng **Activity Log** theo dõi toàn bộ hoạt động.
-- [x] Cập nhật **Soft Delete** cho User, Food, Order.
-- [x] Bổ sung tính năng **Hủy đơn hàng** cho khách hàng.
-- [x] Fix lỗi hiển thị trang Activity Log.
-
----
-
-**ASM1_NET - Đồ án lập trình web .NET**
+**Developed by [Your Name] - 2026**
