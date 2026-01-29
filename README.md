@@ -63,30 +63,31 @@
 
 ## 🚀 Hướng Dẫn Cài Đặt
 
-1.  **Clone Source Code**:
+1. **Clone Source Code**:
 
-    ```bash
-    git clone https://github.com/Bimchuche/ASM_NET_FastFood.git
-    cd ASM_NET_FastFood
-    ```
+   ```bash
+   git clone https://github.com/Bimchuche/ASM_NET_FastFood.git
+   cd ASM_NET_FastFood
+   ```
 
-2.  **Cấu Hình Database**:
-    - Mở `appsettings.json`.
-    - Chỉnh sửa `DefaultConnection` trỏ đến SQL Server của bạn.
+2. **Cấu Hình Database**:
+   - Mở `appsettings.json`.
+   - Chỉnh sửa `DefaultConnection` trỏ đến SQL Server của bạn.
 
-3.  **Khởi Tạo Database**:
+3. **Khởi Tạo Database**:
 
-    ```bash
-    dotnet ef database update
-    ```
+   ```bash
+   dotnet ef database update
+   ```
 
-4.  **Chạy Dự Án**:
-    ```bash
-    dotnet run
-    ```
+4. **Chạy Dự Án**:
 
-    - Truy cập Web: `http://localhost:5000`
+   ```bash
+   dotnet run
+   ```
+
+   - Truy cập Web: `http://localhost:####`
 
 ---
 
-**Developed by [Your Name] - 2026**
+**Developed by [Phạm Nguyễn Bảo Minh] - 2026**
