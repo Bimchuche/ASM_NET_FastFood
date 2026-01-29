@@ -1,0 +1,198 @@
+/* ===============================
+   FOOD PAGE BASE
+================================ */
+.food-page {
+    min-height: 100vh;
+    padding: 40px 60px 80px;
+    background: radial-gradient(circle at top, #1a1a1a, #000);
+    color: #fff;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+}
+
+/* ===============================
+   TITLE
+================================ */
+.food-title {
+    text-align: center;
+    font-size: 38px;
+    font-weight: 700;
+    margin-bottom: 40px;
+    letter-spacing: 1px;
+}
+
+/* ===============================
+   SEARCH BAR – FOOD
+================================ */
+.food-search {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 40px;
+}
+
+.search-box {
+    display: flex;
+    align-items: center;
+    background: #1a1a1a;
+    border-radius: 40px;
+    padding: 6px;
+    width: 420px;
+    box-shadow: 0 8px 30px rgba(0,0,0,.6);
+}
+
+.search-box input {
+    flex: 1;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: white;
+    padding: 10px 14px;
+    font-size: 14px;
+}
+
+.search-box input::placeholder {
+    color: #888;
+}
+
+.search-box button {
+    background: linear-gradient(135deg, #ff4d4f, #ff2d2d);
+    border: none;
+    color: white;
+    padding: 10px 18px;
+    border-radius: 30px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: .2s;
+}
+
+.search-box button:hover {
+    opacity: .9;
+    transform: scale(1.05);
+}
+
+/* CLEAR BUTTON */
+.clear-btn {
+    color: #aaa;
+    text-decoration: none;
+    margin-right: 6px;
+    font-size: 16px;
+    transition: .2s;
+}
+
+.clear-btn:hover {
+    color: #ff4d4f;
+}
+
+/* ===============================
+   GRID
+================================ */
+.food-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 30px;
+}
+
+/* ===============================
+   CARD
+================================ */
+.food-card {
+    background: #151515;
+    border-radius: 22px;
+    overflow: hidden;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 15px 40px rgba(0,0,0,.6);
+    transition: all .25s ease;
+}
+
+.food-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 25px 60px rgba(0,0,0,.85);
+}
+
+/* ===============================
+   IMAGE (FIX CHÈN / TRÀN)
+================================ */
+.food-image {
+    width: 100%;
+    height: 190px;
+    background: #000;
+    overflow: hidden;
+}
+
+.food-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* QUAN TRỌNG */
+    display: block;
+}
+
+/* ===============================
+   INFO
+================================ */
+.food-info {
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.food-info h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+.food-info p {
+    font-size: 14px;
+    color: #bdbdbd;
+    margin-bottom: 12px;
+}
+
+/* ===============================
+   FOOTER CARD
+================================ */
+.food-footer {
+    margin-top: auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.price {
+    color: #ff4d4f;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+/* ===============================
+   BUTTON
+================================ */
+.add-btn {
+    background: linear-gradient(135deg, #ff4d4f, #ff2d2d);
+    color: #fff;
+    border: none;
+    padding: 8px 18px;
+    border-radius: 20px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all .2s ease;
+}
+
+.add-btn:hover {
+    opacity: .9;
+    transform: scale(1.05);
+}
+
+/* ===============================
+   RESPONSIVE
+================================ */
+@media (max-width: 768px) {
+    .food-page {
+        padding: 30px 20px;
+    }
+
+    .food-title {
+        font-size: 28px;
+    }
+}

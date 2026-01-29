@@ -1,0 +1,120 @@
+@model ASM1_NET.Models.User
+@{
+    ViewData["Title"] = "Hồ sơ cá nhân";
+}
+
+<link rel="stylesheet" href="~/client/css/fastfood-theme.css" />
+<link rel="stylesheet" href="~/client/css/profile.css" />
+
+<div class="profile-page">
+    <div class="profile-wrapper">
+        <!-- Hero -->
+        <div class="profile-hero">
+            <h1>👤 Hồ sơ cá nhân</h1>
+            <p>Quản lý thông tin tài khoản của bạn</p>
+        </div>
+        
+        <div class="profile-main-card">
+            <!-- Avatar Section -->
+            <div class="profile-avatar-section">
+                <form id="avatarForm" action="/Account/UpdateAvatar" method="post" enctype="multipart/form-data">
+                    <input type="file" id="avatarInput" name="avatar" accept="image/*" style="display: none;" 
+                           onchange="document.getElementById('avatarForm').submit();" />
+                    
+                    <div class="profile-avatar-wrapper">
+                        @if (!string.IsNullOrEmpty(Model.AvatarUrl))
+                        {
+                            <img src="@Model.AvatarUrl" alt="Avatar" class="profile-avatar-img" 
+                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                            <div class="profile-avatar-placeholder" style="display: none;">
+                                @Model.FullName.Substring(0, 1).ToUpper()
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="profile-avatar-placeholder">
+                                @Model.FullName.Substring(0, 1).ToUpper()
+                            </div>
+                        }
+                        
+                        <div class="profile-avatar-edit" onclick="document.getElementById('avatarInput').click();" title="Đổi ảnh đại diện">
+                            📷
+                        </div>
+                    </div>
+                </form>
+                
+                <div class="profile-name">@Model.FullName</div>
+                <div class="profile-email">@Model.Email</div>
+                <div class="profile-role-badge">
+                    @switch(Model.Role) {
+                        case "Admin": <text>👑 Quản trị viên</text> break;
+                        case "Staff": <text>👨‍💼 Nhân viên</text> break;
+                        case "Shipper": <text>🚚 Shipper</text> break;
+                        default: <text>🛒 Khách hàng</text> break;
+                    }
+                </div>
+            </div>
+            
+            <!-- Form Section -->
+            <div class="profile-form-section">
+                @if (TempData["Success"] != null || ViewBag.Success != null)
+                {
+                    <div class="profile-alert success">
+                        ✅ @(TempData["Success"] ?? ViewBag.Success)
+                    </div>
+                }
+                
+                @if (TempData["Error"] != null)
+                {
+                    <div class="profile-alert error">
+                        ⚠️ @TempData["Error"]
+                    </div>
+                }
+                
+                <form method="post" action="/Account/Profile">
+                    <div class="form-row">
+                        <div class="profile-form-group">
+                            <label>👤 Họ và tên</label>
+                            <input type="text" name="FullName" value="@Model.FullName" required />
+                        </div>
+                        
+                        <div class="profile-form-group">
+                            <label>📱 Số điện thoại</label>
+                            <input type="tel" name="Phone" value="@Model.Phone" placeholder="Nhập số điện thoại" />
+                        </div>
+                    </div>
+                    
+                    <div class="profile-form-group">
+                        <label>📧 Email</label>
+                        <input type="email" value="@Model.Email" disabled />
+                        <p class="form-hint">Email không thể thay đổi</p>
+                    </div>
+                    
+                    <div class="profile-form-group">
+                        <label>📍 Địa chỉ giao hàng</label>
+                        <input type="text" name="Address" value="@Model.Address" placeholder="Nhập địa chỉ giao hàng" />
+                    </div>
+                    
+                    <hr class="form-divider" />
+                    
+                    <div class="profile-form-group">
+                        <label>🔒 Đổi mật khẩu</label>
+                        <input type="password" name="Password" placeholder="Để trống nếu không đổi mật khẩu" />
+                        <p class="form-hint">Nhập mật khẩu mới nếu bạn muốn thay đổi</p>
+                    </div>
+                    
+                    <button type="submit" class="btn-save-profile">
+                        💾 Lưu thay đổi
+                    </button>
+                </form>
+            </div>
+            
+            <!-- Quick Links -->
+            <div class="profile-quick-links">
+                <a href="/" class="quick-link">🏠 Trang chủ</a>
+                <a href="/Order/History" class="quick-link">📦 Lịch sử đơn hàng</a>
+                <a href="/Account/Logout" class="quick-link">🚪 Đăng xuất</a>
+            </div>
+        </div>
+    </div>
+</div>

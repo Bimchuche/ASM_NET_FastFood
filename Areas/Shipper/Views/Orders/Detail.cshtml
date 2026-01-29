@@ -1,0 +1,176 @@
+@using ASM1_NET.Models
+@model Order
+@{
+    ViewData["Title"] = $"Chi tiết đơn #{Model.OrderCode}";
+    var customerName = Model.Customer?.FullName ?? "Khách hàng";
+    var statusClass = Model.Status == "Delivering" ? "delivering" : "completed";
+    var statusText = Model.Status == "Delivering" ? "Đang giao" : "Hoàn thành";
+}
+
+<div style="max-width: 800px; margin: 0 auto;">
+    <a href="/Shipper/Orders/MyOrders" style="color: var(--shipper-primary); display: inline-block; margin-bottom: 20px;">
+        ← Quay lại danh sách
+    </a>
+    
+    <div class="order-card">
+        <div class="order-card-header">
+            <span class="order-id">#@Model.OrderCode</span>
+            <span class="order-status @statusClass">@statusText</span>
+        </div>
+        
+        <div class="order-card-body">
+            <!-- Customer Info -->
+            <h3 style="margin-bottom: 15px; color: var(--shipper-dark);">👤 Thông tin khách hàng</h3>
+            <div class="order-customer">
+                @if (!string.IsNullOrEmpty(Model.Customer?.AvatarUrl))
+                {
+                    <img src="@Model.Customer.AvatarUrl" alt="@customerName" 
+                         style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid #e2e8f0;" />
+                }
+                else
+                {
+                    <div class="customer-avatar">@customerName.Substring(0, 1).ToUpper()</div>
+                }
+                <div>
+                    <div class="customer-name">@customerName</div>
+                    <div class="customer-phone">📞 @Model.Phone</div>
+                </div>
+            </div>
+            
+            <div class="order-address">
+                <span class="icon">📍</span>
+                @Model.Address
+            </div>
+            
+            <hr style="margin: 20px 0; border-color: #e2e8f0;" />
+            
+            <!-- Order Items -->
+            <h3 style="margin-bottom: 15px; color: var(--shipper-dark);">🛒 Chi tiết đơn hàng</h3>
+            
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background: #f8fafc;">
+                        <th style="padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0; width: 60px;">Ảnh</th>
+                        <th style="padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0;">Sản phẩm</th>
+                        <th style="padding: 10px; text-align: center; border-bottom: 1px solid #e2e8f0;">SL</th>
+                        <th style="padding: 10px; text-align: right; border-bottom: 1px solid #e2e8f0;">Giá</th>
+                        <th style="padding: 10px; text-align: right; border-bottom: 1px solid #e2e8f0;">Thành tiền</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.OrderDetails)
+                    {
+                        var name = item.Food?.Name ?? item.Combo?.Name ?? "N/A";
+                        var imgUrl = item.Food?.ImageUrl ?? item.Combo?.ImageUrl ?? "/images/no-image.png";
+                        var subtotal = item.UnitPrice * item.Quantity;
+                        
+                        <tr>
+                            <td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">
+                                <img src="@imgUrl" alt="@name" 
+                                     style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px;"
+                                     onerror="this.src='/images/no-image.png'" />
+                            </td>
+                            <td style="padding: 10px; border-bottom: 1px solid #e2e8f0; font-weight: 500;">@name</td>
+                            <td style="padding: 10px; text-align: center; border-bottom: 1px solid #e2e8f0;">@item.Quantity</td>
+                            <td style="padding: 10px; text-align: right; border-bottom: 1px solid #e2e8f0;">@item.UnitPrice.ToString("N0") ₫</td>
+                            <td style="padding: 10px; text-align: right; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: var(--shipper-primary);">@subtotal.ToString("N0") ₫</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            
+            <div class="order-total" style="margin-top: 20px;">
+                <span class="total-label" style="font-size: 1.1rem;">Tổng cộng:</span>
+                <span class="total-value" style="font-size: 1.5rem;">@Model.TotalAmount.ToString("N0") ₫</span>
+            </div>
+            
+            <hr style="margin: 20px 0; border-color: #e2e8f0;" />
+            
+            <!-- Order Info -->
+            <h3 style="margin-bottom: 15px; color: var(--shipper-dark);">📋 Thông tin đơn hàng</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div>
+                    <strong>Mã đơn:</strong> @Model.OrderCode
+                </div>
+                <div>
+                    <strong>Ngày đặt:</strong> @Model.OrderDate.ToString("dd/MM/yyyy HH:mm")
+                </div>
+            </div>
+        </div>
+        
+        @if (Model.Status == "Delivering")
+        {
+            <hr style="margin: 20px 0; border-color: #e2e8f0;" />
+            <h3 style="margin-bottom: 15px; color: var(--shipper-dark);">📸 Xác nhận hoàn thành</h3>
+            
+            <div class="order-card-footer" style="flex-direction: column; gap: 15px;">
+                <form action="/Shipper/Orders/Complete" method="post" enctype="multipart/form-data" id="completeFormDetail" style="width: 100%;">
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <input type="file" name="proofImage" id="proofImageDetail" accept="image/*" capture="environment" 
+                           style="display: none;" onchange="showProofPreviewDetail()" />
+                    
+                    <!-- Preview ảnh -->
+                    <div id="proofPreviewDetail" style="display: none; margin-bottom: 15px; text-align: center;">
+                        <img id="proofImgDetail" style="max-width: 100%; max-height: 200px; border-radius: 12px; border: 3px solid var(--shipper-primary);" />
+                        <div style="font-size: 14px; color: var(--shipper-primary); margin-top: 8px; font-weight: 600;">📸 Ảnh xác nhận giao hàng</div>
+                    </div>
+                    
+                    <!-- Nút chọn/chụp ảnh -->
+                    <button type="button" class="order-btn" id="selectPhotoBtnDetail"
+                            style="width: 100%; background: #3b82f6; color: white; margin-bottom: 10px; padding: 15px;"
+                            onclick="document.getElementById('proofImageDetail').click();">
+                        📷 Chụp/Chọn ảnh xác nhận giao hàng
+                    </button>
+                    
+                    <!-- Nút hoàn thành -->
+                    <button type="submit" class="order-btn complete" id="submitBtnDetail" 
+                            style="width: 100%; display: none; padding: 15px;"
+                            onclick="return validateProofImageDetail();">
+                        ✅ Xác nhận hoàn thành đơn hàng
+                    </button>
+                </form>
+                
+                <form action="/Shipper/Dashboard/CancelAccept" method="post" style="width: 100%;">
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <button type="submit" class="order-btn" style="width: 100%; background: #ef4444; color: white;"
+                            onclick="return confirm('Bạn có chắc muốn hủy nhận đơn này?');">
+                        ❌ Hủy nhận đơn
+                    </button>
+                </form>
+            </div>
+        }
+        else if (Model.Status == "Completed")
+        {
+            <hr style="margin: 20px 0; border-color: #e2e8f0;" />
+            <h3 style="margin-bottom: 15px; color: var(--shipper-dark);">✅ Thông tin giao hàng</h3>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                <div>
+                    <strong>Thời gian giao:</strong> 
+                    @if (Model.DeliveryDate.HasValue)
+                    {
+                        @Model.DeliveryDate.Value.ToString("dd/MM/yyyy HH:mm")
+                    }
+                    else
+                    {
+                        <span>N/A</span>
+                    }
+                </div>
+                <div>
+                    <strong>Trạng thái:</strong> 
+                    <span style="color: #10b981; font-weight: 600;">Đã giao thành công</span>
+                </div>
+            </div>
+            
+            @if (!string.IsNullOrEmpty(Model.DeliveryProofImageUrl))
+            {
+                <div style="text-align: center;">
+                    <img src="@Model.DeliveryProofImageUrl" alt="Ảnh xác nhận giao hàng" 
+                         style="max-width: 100%; max-height: 300px; border-radius: 12px; border: 3px solid #10b981;" />
+                    <div style="font-size: 14px; color: #10b981; margin-top: 8px; font-weight: 600;">📸 Ảnh xác nhận giao hàng</div>
+                </div>
+            }
+        }
+    </div>
+</div>
+

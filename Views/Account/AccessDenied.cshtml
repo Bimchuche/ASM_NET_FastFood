@@ -1,0 +1,38 @@
+@{
+    ViewData["Title"] = "Truy cập bị từ chối";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Truy cập bị từ chối - FastFood</title>
+    <link href="~/client/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="~/client/css/auth.css" rel="stylesheet" />
+</head>
+<body class="auth-page">
+    <!-- Floating Icons -->
+    <div class="floating-icon">🍔</div>
+    <div class="floating-icon">🍟</div>
+    <div class="floating-icon">🍕</div>
+    <div class="floating-icon">🌭</div>
+    <div class="floating-icon">🍗</div>
+    
+    <div class="auth-container access-denied-container">
+        <div class="auth-card text-center">
+            <div class="access-denied-icon">🚫</div>
+            <h1 class="access-denied-title">Truy cập bị từ chối</h1>
+            <p class="access-denied-message">
+                Bạn không có quyền truy cập trang này. 
+                Vui lòng đăng nhập bằng tài khoản có quyền phù hợp hoặc quay về trang chủ.
+            </p>
+            <div class="btn-group-custom">
+                <a href="/" class="btn-home">🏠 Về trang chủ</a>
+                <a href="/Account/Login" class="btn-login-outline">🔐 Đăng nhập</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

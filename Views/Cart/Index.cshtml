@@ -1,0 +1,123 @@
+@model ASM1_NET.Models.Cart
+@{
+    ViewData["Title"] = "Giỏ hàng";
+    var totalAmount = Model?.CartItems?.Sum(i => i.Price * i.Quantity) ?? 0;
+    var totalItems = Model?.CartItems?.Sum(i => i.Quantity) ?? 0;
+}
+
+<link rel="stylesheet" href="~/client/css/cart.css" />
+
+<div class="cart-page">
+    <div class="container">
+        <!-- HERO -->
+        <div class="cart-hero">
+            <h1>🛒 Giỏ hàng của bạn</h1>
+            <p>Kiểm tra và thanh toán đơn hàng</p>
+            
+            @if (Model?.CartItems?.Any() == true)
+            {
+                <div class="cart-stats">
+                    <div class="cart-stat">
+                        <div class="value">@totalItems</div>
+                        <div class="label">Sản phẩm</div>
+                    </div>
+                    <div class="cart-stat">
+                        <div class="value">@totalAmount.ToString("N0")₫</div>
+                        <div class="label">Tổng tiền</div>
+                    </div>
+                </div>
+            }
+        </div>
+        
+        @if (Model == null || Model.CartItems == null || !Model.CartItems.Any())
+        {
+            <div class="cart-card">
+                <div class="cart-empty">
+                    <div class="icon">🛒</div>
+                    <h3>Giỏ hàng trống</h3>
+                    <p>Hãy thêm món ăn yêu thích vào giỏ hàng!</p>
+                    <a href="/Food" class="btn-cart-checkout" style="display: inline-block; padding: 15px 40px;">
+                        🍕 Xem Menu
+                    </a>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="cart-card">
+                <div class="cart-card-header">
+                    <h3>📋 Chi tiết giỏ hàng</h3>
+                </div>
+                <div class="cart-card-body">
+                    @foreach (var item in Model.CartItems)
+                    {
+                        var itemName = item.Food?.Name ?? item.Combo?.Name ?? "Sản phẩm";
+                        var itemImage = item.Food?.ImageUrl ?? item.Combo?.ImageUrl ?? "";
+                        var isCombo = item.ComboId.HasValue;
+                        var subtotal = item.Price * item.Quantity;
+                        
+                        <div class="cart-item">
+                            <div class="cart-item-image">
+                                @if (!string.IsNullOrEmpty(itemImage))
+                                {
+                                    <img src="@itemImage" alt="@itemName" onerror="this.parentElement.innerHTML='🍔'" />
+                                }
+                                else
+                                {
+                                    <span>@(isCombo ? "🎁" : "🍔")</span>
+                                }
+                            </div>
+                            
+                            <div class="cart-item-info">
+                                <span class="cart-item-name">@itemName</span>
+                                <span class="cart-item-type @(isCombo ? "combo" : "food")">
+                                    @(isCombo ? "🎁 COMBO" : "🍔 MÓN ĂN")
+                                </span>
+                            </div>
+                            
+                            <div class="cart-item-qty">
+                                @if (item.FoodId != null)
+                                {
+                                    <button class="qty-btn" onclick="foodDecrease(@item.FoodId)">−</button>
+                                    <span class="qty-value">@item.Quantity</span>
+                                    <button class="qty-btn" onclick="foodIncrease(@item.FoodId)">+</button>
+                                }
+                                else
+                                {
+                                    <button class="qty-btn" onclick="comboDecrease(@item.ComboId)">−</button>
+                                    <span class="qty-value">@item.Quantity</span>
+                                    <button class="qty-btn" onclick="comboIncrease(@item.ComboId)">+</button>
+                                }
+                            </div>
+                            
+                            <div class="cart-item-price">
+                                <span class="unit">@item.Price.ToString("N0")₫ × @item.Quantity</span>
+                                <span class="total">@subtotal.ToString("N0")₫</span>
+                            </div>
+                            
+                            @if (item.FoodId != null)
+                            {
+                                <button class="cart-item-remove" onclick="foodRemove(@item.FoodId)">🗑️</button>
+                            }
+                            else
+                            {
+                                <button class="cart-item-remove" onclick="comboRemove(@item.ComboId)">🗑️</button>
+                            }
+                        </div>
+                    }
+                </div>
+                
+                <div class="cart-footer">
+                    <div class="cart-total-row">
+                        <span class="cart-total-label">Tổng cộng:</span>
+                        <span class="cart-total-value">@totalAmount.ToString("N0")₫</span>
+                    </div>
+                    <div class="cart-actions">
+                        <a href="/Food" class="btn-cart-continue">⬅️ Tiếp tục mua</a>
+                        <a href="/Order/Checkout" class="btn-cart-checkout">✅ Thanh toán ngay</a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>

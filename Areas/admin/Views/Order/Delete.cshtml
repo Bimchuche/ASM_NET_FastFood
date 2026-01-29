@@ -1,0 +1,12 @@
+@model ASM1_NET.Models.Order
+
+<h2>Xóa đơn hàng</h2>
+
+<div class="alert alert-danger">
+    Bạn có chắc muốn xóa đơn <b>@Model.OrderCode</b> không?
+</div>
+
+<form method="post">
+    <button class="btn btn-danger">Xóa</button>
+    <a asp-action="Index" class="btn btn-secondary">Hủy</a>
+</form>

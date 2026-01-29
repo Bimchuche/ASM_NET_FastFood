@@ -1,0 +1,114 @@
+@model ASM1_NET.Models.User
+@{
+    ViewData["Title"] = "Thêm người dùng";
+}
+
+<!-- Page Header -->
+<div class="admin-page-header">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+            <h2 class="admin-page-title">➕ Thêm người dùng mới</h2>
+            <p class="admin-page-subtitle">Tạo tài khoản người dùng mới</p>
+        </div>
+        <a asp-action="Index" class="btn btn-admin btn-admin-back">
+            ⬅️ Quay lại
+        </a>
+    </div>
+</div>
+
+<!-- Form Card -->
+<div class="admin-form-card">
+    <div class="form-card-header">
+        <h4>📝 Thông tin người dùng</h4>
+    </div>
+    <div class="form-card-body">
+        <form asp-action="Create" method="post">
+            @Html.AntiForgeryToken()
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label">
+                            <span class="label-icon">👤</span> Họ tên <span class="required">*</span>
+                        </label>
+                        <input asp-for="FullName" class="form-control" placeholder="Nhập họ tên..." />
+                        <span asp-validation-for="FullName" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label">
+                            <span class="label-icon">📧</span> Email <span class="required">*</span>
+                        </label>
+                        <input asp-for="Email" class="form-control" placeholder="Nhập email..." />
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label">
+                            <span class="label-icon">🔐</span> Mật khẩu <span class="required">*</span>
+                        </label>
+                        <input asp-for="Password" type="password" class="form-control" placeholder="Nhập mật khẩu..." />
+                        <span asp-validation-for="Password" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label">
+                            <span class="label-icon">📞</span> Số điện thoại
+                        </label>
+                        <input asp-for="Phone" class="form-control" placeholder="Nhập SĐT..." />
+                        <span asp-validation-for="Phone" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">
+                    <span class="label-icon">📍</span> Địa chỉ
+                </label>
+                <input asp-for="Address" class="form-control" placeholder="Nhập địa chỉ..." />
+                <span asp-validation-for="Address" class="text-danger"></span>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label">
+                            <span class="label-icon">🎭</span> Vai trò
+                        </label>
+                        <select asp-for="Role" class="form-select">
+                            <option value="Customer">🛒 Khách hàng</option>
+                            <option value="Shipper">🚚 Shipper</option>
+                            <option value="Admin">👑 Admin</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label">
+                            <span class="label-icon">⚡</span> Trạng thái
+                        </label>
+                        <select asp-for="IsActive" class="form-select">
+                            <option value="true">✅ Hoạt động</option>
+                            <option value="false">🔒 Bị khóa</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn btn-admin btn-admin-save">
+                    💾 Lưu người dùng
+                </button>
+                <a asp-action="Index" class="btn btn-admin btn-admin-cancel">
+                    ❌ Hủy bỏ
+                </a>
+            </div>
+        </form>
+    </div>
+</div>

@@ -1,0 +1,123 @@
+@model IEnumerable<ASM1_NET.Models.Food>
+
+@{
+    ViewData["Title"] = "Quản lý món ăn";
+}
+
+<!-- ALERTS -->
+@if (TempData["Success"] != null)
+{
+    <div class="admin-alert success">✅ @TempData["Success"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="admin-alert danger">❌ @TempData["Error"]</div>
+}
+
+<!-- HEADER -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1">🍕 Quản lý món ăn</h2>
+        <p class="text-muted mb-0">Tổng: <strong>@Model.Count()</strong> món</p>
+    </div>
+    <a asp-action="Create" class="btn-admin primary">
+        <span>➕</span> Thêm món mới
+    </a>
+</div>
+
+<!-- TABLE CARD -->
+<div class="admin-table-card">
+    <div class="table-header">
+        <h3>📋 Danh sách món ăn</h3>
+        <div class="table-search">
+            <input type="text" id="searchFood" placeholder="Tìm kiếm..." onkeyup="filterTable()" />
+        </div>
+    </div>
+    
+    <table class="admin-table" id="foodTable">
+        <thead>
+            <tr>
+                <th style="width: 80px;">Ảnh</th>
+                <th>Tên món</th>
+                <th>Danh mục</th>
+                <th>Giá</th>
+                <th>Trạng thái</th>
+                <th style="width: 150px;">Hành động</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var f in Model)
+            {
+                <tr>
+                    <td>
+                        @if (!string.IsNullOrEmpty(f.ImageUrl))
+                        {
+                            <img src="@f.ImageUrl" alt="@f.Name" />
+                        }
+                        else
+                        {
+                            <div class="stat-icon primary" style="width: 50px; height: 50px; font-size: 1.2rem;">🍽️</div>
+                        }
+                    </td>
+                    <td>
+                        <strong>@f.Name</strong>
+                        @if (!string.IsNullOrEmpty(f.Description))
+                        {
+                            <br /><small class="text-muted">@(f.Description.Length > 50 ? f.Description.Substring(0, 50) + "..." : f.Description)</small>
+                        }
+                    </td>
+                    <td>
+                        <span class="badge-admin info">@(f.Category?.Name ?? "Chưa phân loại")</span>
+                    </td>
+                    <td>
+                        <strong class="text-primary">@f.Price.ToString("N0") ₫</strong>
+                    </td>
+                    <td>
+                        @if (f.IsAvailable)
+                        {
+                            <span class="badge-admin success">✓ Đang bán</span>
+                        }
+                        else
+                        {
+                            <span class="badge-admin danger">✕ Ngừng bán</span>
+                        }
+                    </td>
+                    <td>
+                        <div class="action-btns">
+                            <a asp-action="Edit" asp-route-id="@f.Id" class="action-btn edit" title="Sửa">
+                                ✏️
+                            </a>
+                            <a asp-action="Delete" asp-route-id="@f.Id" class="action-btn delete" title="Xóa"
+                               onclick="return confirm('Bạn có chắc muốn xóa món ăn này?')">
+                                🗑️
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@section Scripts {
+<script>
+function filterTable() {
+    var input = document.getElementById("searchFood");
+    var filter = input.value.toLowerCase();
+    var table = document.getElementById("foodTable");
+    var rows = table.getElementsByTagName("tr");
+    
+    for (var i = 1; i < rows.length; i++) {
+        var cells = rows[i].getElementsByTagName("td");
+        var found = false;
+        for (var j = 0; j < cells.length; j++) {
+            if (cells[j].textContent.toLowerCase().indexOf(filter) > -1) {
+                found = true;
+                break;
+            }
+        }
+        rows[i].style.display = found ? "" : "none";
+    }
+}
+</script>
+}

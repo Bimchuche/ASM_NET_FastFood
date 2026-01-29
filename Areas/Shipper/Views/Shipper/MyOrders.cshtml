@@ -1,0 +1,39 @@
+@using ASM1_NET.Models
+@model IEnumerable<Order>
+@{
+    Layout = "~/Areas/Shipper/Views/Shared/_ShipperLayout.cshtml";
+}
+
+<h3>🚚 Đơn tôi đang giao</h3>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Mã</th>
+            <th>Địa chỉ</th>
+            <th>Trạng thái</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var o in Model)
+        {
+            <tr>
+                <td>@o.OrderCode</td>
+                <td>@o.Address</td>
+                <td>@o.Status</td>
+                <td>
+                    @if (o.Status == "Delivering")
+                    {
+                        <form asp-area="Shipper" asp-controller="Orders" asp-action="Complete" method="post">
+                            <input type="hidden" name="id" value="@o.Id" />
+                            <button class="btn btn-primary btn-sm">
+                                Hoàn thành
+                            </button>
+                        </form>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

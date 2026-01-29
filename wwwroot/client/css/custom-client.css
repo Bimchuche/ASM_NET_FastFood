@@ -1,0 +1,62 @@
+/* ===== DASHBOARD LEFT ===== */
+
+.dashboard {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 56px;
+  height: 100vh;
+  background: #ffffff;
+  border-right: 1px solid #ddd;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  z-index: 1000;
+}
+
+.dashboard-top,
+.dashboard-bottom {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dash-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #f0f2f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background 0.2s;
+}
+
+.dash-icon:hover {
+  background: #e4e6eb;
+}
+
+.dash-icon.active {
+  background: #1877f2;
+  color: #fff;
+}
+
+.dash-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #ced0d4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+}
+
+/* ===== OFFSET CHO NỘI DUNG ===== */
+.ms-dashboard {
+  margin-left: 56px;
+}

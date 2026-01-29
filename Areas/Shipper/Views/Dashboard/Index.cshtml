@@ -1,0 +1,137 @@
+@using ASM1_NET.Models
+@model IEnumerable<Order>
+@{
+    ViewData["Title"] = "Đơn chờ giao";
+    var hasDeliveringOrder = ViewBag.HasDeliveringOrder ?? false;
+}
+
+<h1 class="shipper-title">📦 Đơn hàng chờ nhận</h1>
+
+<!-- ALERTS -->
+@if (TempData["Error"] != null)
+{
+    <div class="admin-alert danger" style="margin-bottom: 20px;">
+        ⚠️ @TempData["Error"]
+    </div>
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="admin-alert success" style="margin-bottom: 20px;">
+        ✅ @TempData["Success"]
+    </div>
+}
+
+<!-- WARNING: Must complete current order -->
+@if (hasDeliveringOrder)
+{
+    <div class="admin-alert warning" style="margin-bottom: 20px; background: #fff3cd; color: #856404; padding: 15px 20px; border-radius: 12px;">
+        ⚠️ <strong>Bạn đang giao 1 đơn hàng!</strong> Hãy hoàn thành đơn hàng hiện tại trước khi nhận đơn mới.
+        <a href="/Shipper/Orders/MyOrders" style="color: #856404; font-weight: 600; margin-left: 10px;">Xem đơn của tôi →</a>
+    </div>
+}
+
+<!-- STATS -->
+<div class="shipper-stats">
+    <div class="shipper-stat-card">
+        <div class="shipper-stat-icon success">📋</div>
+        <div class="shipper-stat-info">
+            <h3>@Model.Count()</h3>
+            <p>Đơn chờ giao</p>
+        </div>
+    </div>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="empty-state">
+        <div class="icon">✅</div>
+        <h3>Không có đơn hàng nào đang chờ</h3>
+        <p>Tất cả đơn hàng đã được nhận. Hãy quay lại sau!</p>
+    </div>
+}
+else
+{
+    <div class="order-grid">
+        @foreach (var order in Model)
+        {
+            var customerName = order.Customer?.FullName ?? "Khách hàng";
+            var customerInitial = customerName.Substring(0, 1).ToUpper();
+            
+            <div class="order-card">
+                <div class="order-card-header">
+                    <span class="order-id">#@order.OrderCode</span>
+                    <span class="order-status pending">Chờ nhận</span>
+                </div>
+                
+                <div class="order-card-body">
+                    <div class="order-customer">
+                        <div class="customer-avatar">@customerInitial</div>
+                        <div>
+                            <div class="customer-name">@customerName</div>
+                            <div class="customer-phone">📞 @order.Phone</div>
+                        </div>
+                    </div>
+                    
+                    <div class="order-address">
+                        <span class="icon">📍</span>
+                        @order.Address
+                    </div>
+                    
+                    <div class="order-total">
+                        <span class="total-label">Tổng tiền:</span>
+                        <span class="total-value">@order.TotalAmount.ToString("N0") ₫</span>
+                    </div>
+                </div>
+                
+                <div class="order-card-footer">
+                    @if (hasDeliveringOrder)
+                    {
+                        <button class="order-btn view" style="flex: 1; cursor: not-allowed; opacity: 0.5;" disabled>
+                            🚫 Hoàn thành đơn trước
+                        </button>
+                    }
+                    else
+                    {
+                        <form action="/Shipper/Dashboard/Accept" method="post" style="flex: 1;" onsubmit="return getShipperGPS(this)">
+                            <input type="hidden" name="id" value="@order.Id" />
+                            <input type="hidden" name="shipperLat" class="shipper-lat" />
+                            <input type="hidden" name="shipperLng" class="shipper-lng" />
+                            <button type="submit" class="order-btn accept" style="width: 100%;">
+                                ✅ Nhận đơn
+                            </button>
+                        </form>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<script>
+    // Get shipper GPS when accepting order
+    function getShipperGPS(form) {
+        var latInput = form.querySelector('.shipper-lat');
+        var lngInput = form.querySelector('.shipper-lng');
+        
+        if (navigator.geolocation) {
+            // Try to get cached position first (faster)
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    latInput.value = position.coords.latitude;
+                    lngInput.value = position.coords.longitude;
+                    form.submit();
+                },
+                function(error) {
+                    // Submit anyway without GPS (will use default 15 min)
+                    console.log('GPS error:', error.message);
+                    form.submit();
+                },
+                { enableHighAccuracy: false, timeout: 3000, maximumAge: 60000 }
+            );
+            return false; // Prevent immediate submit, wait for GPS
+        }
+        
+        return true; // No geolocation, submit normally
+    }
+</script>

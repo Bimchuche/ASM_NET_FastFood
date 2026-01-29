@@ -1,0 +1,158 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="utf-8" />
+    <title>@ViewData["Title"] - FastFood</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="FastFood - Đặt đồ ăn nhanh online, giao hàng tận nơi trong 30 phút" />
+
+    <!-- BOOTSTRAP -->
+    <link href="~/client/css/bootstrap.min.css" rel="stylesheet" />
+
+    <!-- FASTFOOD THEME (NEW) -->
+    <link href="~/client/css/fastfood-theme.css" rel="stylesheet" />
+    <link href="~/client/css/layout-modern.css" rel="stylesheet" />
+    <link href="~/client/css/modal.css" rel="stylesheet" />
+    <link href="~/client/css/site.css" rel="stylesheet" />
+    <link href="~/client/css/mini-cart.css" rel="stylesheet" />
+
+    <!-- GLOBAL FONT: Times New Roman Bold -->
+    <link href="~/css/global-font.css" rel="stylesheet" />
+
+    @RenderSection("Styles", required: false)
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-glass fixed-top">
+        <div class="container-fluid px-5">
+
+            <!-- LOGO -->
+            <a class="navbar-brand fw-bold logo" asp-controller="Home" asp-action="Index">
+                🍔 FastFood
+            </a>
+
+            <!-- TOGGLE -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <!-- MENU -->
+            <div class="collapse navbar-collapse" id="mainNavbar">
+                <ul class="navbar-nav ms-auto align-items-center">
+
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Food" asp-action="Index">Menu</a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Combo" asp-action="Index">Combo</a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="About" asp-action="Index">Giới thiệu</a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Contact" asp-action="Index">Liên hệ</a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Order" asp-action="History">
+                            📦 Đơn hàng
+                        </a>
+                    </li>
+
+                    <!-- MINI CART -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link cart-icon dropdown-toggle" href="#" id="cartDropdown" role="button"
+                            data-bs-toggle="dropdown">
+                            🛒
+                        </a>
+
+                        <div class="dropdown-menu dropdown-menu-end mini-cart-dropdown-wrapper">
+                            <div id="miniCartContent">
+                                @await Component.InvokeAsync("MiniCart")
+                            </div>
+                        </div>
+                    </li>
+
+                    <!-- AUTH -->
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        @* Link to Admin Panel for Admin/Staff *@
+                        @if (User.IsInRole("Admin") || User.IsInRole("Staff"))
+                        {
+                            <li class="nav-item ms-2">
+                                <a class="btn btn-warning btn-sm" asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
+                                    ⚙️ Admin Panel
+                                </a>
+                            </li>
+                        }
+                        
+                        @* Link to Shipper Panel *@
+                        @if (User.IsInRole("Shipper"))
+                        {
+                            <li class="nav-item ms-2">
+                                <a class="btn btn-success btn-sm" asp-area="Shipper" asp-controller="Dashboard" asp-action="Index">
+                                    🚚 Shipper Panel
+                                </a>
+                            </li>
+                        }
+                        
+                        <li class="nav-item ms-2">
+                            <a class="btn btn-outline-light btn-sm" asp-controller="Account" asp-action="Profile">
+                                👤 Tài khoản
+                            </a>
+                        </li>
+                        
+                        <li class="nav-item ms-2">
+                            <form asp-controller="Account" asp-action="Logout" method="post">
+                                <button class="btn btn-outline-light btn-sm">
+                                    Đăng xuất
+                                </button>
+                            </form>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="nav-item ms-3">
+                            <a class="btn btn-outline-light btn-sm" asp-controller="Account" asp-action="Login">
+                                Đăng nhập
+                            </a>
+                        </li>
+                    }
+
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+        @RenderBody()
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <p>© 2026 FastFood. All rights reserved.</p>
+    </footer>
+
+    <!-- JS -->
+    <script src="~/client/js/bootstrap.bundle.min.js"></script>
+
+    @RenderSection("Scripts", required: false)
+
+    <!-- Popup & Cart Functions -->
+    <script src="~/client/js/popup.js"></script>
+    
+    <!-- Anime.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.2/anime.min.js"></script>
+    <!-- Custom Animations -->
+    <script src="~/client/js/animations.js"></script>
+
+</body>
+
+</html>

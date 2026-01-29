@@ -1,0 +1,140 @@
+@model ASM1_NET.ViewModels.RegisterViewModel
+@{
+    ViewData["Title"] = "Đăng ký";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Đăng ký - FastFood</title>
+    <link href="~/client/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="~/client/css/auth.css" rel="stylesheet" />
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="~/client/css/address-picker.css" />
+</head>
+<body class="auth-page">
+    <!-- Floating Icons -->
+    <div class="floating-icon">🍔</div>
+    <div class="floating-icon">🍟</div>
+    <div class="floating-icon">🍕</div>
+    <div class="floating-icon">🌭</div>
+    <div class="floating-icon">🍗</div>
+    
+    <!-- Back to Home -->
+    <a href="/" class="back-home">
+        ← Về trang chủ
+    </a>
+    
+    <div class="auth-container wide">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="auth-logo">🍔</div>
+                <h1 class="auth-title">Tạo tài khoản</h1>
+                <p class="auth-subtitle">Đăng ký để trải nghiệm dịch vụ tốt nhất</p>
+            </div>
+            
+            @* ===== VALIDATION SUMMARY - Model Validation ===== *@
+            <div asp-validation-summary="All" class="auth-alert danger" style="display: none;"></div>
+            
+            @if (ViewBag.Error != null)
+            {
+                <div class="auth-alert danger">
+                    ⚠️ @ViewBag.Error
+                </div>
+            }
+            
+            @* ===== FORM với Validation Tag Helpers ===== *@
+            <form asp-action="Register" asp-controller="Account" method="post" class="auth-form">
+                @Html.AntiForgeryToken()
+                
+                <div class="form-floating">
+                    <input asp-for="FullName" class="form-control" placeholder="Họ và tên" />
+                    <label asp-for="FullName">👤 Họ và tên</label>
+                    <span asp-validation-for="FullName" class="text-danger small"></span>
+                </div>
+                
+                <div class="form-floating">
+                    <input asp-for="Email" class="form-control" placeholder="Email" />
+                    <label asp-for="Email">📧 Email</label>
+                    <span asp-validation-for="Email" class="text-danger small"></span>
+                </div>
+                
+                <div class="form-floating">
+                    <input asp-for="Password" class="form-control" placeholder="Mật khẩu" />
+                    <label asp-for="Password">🔒 Mật khẩu</label>
+                    <span asp-validation-for="Password" class="text-danger small"></span>
+                </div>
+                
+                <div class="form-floating">
+                    <input asp-for="ConfirmPassword" class="form-control" placeholder="Xác nhận mật khẩu" />
+                    <label asp-for="ConfirmPassword">🔒 Xác nhận mật khẩu</label>
+                    <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                </div>
+                
+                <div class="auth-row">
+                    <div class="form-floating">
+                        <input asp-for="Phone" class="form-control" placeholder="SĐT" />
+                        <label asp-for="Phone">📱 Số điện thoại</label>
+                        <span asp-validation-for="Phone" class="text-danger small"></span>
+                    </div>
+                </div>
+                
+                <!-- Address with Map -->
+                <div class="form-floating address-input-wrapper">
+                    <input asp-for="Address" class="form-control" id="address" placeholder="Địa chỉ" />
+                    <label asp-for="Address">📍 Địa chỉ giao hàng</label>
+                    <span asp-validation-for="Address" class="text-danger small"></span>
+                    <div class="address-suggestions" id="addressSuggestions"></div>
+                </div>
+                
+                <!-- Leaflet Map -->
+                <div class="auth-map-container address-map-container">
+                    <div id="registerMap" class="auth-map address-map"></div>
+                    <button type="button" class="btn-current-location" onclick="getCurrentLocation('address')">
+                        📍 Vị trí hiện tại
+                    </button>
+                </div>
+                
+                <button type="submit" class="btn-auth">
+                    Đăng ký
+                </button>
+            </form>
+            
+            <div class="auth-divider">
+                <span>hoặc</span>
+            </div>
+            
+            <p class="auth-link">
+                Đã có tài khoản? <a asp-action="Login">Đăng nhập</a>
+            </p>
+        </div>
+    </div>
+    
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="~/client/js/address-picker.js"></script>
+    
+    @* ===== CLIENT-SIDE VALIDATION SCRIPTS ===== *@
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize map (Ho Chi Minh City default)
+            initAddressMap('registerMap', 'address', { lat: 10.8231, lng: 106.6297, zoom: 13 });
+            initAddressAutocomplete('address', 'addressSuggestions');
+            
+            // Show validation summary if has errors
+            var summary = document.querySelector('[data-valmsg-summary="true"]');
+            if (summary && summary.querySelector('li')) {
+                summary.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>

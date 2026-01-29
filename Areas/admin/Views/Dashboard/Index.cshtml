@@ -1,0 +1,145 @@
+@{
+    ViewData["Title"] = "Tổng quan";
+}
+
+<!-- STATS ROW -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon primary">
+            📂
+        </div>
+        <div class="stat-info">
+            <h3>@ViewBag.TotalCategory</h3>
+            <p>Danh mục</p>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon success">
+            🍕
+        </div>
+        <div class="stat-info">
+            <h3>@ViewBag.TotalFood</h3>
+            <p>Món ăn</p>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon warning">
+            🎁
+        </div>
+        <div class="stat-info">
+            <h3>@ViewBag.TotalCombo</h3>
+            <p>Combo</p>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon danger">
+            🧾
+        </div>
+        <div class="stat-info">
+            <h3>@ViewBag.TotalOrder</h3>
+            <p>Đơn hàng</p>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- CHART -->
+    <div class="col-lg-7">
+        <div class="admin-table-card p-4 h-100">
+            <h3 class="mb-4" style="font-size: 1.1rem; font-weight: 600;">Thống kê món ăn theo danh mục</h3>
+            <div style="position: relative; height: 300px; width: 100%;">
+                <canvas id="foodChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- RECENT ORDERS -->
+    <div class="col-lg-5">
+        <div class="admin-table-card h-100">
+            <div class="table-header">
+                <h3>Đơn hàng mới nhất</h3>
+                <a href="/Admin/Order" class="btn-admin sm outline">Xem tất cả</a>
+            </div>
+            
+            <div class="table-responsive">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Mã đơn</th>
+                            <th>Tổng tiền</th>
+                            <th>Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var o in ViewBag.LatestOrders)
+                        {
+                            <tr>
+                                <td>
+                                    <span class="id-badge">@o.OrderCode</span>
+                                </td>
+                                <td class="fw-bold">@o.TotalAmount.ToString("N0") ₫</td>
+                                <td>
+                                    @{
+                                        var statusClass = "info";
+                                        if (o.Status == "Completed") statusClass = "success";
+                                        else if (o.Status == "Cancelled") statusClass = "danger";
+                                        else if (o.Status == "Pending") statusClass = "warning";
+                                    }
+                                    <span class="badge-admin @statusClass">@o.Status</span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // CHART SETUP
+        const ctx = document.getElementById('foodChart').getContext('2d');
+        const categoryNames = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.CategoryNames));
+        const foodCounts = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.FoodCounts));
+
+        // Generate colors
+        const colors = [
+            '#4f46e5', '#06b6d4', '#10b981', '#f59e0b', '#ef4444', 
+            '#8b5cf6', '#ec4899', '#6366f1', '#14b8a6', '#84cc16'
+        ];
+
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: categoryNames,
+                datasets: [{
+                    data: foodCounts,
+                    backgroundColor: colors,
+                    borderWidth: 0,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20,
+                            font: {
+                                size: 12
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+}

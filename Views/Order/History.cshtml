@@ -1,0 +1,163 @@
+@model List<ASM1_NET.Models.Order>
+@{
+    ViewData["Title"] = "Lịch sử đơn hàng";
+    var pendingCount = Model.Count(o => o.Status == "Pending");
+    var deliveringCount = Model.Count(o => o.Status == "Delivering");
+    var completedCount = Model.Count(o => o.Status == "Completed");
+    var totalSpent = Model.Where(o => o.Status == "Completed").Sum(o => o.TotalAmount);
+}
+
+<link rel="stylesheet" href="~/client/css/menu.css" />
+
+<div class="order-history-page">
+    <div class="container">
+        <!-- HERO -->
+        <div class="order-hero animate-fade-in">
+            <h1>📦 Lịch sử đơn hàng</h1>
+            <p>Theo dõi tất cả đơn hàng của bạn</p>
+        </div>
+        
+        <!-- STATS -->
+        <div class="order-stats animate-slide-up">
+            <div class="order-stat-card">
+                <div class="stat-icon">⏳</div>
+                <div class="stat-value">@pendingCount</div>
+                <div class="stat-label">Đang chờ</div>
+            </div>
+            <div class="order-stat-card">
+                <div class="stat-icon">🚚</div>
+                <div class="stat-value">@deliveringCount</div>
+                <div class="stat-label">Đang giao</div>
+            </div>
+            <div class="order-stat-card">
+                <div class="stat-icon">✅</div>
+                <div class="stat-value">@completedCount</div>
+                <div class="stat-label">Hoàn thành</div>
+            </div>
+            <div class="order-stat-card">
+                <div class="stat-icon">💰</div>
+                <div class="stat-value">@totalSpent.ToString("N0")₫</div>
+                <div class="stat-label">Tổng chi tiêu</div>
+            </div>
+        </div>
+        
+        <!-- ORDER TABLE -->
+        @if (!Model.Any())
+        {
+            <div class="menu-empty-state animate-fade-in">
+                <div class="empty-icon">📦</div>
+                <h3>Bạn chưa có đơn hàng nào</h3>
+                <p>Hãy đặt hàng ngay để trải nghiệm dịch vụ của chúng tôi!</p>
+                <a href="/Food" class="btn btn-primary btn-lg rounded-pill px-4">🍕 Xem menu</a>
+            </div>
+        }
+        else
+        {
+            <div class="order-table-card animate-slide-up">
+                <div class="order-table-header">
+                    <h3>📋 Danh sách đơn hàng</h3>
+                </div>
+                
+                <table class="order-table">
+                    <thead>
+                        <tr>
+                            <th>Mã đơn</th>
+                            <th>Ngày đặt</th>
+                            <th>Địa chỉ</th>
+                            <th>Tổng tiền</th>
+                            <th>Phương thức thanh toán</th>
+                            <th>Trạng thái</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var order in Model.OrderByDescending(o => o.OrderDate))
+                        {
+                            var statusClass = order.Status switch
+                            {
+                                "Pending" => "pending",
+                                "Delivering" => "delivering",
+                                "Completed" => "completed",
+                                "Cancelled" => "cancelled",
+                                _ => "pending"
+                            };
+                            var statusIcon = order.Status switch
+                            {
+                                "Pending" => "⏳",
+                                "Delivering" => "🚚",
+                                "Completed" => "✅",
+                                "Cancelled" => "❌",
+                                _ => "📦"
+                            };
+                            var statusText = order.Status switch
+                            {
+                                "Pending" => "Đang chờ",
+                                "Delivering" => "Đang giao",
+                                "Completed" => "Hoàn thành",
+                                "Cancelled" => "Đã hủy",
+                                _ => order.Status
+                            };
+                            
+                            <tr class="animate-fade-in">
+                                <td>
+                                    <strong style="color: #60a5fa;">#@order.OrderCode</strong>
+                                </td>
+                                <td>@order.OrderDate.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>
+                                    <span style="max-width: 200px; display: inline-block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                        📍 @order.Address
+                                    </span>
+                                </td>
+                                <td>
+                                    <strong style="color: #fbbf24;">@order.TotalAmount.ToString("N0") ₫</strong>
+                                </td>
+                                <td>
+                                    @if (order.PaymentMethod == "QR")
+                                    {
+                                        <span class="order-payment-label qr">📱 QR</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="order-payment-label cod">💵 COD</span>
+                                    }
+                                </td>
+                                <td>
+                                    <span class="order-status @statusClass">
+                                        @statusIcon @statusText
+                                    </span>
+                                </td>
+                                <td>
+                                    <div style="display: flex; gap: 8px;">
+                                        <a asp-action="Success" asp-route-id="@order.Id" class="order-action-btn primary">
+                                            👁️ Xem
+                                        </a>
+                                        @if (order.Status == "Pending")
+                                        {
+                                            <form asp-action="Cancel" method="post" style="display: inline;">
+                                                <input type="hidden" name="id" value="@order.Id" />
+                                                <button type="submit" class="order-action-btn cancel" 
+                                                        onclick="return confirm('Bạn có chắc muốn hủy đơn hàng này?');">
+                                                    ❌ Hủy
+                                                </button>
+                                            </form>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Animate table rows on scroll
+    const rows = document.querySelectorAll('.order-table tbody tr');
+    rows.forEach((row, index) => {
+        row.style.animationDelay = (index * 0.05) + 's';
+    });
+});
+</script>

@@ -1,0 +1,55 @@
+﻿body {
+    margin: 0;
+    background: #0b0b0b;
+    color: white;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+/* NAVBAR GLASS */
+.navbar-glass {
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.logo {
+    color: #ff4d4d !important;
+    font-size: 22px;
+}
+
+.nav-link {
+    color: rgba(255,255,255,0.85) !important;
+    margin-left: 14px;
+}
+
+.nav-link:hover {
+    color: #ff4d4d !important;
+}
+
+.cart-icon {
+    font-size: 20px;
+}
+
+/* MAIN */
+.main-content {
+    padding-top: 80px;
+    padding-left: 5%;
+    padding-right: 5%;
+    min-height: calc(100vh - 80px);
+}
+
+/* DROPDOWN */
+.dropdown-menu {
+    background: #111;
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.08);
+}
+
+/* FOOTER */
+.footer-modern {
+    background: #050505;
+    text-align: center;
+    padding: 24px;
+    font-size: 14px;
+    opacity: 0.6;
+}

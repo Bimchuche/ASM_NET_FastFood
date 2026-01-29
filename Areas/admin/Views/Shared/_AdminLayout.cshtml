@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewData["Title"] - Admin FastFood</title>
+    <link href="~/admin/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="~/admin/css/admin-theme.css" rel="stylesheet" />
+    
+    <!-- GLOBAL FONT: Times New Roman Bold -->
+    <link href="~/css/global-font.css" rel="stylesheet" />
+    
+    @RenderSection("Styles", required: false)
+</head>
+
+<body class="admin-body">
+
+    <!-- SIDEBAR -->
+    <aside class="admin-sidebar">
+        <div class="sidebar-brand">
+            <span class="logo">🍔</span>
+            <div>
+                <h2>FastFood</h2>
+                <small>Admin Panel</small>
+            </div>
+        </div>
+
+        <ul class="sidebar-menu">
+            @* ADMIN MENU *@
+            @if (User.IsInRole("Admin"))
+            {
+                <li class="menu-label">Tổng quan</li>
+                <li>
+                    <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
+                        <span class="icon">📊</span>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+
+                <li class="menu-label">Quản lý sản phẩm</li>
+                <li>
+                    <a asp-area="Admin" asp-controller="Food" asp-action="Index">
+                        <span class="icon">🍕</span>
+                        <span>Món ăn</span>
+                    </a>
+                </li>
+                <li>
+                    <a asp-area="Admin" asp-controller="Combo" asp-action="Index">
+                        <span class="icon">🎁</span>
+                        <span>Combo</span>
+                    </a>
+                </li>
+                <li>
+                    <a asp-area="Admin" asp-controller="Category" asp-action="Index">
+                        <span class="icon">📂</span>
+                        <span>Danh mục</span>
+                    </a>
+                </li>
+
+                <li class="menu-label">Quản lý đơn hàng</li>
+                <li>
+                    <a asp-area="Admin" asp-controller="Order" asp-action="Index">
+                        <span class="icon">📦</span>
+                        <span>Đơn hàng</span>
+                    </a>
+                </li>
+
+                <li class="menu-label">Quản lý người dùng</li>
+                <li>
+                    <a asp-area="Admin" asp-controller="User" asp-action="Index">
+                        <span class="icon">👥</span>
+                        <span>Người dùng</span>
+                    </a>
+                </li>
+
+                <li class="menu-label">Hệ thống</li>
+                <li>
+                    <a asp-area="Admin" asp-controller="Activity" asp-action="Index">
+                        <span class="icon">📋</span>
+                        <span>Nhật ký hoạt động</span>
+                    </a>
+                </li>
+                <li>
+                    <a asp-area="Admin" asp-controller="Trash" asp-action="Index">
+                        <span class="icon">🗑️</span>
+                        <span>Thùng rác</span>
+                    </a>
+                </li>
+            }
+
+            @* STAFF MENU *@
+            @if (User.IsInRole("Staff"))
+            {
+                <li class="menu-label">Nhân viên</li>
+                <li>
+                    <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
+                        <span class="icon">📊</span>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li>
+                    <a asp-area="Admin" asp-controller="Order" asp-action="Index">
+                        <span class="icon">📦</span>
+                        <span>Đơn hàng</span>
+                    </a>
+                </li>
+            }
+
+            @* SHIPPER MENU *@
+            @if (User.IsInRole("Shipper"))
+            {
+                <li class="menu-label">Shipper</li>
+                <li>
+                    <a asp-area="Shipper" asp-controller="Shipper" asp-action="Index">
+                        <span class="icon">🚚</span>
+                        <span>Đơn đang giao</span>
+                    </a>
+                </li>
+            }
+
+            <li class="menu-label">Tài khoản</li>
+            <li>
+                <a href="/">
+                    <span class="icon">🏠</span>
+                    <span>Về trang chủ</span>
+                </a>
+            </li>
+            <li>
+                <a asp-area="" asp-controller="Account" asp-action="Logout">
+                    <span class="icon">🚪</span>
+                    <span>Đăng xuất</span>
+                </a>
+            </li>
+        </ul>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="admin-main">
+        <!-- TOPBAR -->
+        <header class="admin-topbar">
+            <div class="topbar-title">
+                <h1>@ViewData["Title"]</h1>
+                <p>Chào mừng bạn quay trở lại!</p>
+            </div>
+            <div class="topbar-actions">
+                <div class="user-dropdown">
+                    <div class="user-avatar">
+                        @(User.Identity?.Name?.Substring(0, 1).ToUpper() ?? "A")
+                    </div>
+                    <span>@User.Identity?.Name</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- CONTENT -->
+        <div class="admin-content">
+            @RenderBody()
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="~/admin/js/dashboard.js"></script>
+    @RenderSection("Scripts", required: false)
+
+</body>
+
+</html>

@@ -1,0 +1,366 @@
+@model ASM1_NET.Models.Cart
+@{
+    ViewData["Title"] = "Thanh toán";
+    var totalAmount = Model?.CartItems?.Sum(i => i.Price * i.Quantity) ?? 0;
+    var totalItems = Model?.CartItems?.Sum(i => i.Quantity) ?? 0;
+}
+
+<link rel="stylesheet" href="~/client/css/checkout.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="~/client/css/address-picker.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="~/client/js/address-picker.js"></script>
+
+<div class="checkout-page">
+    <div class="container">
+        <!-- HERO -->
+        <div class="checkout-hero">
+            <h1>🧾 Thanh toán đơn hàng</h1>
+            <p>Xác nhận thông tin và hoàn tất đơn hàng của bạn</p>
+        </div>
+        
+        @if (Model == null || Model.CartItems == null || !Model.CartItems.Any())
+        {
+            <div class="checkout-card">
+                <div class="checkout-empty">
+                    <div class="icon">🛒</div>
+                    <h3>Giỏ hàng trống</h3>
+                    <p>Không thể thanh toán khi chưa có sản phẩm</p>
+                    <a href="/Food" class="btn-checkout-submit" style="display: inline-block; padding: 15px 40px;">
+                        🍕 Xem Menu
+                    </a>
+                </div>
+            </div>
+        }
+        else
+        {
+            <form method="post" asp-controller="Order" asp-action="Checkout" id="checkoutForm" novalidate>
+                <div class="checkout-grid">
+                    <!-- LEFT: Order Details -->
+                    <div>
+                        <!-- Order Items -->
+                        <div class="checkout-card" style="margin-bottom: 25px;">
+                            <div class="checkout-card-header">
+                                <h3>📦 Sản phẩm đã chọn (@totalItems)</h3>
+                            </div>
+                            <div class="checkout-card-body">
+                                @foreach (var item in Model.CartItems)
+                                {
+                                    var itemName = item.Food?.Name ?? item.Combo?.Name ?? "Sản phẩm";
+                                    var itemImage = item.Food?.ImageUrl ?? item.Combo?.ImageUrl ?? "";
+                                    var isCombo = item.ComboId.HasValue;
+                                    var subtotal = item.Price * item.Quantity;
+                                    
+                                    <div class="checkout-item">
+                                        <div class="checkout-item-image">
+                                            @if (!string.IsNullOrEmpty(itemImage))
+                                            {
+                                                <img src="@itemImage" alt="@itemName" onerror="this.parentElement.innerHTML='🍔'" />
+                                            }
+                                            else
+                                            {
+                                                <span>@(isCombo ? "🎁" : "🍔")</span>
+                                            }
+                                        </div>
+                                        <div class="checkout-item-info">
+                                            <span class="checkout-item-name">@itemName</span>
+                                            <span class="checkout-item-type @(isCombo ? "combo" : "food")">
+                                                @(isCombo ? "COMBO" : "MÓN ĂN")
+                                            </span>
+                                            <span class="checkout-item-qty">×@item.Quantity • @item.Price.ToString("N0")₫/món</span>
+                                        </div>
+                                        <span class="checkout-item-price">@subtotal.ToString("N0")₫</span>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                        
+                        <!-- Delivery Info -->
+                        <div class="checkout-card">
+                            <div class="checkout-card-header">
+                                <h3>🚚 Thông tin giao hàng</h3>
+                            </div>
+                            <div class="checkout-card-body">
+                                <!-- Address Type Selector -->
+                                @if (!string.IsNullOrEmpty(ViewBag.UserAddress))
+                                {
+                                    <div class="address-type-selector">
+                                        <div class="address-type-option active" onclick="selectAddressType('saved', this)">
+                                            <span class="icon">🏠</span>
+                                            <span class="label">Địa chỉ đã lưu</span>
+                                            <span class="desc">Giao đến địa chỉ của bạn</span>
+                                        </div>
+                                        <div class="address-type-option" onclick="selectAddressType('new', this)">
+                                            <span class="icon">📍</span>
+                                            <span class="label">Địa chỉ khác</span>
+                                            <span class="desc">Chọn địa chỉ mới</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Saved Address Display -->
+                                    <div class="saved-address-display" id="savedAddressDisplay">
+                                        <span class="icon">✅</span>
+                                        <span class="address-text">@ViewBag.UserAddress</span>
+                                    </div>
+                                    
+                                    <!-- Hidden input for saved address -->
+                                    <input type="hidden" name="addressType" id="addressType" value="saved" />
+                                    <input type="hidden" id="savedAddress" value="@ViewBag.UserAddress" />
+                                }
+                                
+                                <!-- New Address Section (with Map) -->
+                                <div class="new-address-section @(string.IsNullOrEmpty(ViewBag.UserAddress) ? "active" : "")" id="newAddressSection">
+                                    <div class="checkout-form-group">
+                                        <label class="checkout-label">
+                                            <span class="icon">📍</span>Địa chỉ giao hàng
+                                        </label>
+                                        <div class="address-input-wrapper">
+                                            <input type="text" name="address" id="addressInput" class="checkout-input" 
+                                                   placeholder="Nhập địa chỉ hoặc chọn trên bản đồ..." 
+                                                   @(string.IsNullOrEmpty(ViewBag.UserAddress) ? "required" : "") />
+                                            <input type="hidden" name="latitude" id="addressLatitude" />
+                                            <input type="hidden" name="longitude" id="addressLongitude" />
+                                            <div class="address-suggestions" id="addressSuggestions"></div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Leaflet Map -->
+                                    <div class="address-map-container">
+                                        <div id="checkoutMap" class="address-map"></div>
+                                        <button type="button" class="btn-current-location" onclick="getCurrentLocation('addressInput')">
+                                            📍 Vị trí hiện tại
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="checkout-form-group">
+                                    <label class="checkout-label">
+                                        <span class="icon">📞</span>Số điện thoại
+                                    </label>
+                                    <input type="tel" name="phone" class="checkout-input" 
+                                           value="@ViewBag.UserPhone"
+                                           placeholder="Nhập số điện thoại liên hệ..." required />
+                                </div>
+                                
+                                <div class="checkout-form-group">
+                                    <label class="checkout-label">
+                                        <span class="icon">📝</span>Ghi chú (tùy chọn)
+                                    </label>
+                                    <input type="text" name="note" class="checkout-input" 
+                                           placeholder="Ghi chú cho đơn hàng (ví dụ: giao giờ hành chính)..." />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- RIGHT: Payment & Summary -->
+                    <div>
+                        <!-- Payment Methods -->
+                        <div class="checkout-card" style="margin-bottom: 25px;">
+                            <div class="checkout-card-header">
+                                <h3>💳 Phương thức thanh toán</h3>
+                            </div>
+                            <div class="checkout-card-body">
+                                <div class="payment-methods">
+                                    <label class="payment-method active" onclick="selectPayment(this, 'cod')">
+                                        <input type="radio" name="paymentMethod" value="COD" checked />
+                                        <span class="radio-custom"></span>
+                                        <span class="payment-method-icon">💵</span>
+                                        <div class="payment-method-info">
+                                            <h4>Thanh toán khi nhận hàng</h4>
+                                            <p>Trả tiền mặt cho shipper</p>
+                                        </div>
+                                    </label>
+                                    
+                                    <label class="payment-method" onclick="selectPayment(this, 'qr')">
+                                        <input type="radio" name="paymentMethod" value="QR" />
+                                        <span class="radio-custom"></span>
+                                        <span class="payment-method-icon">📱</span>
+                                        <div class="payment-method-info">
+                                            <h4>Chuyển khoản QR</h4>
+                                            <p>Quét mã QR để thanh toán</p>
+                                        </div>
+                                    </label>
+                                
+                                <!-- QR Code Section -->
+                                <div id="qrSection" class="qr-section">
+                                    <div class="qr-code">
+                                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=FastFood-Order-@totalAmount" alt="QR Code" />
+                                    </div>
+                                    <div class="qr-info">
+                                        <p>Quét mã QR để thanh toán</p>
+                                        <p>Số tiền: <strong>@totalAmount.ToString("N0")₫</strong></p>
+                                        <p style="font-size: 0.8rem; margin-top: 10px;">
+                                            Ngân hàng: <strong>Vietcombank</strong><br/>
+                                            STK: <strong>1234567890</strong><br/>
+                                            Chủ TK: <strong>FASTFOOD VN</strong>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Order Summary -->
+                        <div class="checkout-card">
+                            <div class="checkout-card-header">
+                                <h3>📋 Tóm tắt đơn hàng</h3>
+                            </div>
+                            <div class="checkout-card-body">
+                                <div class="checkout-summary">
+                                    <div class="checkout-summary-row">
+                                        <span>Tạm tính (@totalItems món)</span>
+                                        <span>@totalAmount.ToString("N0")₫</span>
+                                    </div>
+                                    <div class="checkout-summary-row">
+                                        <span>Phí giao hàng</span>
+                                        <span style="color: #22c55e;">Miễn phí</span>
+                                    </div>
+                                    <div class="checkout-summary-row">
+                                        <span>Giảm giá</span>
+                                        <span>0₫</span>
+                                    </div>
+                                    <div class="checkout-summary-row total">
+                                        <span>Tổng cộng</span>
+                                        <span>@totalAmount.ToString("N0")₫</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="checkout-actions">
+                                    <button type="submit" class="btn-checkout-submit">
+                                        ✅ Xác nhận đặt hàng
+                                    </button>
+                                    <a href="/Cart" class="btn-checkout-back">
+                                        ← Quay lại giỏ hàng
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        }
+    </div>
+</div>
+
+<script>
+    // Initialize map if no saved address (always show map)
+    document.addEventListener('DOMContentLoaded', function() {
+        const newSection = document.getElementById('newAddressSection');
+        if (newSection && newSection.classList.contains('active')) {
+            setTimeout(() => {
+                initAddressMap('checkoutMap', 'addressInput', { lat: 10.8231, lng: 106.6297, zoom: 13 });
+                initAddressAutocomplete('addressInput', 'addressSuggestions');
+                window.addressMapInitialized = true;
+            }, 100);
+        }
+    });
+
+    function selectPayment(element, type) {
+        // Remove active from all
+        document.querySelectorAll('.payment-method').forEach(el => el.classList.remove('active'));
+        // Add active to clicked
+        element.classList.add('active');
+        // Check radio
+        element.querySelector('input[type="radio"]').checked = true;
+        
+        // Show/hide QR section
+        const qrSection = document.getElementById('qrSection');
+        if (type === 'qr') {
+            qrSection.classList.add('active');
+        } else {
+            qrSection.classList.remove('active');
+        }
+    }
+    
+    // Address type toggle
+    function selectAddressType(type, element) {
+        // Update active class
+        document.querySelectorAll('.address-type-option').forEach(el => el.classList.remove('active'));
+        element.classList.add('active');
+        
+        // Update hidden input
+        document.getElementById('addressType').value = type;
+        
+        // Show/hide sections
+        const savedDisplay = document.getElementById('savedAddressDisplay');
+        const newSection = document.getElementById('newAddressSection');
+        const addressInput = document.getElementById('addressInput');
+        
+        if (type === 'saved') {
+            savedDisplay.style.display = 'block';
+            newSection.classList.remove('active');
+            // Remove required to prevent validation error on hidden field
+            addressInput.removeAttribute('required');
+            addressInput.value = ''; // clear value
+        } else {
+            savedDisplay.style.display = 'none';
+            newSection.classList.add('active');
+            addressInput.setAttribute('required', 'required');
+            
+            // Initialize map if not already
+            if (!window.addressMapInitialized) {
+                setTimeout(() => {
+                    initAddressMap('checkoutMap', 'addressInput', { lat: 10.8231, lng: 106.6297, zoom: 13 });
+                    initAddressAutocomplete('addressInput', 'addressSuggestions');
+                    window.addressMapInitialized = true;
+                }, 100);
+            }
+        }
+    }
+    
+    // Handle form submit
+    const checkoutForm = document.getElementById('checkoutForm');
+    if (checkoutForm) {
+        checkoutForm.addEventListener('submit', function(e) {
+            const addressType = document.getElementById('addressType');
+            const phone = document.querySelector('input[name="phone"]');
+            
+            // Basic validation
+            if (!phone.value.trim()) {
+                e.preventDefault();
+                showToast('Vui lòng nhập số điện thoại!', 'error');
+                return;
+            }
+
+            if (addressType && addressType.value === 'saved') {
+                // Case 1: Saved Address
+                const savedAddress = document.getElementById('savedAddress').value;
+                const addressInput = document.getElementById('addressInput');
+                
+                // FORCE: populate saved address to the input that controller expects
+                if (addressInput) {
+                    addressInput.removeAttribute('required'); // Ensure no validation blocks it
+                    addressInput.value = savedAddress;
+                } else {
+                    // Fallback
+                    const hidden = document.createElement('input');
+                    hidden.type = 'hidden';
+                    hidden.name = 'address';
+                    hidden.value = savedAddress;
+                    this.appendChild(hidden);
+                }
+            } else {
+                // Case 2: New Address
+                 const addressInput = document.getElementById('addressInput');
+                 if (!addressInput.value.trim()) {
+                     e.preventDefault();
+                     showToast('Vui lòng nhập địa chỉ giao hàng!', 'error');
+                     return;
+                 }
+            }
+            // If all good, form submits naturally
+        });
+    }
+</script>
+
+@section Styles {
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="~/client/css/address-picker.css" />
+}
+
+@section Scripts {
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="~/client/js/address-picker.js"></script>
+}

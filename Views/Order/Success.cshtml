@@ -1,0 +1,139 @@
+@model ASM1_NET.Models.Order
+@{
+    ViewData["Title"] = "Chi tiết đơn hàng";
+    var statusClass = Model.Status switch
+    {
+        "Pending" => "pending",
+        "Delivering" => "delivering",
+        "Completed" => "completed",
+        "Cancelled" => "cancelled",
+        _ => "pending"
+    };
+    var statusIcon = Model.Status switch
+    {
+        "Pending" => "⏳",
+        "Delivering" => "🚚",
+        "Completed" => "✅",
+        "Cancelled" => "❌",
+        _ => "📦"
+    };
+    var statusText = Model.Status switch
+    {
+        "Pending" => "Đang chờ xử lý",
+        "Delivering" => "Đang giao hàng",
+        "Completed" => "Đã hoàn thành",
+        "Cancelled" => "Đã hủy",
+        _ => Model.Status
+    };
+}
+
+<link rel="stylesheet" href="~/client/css/menu.css" />
+
+<div class="order-detail-page">
+    <div class="container">
+        <!-- Back Button -->
+        <a href="/Order/History" class="order-action-btn primary mb-4" style="display: inline-flex;">
+            ⬅️ Quay lại lịch sử
+        </a>
+        
+        <!-- Order Detail Card -->
+        <div class="order-detail-card animate-fade-in">
+            <!-- Header -->
+            <div class="order-detail-header">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                    <div>
+                        <h2>🎉 Đơn hàng #@Model.OrderCode</h2>
+                        <p class="mb-0" style="opacity: 0.8;">Đặt ngày @Model.OrderDate.ToString("dd/MM/yyyy") lúc @Model.OrderDate.ToString("HH:mm")</p>
+                    </div>
+                    <span class="order-status @statusClass" style="font-size: 1rem; padding: 10px 20px;">
+                        @statusIcon @statusText
+                    </span>
+                </div>
+            </div>
+            
+            <!-- Body -->
+            <div class="order-detail-body">
+                <!-- Order Info Grid -->
+                <div class="order-info-grid animate-slide-up">
+                    <div class="order-info-item">
+                        <label>📱 Số điện thoại</label>
+                        <span>@Model.Phone</span>
+                    </div>
+                    <div class="order-info-item">
+                        <label>📍 Địa chỉ giao hàng</label>
+                        <span>@Model.Address</span>
+                    </div>
+                    <div class="order-info-item">
+                        <label>📅 Ngày đặt</label>
+                        <span>@Model.OrderDate.ToString("dd/MM/yyyy HH:mm")</span>
+                    </div>
+                    <div class="order-info-item">
+                        <label>💰 Tổng tiền</label>
+                        <span style="color: #fbbf24; font-size: 1.2rem;">@Model.TotalAmount.ToString("N0") ₫</span>
+                    </div>
+                </div>
+                
+                <!-- Order Items -->
+                <h4 class="text-white mb-3">🛒 Chi tiết sản phẩm</h4>
+                
+                <div class="order-items-table">
+                    <table class="w-100">
+                        <thead>
+                            <tr>
+                                <th>Sản phẩm</th>
+                                <th class="text-center">Số lượng</th>
+                                <th class="text-end">Đơn giá</th>
+                                <th class="text-end">Thành tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.OrderDetails)
+                            {
+                                var itemName = item.Food?.Name ?? item.Combo?.Name ?? "N/A";
+                                var subtotal = item.UnitPrice * item.Quantity;
+                                
+                                <tr class="animate-fade-in">
+                                    <td>
+                                        <strong>@itemName</strong>
+                                    </td>
+                                    <td class="text-center">×@item.Quantity</td>
+                                    <td class="text-end">@item.UnitPrice.ToString("N0") ₫</td>
+                                    <td class="text-end">
+                                        <strong style="color: #fbbf24;">@subtotal.ToString("N0") ₫</strong>
+                                    </td>
+                                </tr>
+                            }
+                            <tr class="order-total-row">
+                                <td colspan="3" class="text-end">TỔNG CỘNG:</td>
+                                <td class="text-end">@Model.TotalAmount.ToString("N0") ₫</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Actions -->
+                <div class="d-flex gap-3 mt-4 flex-wrap">
+                    <a href="/" class="order-action-btn primary">
+                        🏠 Về trang chủ
+                    </a>
+                    <a href="/Order/History" class="order-action-btn primary" style="background: linear-gradient(135deg, #10b981, #059669);">
+                        📦 Xem lịch sử
+                    </a>
+                    <a href="/Food" class="order-action-btn primary" style="background: linear-gradient(135deg, #ff6b6b, #ee5a24);">
+                        🍕 Tiếp tục mua
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Stagger animation for table rows
+    const rows = document.querySelectorAll('.order-items-table tbody tr');
+    rows.forEach((row, index) => {
+        row.style.animationDelay = (index * 0.1) + 's';
+    });
+});
+</script>

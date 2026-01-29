@@ -1,0 +1,125 @@
+@model ASM1_NET.Models.Food
+@{
+    ViewData["Title"] = "Thêm món ăn";
+}
+
+<!-- Page Header -->
+<div class="admin-page-header">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+            <h2 class="admin-page-title">➕ Thêm món ăn mới</h2>
+            <p class="admin-page-subtitle">Tạo món ăn mới cho menu</p>
+        </div>
+        <a asp-action="Index" class="btn btn-admin btn-admin-back">
+            ⬅️ Quay lại
+        </a>
+    </div>
+</div>
+
+<!-- Form Card -->
+<div class="admin-form-card">
+    <div class="form-card-header">
+        <h4>🍕 Thông tin món ăn</h4>
+    </div>
+    <div class="form-card-body">
+        <form asp-area="Admin" asp-controller="Food" asp-action="Create" method="post" enctype="multipart/form-data">
+            @Html.AntiForgeryToken()
+            
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <span class="label-icon">🍽️</span> Tên món <span class="required">*</span>
+                                </label>
+                                <input asp-for="Name" class="form-control" placeholder="Nhập tên món ăn..." required />
+                                <span asp-validation-for="Name" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <span class="label-icon">📁</span> Danh mục <span class="required">*</span>
+                                </label>
+                                <select asp-for="CategoryId" class="form-select" required>
+                                    <option value="">-- Chọn danh mục --</option>
+                                    @foreach (var c in ViewBag.Categories)
+                                    {
+                                        <option value="@c.Id">@c.Name</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <span class="label-icon">💰</span> Giá (VNĐ) <span class="required">*</span>
+                                </label>
+                                <input asp-for="Price" type="number" class="form-control" min="0" step="1000" placeholder="Nhập giá..." required />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <span class="label-icon">⚡</span> Trạng thái
+                                </label>
+                                <select asp-for="IsAvailable" class="form-select">
+                                    <option value="true">✅ Đang bán</option>
+                                    <option value="false">🚫 Ngừng bán</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">
+                            <span class="label-icon">📝</span> Mô tả
+                        </label>
+                        <textarea asp-for="Description" class="form-control" rows="4" placeholder="Nhập mô tả món ăn..."></textarea>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label class="form-label">
+                            <span class="label-icon">🖼️</span> Ảnh món ăn
+                        </label>
+                        <div class="image-upload-box">
+                            <div class="upload-preview" id="imagePreview">
+                                <span class="preview-icon">📷</span>
+                                <span class="preview-text">Chọn ảnh</span>
+                            </div>
+                            <input type="file" name="imageFile" class="form-control mt-2" id="imageInput" accept="image/*" onchange="previewImage(this)" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn btn-admin btn-admin-save">
+                    💾 Lưu món ăn
+                </button>
+                <a asp-action="Index" class="btn btn-admin btn-admin-cancel">
+                    ❌ Hủy bỏ
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function previewImage(input) {
+    const preview = document.getElementById('imagePreview');
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.innerHTML = '<img src="' + e.target.result + '" style="max-width: 100%; max-height: 200px; border-radius: 10px;" />';
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+</script>

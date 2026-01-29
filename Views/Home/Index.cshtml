@@ -1,0 +1,128 @@
+﻿@using ASM1_NET.Models
+@{
+    ViewData["Title"] = "Trang chủ";
+    var foods = ViewBag.Foods as List<Food>;
+    var combos = ViewBag.Combos as List<Combo>;
+}
+
+<link rel="stylesheet" href="~/client/css/home-modern.css?v=2.0" />
+
+<!-- HERO -->
+<section class="hero-full">
+    <div class="hero-overlay"></div>
+    
+    <div class="hero-content">
+        <span class="hero-tag">🔥 Đặt món nhanh - Giao trong 30p</span>
+        <h1>THƯỞNG THỨC<br />TRỌN VẸN HƯƠNG VỊ</h1>
+        <p>Khám phá menu đa dạng với nguyên liệu tươi ngon nhất. Đặt hàng ngay hôm nay để nhận ưu đãi đặc biệt!</p>
+        
+        <div class="hero-actions">
+            <a href="/Food" class="btn-hero btn-primary">🍽️ Đặt Món Ngay</a>
+            <a href="/Combo" class="btn-hero btn-outline">🎁 Xem Combo</a>
+        </div>
+    </div>
+</section>
+
+<!-- FOOD SECTION -->
+<section class="section">
+    <div class="section-header">
+        <h2 class="section-title">Món Ăn Nổi Bật</h2>
+        <a href="/Food" class="view-all">Xem tất cả menu <span>→</span></a>
+    </div>
+
+    <div class="card-grid">
+        @if (foods != null)
+        {
+            @foreach (var item in foods)
+            {
+                <div class="food-card" onclick="openFoodModal(@item.Id)">
+                    <div class="card-img-wrapper">
+                        <img src="@item.ImageUrl" alt="@item.Name" loading="lazy" />
+                        <span class="card-badge">HOT</span>
+                    </div>
+                    <div class="card-content">
+                        <h3>@item.Name</h3>
+                        <div class="card-footer">
+                            <span class="price">@item.Price.ToString("N0")₫</span>
+                            <button class="btn-add" onclick="addToCart(@item.Id)">+</button>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</section>
+
+<!-- COMBO SECTION -->
+<section class="section combo-section">
+    <div class="section-header">
+        <h2 class="section-title">Combo Tiết Kiệm</h2>
+        <a href="/Combo" class="view-all">Xem tất cả combo <span>→</span></a>
+    </div>
+
+    <div class="card-grid">
+        @if (combos != null)
+        {
+            @foreach (var item in combos)
+            {
+                 <div class="food-card" onclick="openComboModal(@item.Id)">
+                    <div class="card-img-wrapper">
+                        <img src="@item.ImageUrl" alt="@item.Name" loading="lazy" />
+                        <div class="card-badge" style="background:#ef4444; color:white; border:none;">-10%</div>
+                    </div>
+                    <div class="card-content">
+                        <h3>@item.Name</h3>
+                        <div class="card-footer">
+                            <span class="price">@item.Price.ToString("N0")₫</span>
+                            <button class="btn-add" onclick="addComboToCart(@item.Id)">+</button>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-modern">
+    <div class="cta-content">
+        <h2>Bạn Đã Sẵn Sàng?</h2>
+        <p>Hàng ngàn món ăn ngon đang chờ đợi bạn. Đặt hàng ngay bây giờ và tận hưởng bữa ăn tuyệt vời tại nhà!</p>
+        <a href="/Food" class="btn-hero btn-primary">🚀 Đặt Hàng Ngay</a>
+    </div>
+</section>
+
+<!-- MODALS -->
+<div id="foodModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-close" onclick="closeFoodModal()">×</div>
+        <div id="foodModalBody"></div>
+    </div>
+</div>
+
+<div id="comboModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-close" onclick="closeComboModal()">×</div>
+        <div id="comboModalBody"></div>
+    </div>
+</div>
+
+<script>
+    // Animation for scrolling
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = 1;
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    });
+
+    document.querySelectorAll('.food-card').forEach((el) => {
+        el.style.opacity = 0;
+        el.style.transform = 'translateY(30px)';
+        el.style.transition = 'all 0.6s ease-out';
+        observer.observe(el);
+    });
+</script>
+<script src="~/client/js/popup.js?v=2.1"></script>

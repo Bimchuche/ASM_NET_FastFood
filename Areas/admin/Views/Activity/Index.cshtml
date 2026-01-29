@@ -1,0 +1,163 @@
+@model List<ASM1_NET.Models.ActivityLog>
+@{
+    ViewData["Title"] = "Nhật ký hoạt động";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="activity-page">
+    <!-- HEADER -->
+    <div class="page-header">
+        <h2>📋 Nhật ký hoạt động</h2>
+        <p class="text-muted">Theo dõi tất cả hoạt động trong hệ thống Admin</p>
+    </div>
+
+    <!-- FILTERS -->
+    <div class="filter-card">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-2">
+                <label class="form-label">Hành động</label>
+                <select name="filterAction" class="form-select">
+                    <option value="">Tất cả</option>
+                    @foreach (var action in (string[])ViewBag.Actions)
+                    {
+                        <option value="@action" selected="@(ViewBag.CurrentAction == action)">@action</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Loại đối tượng</label>
+                <select name="entityType" class="form-select">
+                    <option value="">Tất cả</option>
+                    @foreach (var type in (string[])ViewBag.EntityTypes)
+                    {
+                        <option value="@type" selected="@(ViewBag.CurrentEntityType == type)">@type</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Từ ngày</label>
+                <input type="date" name="from" class="form-control" value="@(ViewBag.CurrentFrom?.ToString("yyyy-MM-dd"))" />
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Đến ngày</label>
+                <input type="date" name="to" class="form-control" value="@(ViewBag.CurrentTo?.ToString("yyyy-MM-dd"))" />
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">🔍 Lọc</button>
+            </div>
+            <div class="col-md-2">
+                <a asp-action="Index" class="btn btn-outline-secondary w-100">↻ Reset</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- ACTIVITY TABLE -->
+    <div class="activity-table-card">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th style="width: 140px;">Thời gian</th>
+                    <th style="width: 100px;">Hành động</th>
+                    <th style="width: 100px;">Đối tượng</th>
+                    <th>Mô tả</th>
+                    <th style="width: 150px;">Người thực hiện</th>
+                    <th style="width: 100px;">IP</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Any())
+                {
+                    @foreach (var log in Model)
+                    {
+                        <tr>
+                            <td>
+                                <span class="text-muted">@log.CreatedAt.ToString("dd/MM/yyyy")</span><br/>
+                                <strong>@log.CreatedAt.ToString("HH:mm:ss")</strong>
+                            </td>
+                            <td>
+                                <span class="badge bg-@log.GetActionBadgeClass()">
+                                    @log.GetActionIcon() @log.Action
+                                </span>
+                            </td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(log.EntityType))
+                                {
+                                    <span class="badge bg-secondary">@log.EntityType</span>
+                                    @if (log.EntityId.HasValue)
+                                    {
+                                        <small class="text-muted">#@log.EntityId</small>
+                                    }
+                                }
+                            </td>
+                            <td>
+                                @log.Description
+                                @if (!string.IsNullOrEmpty(log.EntityName))
+                                {
+                                    <br/><small class="text-primary">@log.EntityName</small>
+                                }
+                            </td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(log.UserName))
+                                {
+                                    <strong>@log.UserName</strong><br/>
+                                    <small class="badge bg-outline-secondary">@log.UserRole</small>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Hệ thống</span>
+                                }
+                            </td>
+                            <td><small class="text-muted">@log.IpAddress</small></td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-5">
+                            Không có hoạt động nào được ghi nhận
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+    .activity-page { padding: 20px 0; }
+    .page-header { margin-bottom: 25px; }
+    .page-header h2 { font-size: 1.8rem; margin: 0; }
+    
+    .filter-card {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
+    
+    .activity-table-card {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
+    
+    .activity-table-card table {
+        margin: 0;
+    }
+    
+    .activity-table-card th {
+        background: #f8f9fa;
+        font-weight: 600;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .activity-table-card td {
+        vertical-align: middle;
+        font-size: 14px;
+    }
+</style>

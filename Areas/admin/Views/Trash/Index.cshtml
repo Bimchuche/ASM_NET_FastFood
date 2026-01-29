@@ -1,0 +1,150 @@
+@{
+    ViewData["Title"] = "Thùng rác";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="trash-page">
+    <!-- HEADER -->
+    <div class="page-header d-flex justify-content-between align-items-center">
+        <div>
+            <h2>🗑️ Thùng rác</h2>
+            <p class="text-muted">Quản lý các items đã xóa mềm</p>
+        </div>
+        @if ((int)ViewBag.Total > 0)
+        {
+            <form asp-action="EmptyAll" method="post" onsubmit="return confirm('⚠️ Xóa vĩnh viễn tất cả items trong thùng rác? Hành động này không thể hoàn tác!')">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-danger">
+                    🔥 Dọn sạch thùng rác (@ViewBag.Total items)
+                </button>
+            </form>
+        }
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">✅ @TempData["Success"]</div>
+    }
+
+    <!-- SUMMARY CARDS -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4 col-lg">
+            <a asp-action="Foods" class="trash-card">
+                <div class="icon">🍕</div>
+                <div class="info">
+                    <h4>@ViewBag.DeletedFoods</h4>
+                    <p>Món ăn</p>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-4 col-lg">
+            <a asp-action="Combos" class="trash-card">
+                <div class="icon">🎁</div>
+                <div class="info">
+                    <h4>@ViewBag.DeletedCombos</h4>
+                    <p>Combo</p>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-4 col-lg">
+            <a asp-action="Categories" class="trash-card">
+                <div class="icon">📂</div>
+                <div class="info">
+                    <h4>@ViewBag.DeletedCategories</h4>
+                    <p>Danh mục</p>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-4 col-lg">
+            <a asp-action="Users" class="trash-card">
+                <div class="icon">👥</div>
+                <div class="info">
+                    <h4>@ViewBag.DeletedUsers</h4>
+                    <p>Người dùng</p>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-4 col-lg">
+            <a asp-action="Orders" class="trash-card">
+                <div class="icon">📦</div>
+                <div class="info">
+                    <h4>@ViewBag.DeletedOrders</h4>
+                    <p>Đơn hàng</p>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    @if ((int)ViewBag.Total == 0)
+    {
+        <div class="empty-trash">
+            <div class="icon">✨</div>
+            <h3>Thùng rác trống!</h3>
+            <p>Không có items nào bị xóa</p>
+        </div>
+    }
+</div>
+
+<style>
+    .trash-page { padding: 20px 0; }
+    .page-header h2 { font-size: 1.8rem; margin: 0; }
+    
+    .trash-card {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        text-decoration: none;
+        color: inherit;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        transition: all 0.2s;
+    }
+    
+    .trash-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+    }
+    
+    .trash-card .icon {
+        font-size: 2.5rem;
+        background: #fee2e2;
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .trash-card .info h4 {
+        font-size: 1.8rem;
+        margin: 0;
+        color: #dc2626;
+    }
+    
+    .trash-card .info p {
+        margin: 0;
+        color: #6b7280;
+        font-size: 14px;
+    }
+    
+    .empty-trash {
+        text-align: center;
+        padding: 60px;
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
+    
+    .empty-trash .icon {
+        font-size: 4rem;
+        margin-bottom: 20px;
+    }
+    
+    .empty-trash h3 {
+        color: #22c55e;
+        margin-bottom: 10px;
+    }
+</style>

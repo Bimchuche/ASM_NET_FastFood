@@ -1,0 +1,28 @@
+@model ASM1_NET.Models.Combo
+
+<div style="display: flex; flex-direction: column; width: 100%;">
+    <img src="@Model.ImageUrl" alt="@Model.Name" 
+         style="width: 100%; height: auto; max-height: 250px; object-fit: contain; display: block; background: #0d0d15;"
+         onerror="this.src='/images/no-image.png'" />
+    
+    <div style="padding: 20px; background: #1a1a2e;">
+        <span style="display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-bottom: 10px; background: rgba(139, 92, 246, 0.2); color: #8b5cf6;">
+            🎁 COMBO
+        </span>
+        
+        <h3 style="font-size: 1.3rem; font-weight: 700; color: #fff; margin: 0 0 10px;">@Model.Name</h3>
+        
+        <p style="color: #9ca3af; font-size: 0.9rem; line-height: 1.5; margin: 0 0 15px;">
+            @(string.IsNullOrEmpty(Model.Description) ? "Combo tiết kiệm từ FastFood Shop" : Model.Description)
+        </p>
+        
+        <div style="font-size: 1.5rem; font-weight: 800; color: #fbbf24; margin: 0 0 20px;">
+            @Model.Price.ToString("N0") ₫
+        </div>
+        
+        <button onclick="addComboToCart(@Model.Id); closeComboModal();"
+                style="width: 100%; padding: 14px; background: linear-gradient(135deg, #ff6b6b, #ee5a24); border: none; border-radius: 12px; color: #fff; font-size: 1rem; font-weight: 700; cursor: pointer;">
+            🛒 Thêm vào giỏ hàng
+        </button>
+    </div>
+</div>

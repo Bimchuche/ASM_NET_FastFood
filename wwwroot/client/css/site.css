@@ -1,0 +1,44 @@
+/* RESET + BASE */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    background: #0b0b0b;
+    color: #fff;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+}
+
+/* LAYOUT FLEX – footer luôn dưới */
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1;
+}
+
+/* NAVBAR */
+.navbar {
+    background: linear-gradient(90deg, #000, #111);
+    box-shadow: 0 2px 10px rgba(0,0,0,.6);
+}
+
+.navbar-brand {
+    font-weight: 700;
+    font-size: 22px;
+    color: #ff4d4f !important;
+}
+
+/* FOOTER */
+.footer {
+    background: #000;
+    color: #aaa;
+    text-align: center;
+    padding: 15px 0;
+    font-size: 14px;
+}

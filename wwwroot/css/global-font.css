@@ -1,0 +1,64 @@
+/* ================================================
+   GLOBAL FONT OVERRIDE - Times New Roman Bold
+   Áp dụng cho toàn bộ dự án
+   ================================================ */
+
+/* Reset tất cả elements về Times New Roman Bold */
+*, *::before, *::after {
+    font-family: 'Times New Roman', Times, serif !important;
+    font-weight: 700 !important;
+}
+
+/* Đảm bảo áp dụng cho body */
+html, body {
+    font-family: 'Times New Roman', Times, serif !important;
+    font-weight: 700 !important;
+}
+
+/* Override cho headings */
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Times New Roman', Times, serif !important;
+    font-weight: 700 !important;
+}
+
+/* Override cho text elements */
+p, span, a, label, input, textarea, select, button {
+    font-family: 'Times New Roman', Times, serif !important;
+    font-weight: 700 !important;
+}
+
+/* Override cho lists */
+li, ul, ol {
+    font-family: 'Times New Roman', Times, serif !important;
+    font-weight: 700 !important;
+}
+
+/* Override cho tables */
+table, th, td {
+    font-family: 'Times New Roman', Times, serif !important;
+    font-weight: 700 !important;
+}
+
+/* Override cho forms */
+.form-control, .form-select, .btn {
+    font-family: 'Times New Roman', Times, serif !important;
+    font-weight: 700 !important;
+}
+
+/* Override cho navigation */
+nav, .nav, .navbar, .nav-link {
+    font-family: 'Times New Roman', Times, serif !important;
+    font-weight: 700 !important;
+}
+
+/* Override cho Bootstrap */
+.card, .card-title, .card-body, .card-text {
+    font-family: 'Times New Roman', Times, serif !important;
+    font-weight: 700 !important;
+}
+
+/* Override cho alerts và badges */
+.alert, .badge {
+    font-family: 'Times New Roman', Times, serif !important;
+    font-weight: 700 !important;
+}

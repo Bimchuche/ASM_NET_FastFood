@@ -1,0 +1,413 @@
+/* =========================================================================
+   FASTFOOD PREMIUM THEME - MODERN HOME
+   Colors: Dark (#0f172a), Primary (#ff6b35), Accent (#fbbf24)
+   ========================================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap');
+
+:root {
+    --primary: #ff6b35;
+    --primary-dark: #e85d2b;
+    --secondary: #fbbf24;
+    --dark-bg: #0f172a;
+    --card-bg: rgba(30, 41, 59, 0.7);
+    --text-white: #f8fafc;
+    --text-gray: #94a3b8;
+    --gradient-hero: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(15, 23, 42, 0.7) 100%);
+}
+
+* {
+    box-sizing: border-box;
+    font-family: 'Outfit', sans-serif;
+}
+
+body {
+    margin: 0;
+    background-color: var(--dark-bg);
+    color: var(--text-white);
+    overflow-x: hidden;
+}
+
+/* =========================================
+   HERO SECTION
+   ========================================= */
+.hero-full {
+    height: 100vh;
+    min-height: 700px;
+    background: url('../images/hero-burger.png') no-repeat center center/cover;
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding: 0 10%;
+    margin-top: -80px; /* Offset fixed header if needed */
+}
+
+.hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: var(--gradient-hero);
+    z-index: 1;
+}
+
+/* Animate background subtle zoom */
+.hero-full::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 70% 50%, rgba(255, 107, 53, 0.15), transparent 60%);
+    z-index: 2;
+    animation: pulseGlow 5s infinite alternate;
+}
+
+@keyframes pulseGlow {
+    0% { opacity: 0.5; transform: scale(1); }
+    100% { opacity: 1; transform: scale(1.1); }
+}
+
+.hero-content {
+    position: relative;
+    z-index: 10;
+    max-width: 650px;
+    animation: slideUp 1s ease-out;
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(40px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.hero-tag {
+    display: inline-block;
+    background: rgba(255, 107, 53, 0.2);
+    color: var(--primary);
+    padding: 8px 16px;
+    border-radius: 30px;
+    font-weight: 600;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 24px;
+    border: 1px solid rgba(255, 107, 53, 0.3);
+    backdrop-filter: blur(5px);
+}
+
+.hero-content h1 {
+    font-size: 5rem;
+    font-weight: 800;
+    line-height: 1.1;
+    margin: 0 0 24px;
+    text-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    background: linear-gradient(to right, #fff, #fbbf24);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.hero-content p {
+    font-size: 1.25rem;
+    color: var(--text-gray);
+    margin-bottom: 40px;
+    line-height: 1.6;
+}
+
+.hero-actions {
+    display: flex;
+    gap: 20px;
+}
+
+.btn-hero {
+    padding: 16px 40px;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 1.1rem;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: white;
+    box-shadow: 0 10px 25px rgba(255, 107, 53, 0.4);
+}
+
+.btn-primary:hover {
+    background: var(--primary-dark);
+    transform: translateY(-3px);
+    box-shadow: 0 15px 35px rgba(255, 107, 53, 0.5);
+}
+
+.btn-outline {
+    background: rgba(255,255,255,0.05);
+    color: white;
+    border: 2px solid rgba(255,255,255,0.2);
+    backdrop-filter: blur(5px);
+}
+
+.btn-outline:hover {
+    background: white;
+    color: var(--dark-bg);
+    transform: translateY(-3px);
+}
+
+/* =========================================
+   SECTIONS
+   ========================================= */
+.section {
+    padding: 100px 8%;
+    position: relative;
+}
+
+.section-header {
+    margin-bottom: 60px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+}
+
+.section-title {
+    font-size: 3rem;
+    margin: 0;
+    font-weight: 800;
+    position: relative;
+    padding-left: 20px;
+    background: linear-gradient(90deg, #ff6b35, #fbbf24);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: inline-block;
+}
+
+.section-title::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 10px;
+    bottom: 10px;
+    width: 6px;
+    background: var(--primary);
+    border-radius: 4px;
+}
+
+.view-all {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: 0.3s;
+}
+
+.view-all:hover {
+    transform: translateX(5px);
+    color: var(--secondary);
+}
+
+/* =========================================
+   CARD GRID
+   ========================================= */
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 32px;
+}
+
+.food-card {
+    background: var(--card-bg);
+    border-radius: 24px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.05);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Bouncy effect */
+    position: relative;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+}
+
+.food-card:hover {
+    transform: translateY(-10px);
+    border-color: rgba(255, 107, 53, 0.5);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+}
+
+.card-img-wrapper {
+    height: 220px;
+    overflow: hidden;
+    position: relative;
+}
+
+.food-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: 0.5s;
+}
+
+.food-card:hover img {
+    transform: scale(1.1);
+}
+
+.card-badge {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: rgba(0,0,0,0.7);
+    color: var(--secondary);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 700;
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+.card-content {
+    padding: 24px;
+}
+
+.card-content h3 {
+    margin: 0 0 10px;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: white;
+}
+
+.card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 16px;
+}
+
+.price {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--primary);
+}
+
+.btn-add {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.3s;
+}
+
+.btn-add:hover {
+    background: var(--primary);
+    transform: rotate(90deg);
+}
+
+/* =========================================
+   FEATURE COMBO
+   ========================================= */
+.combo-section {
+    background: linear-gradient(180deg, var(--dark-bg) 0%, #160f0a 100%);
+}
+
+/* =========================================
+   CTA SECTION
+   ========================================= */
+.cta-modern {
+    background: url('../images/hero-burger.png') no-repeat center center/cover;
+    background-attachment: fixed;
+    padding: 120px 8%;
+    text-align: center;
+    position: relative;
+}
+
+.cta-modern::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(45deg, rgba(255, 107, 53, 0.9), rgba(15, 23, 42, 0.9));
+}
+
+.cta-content {
+    position: relative;
+    z-index: 2;
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.cta-content h2 {
+    font-size: 3.5rem;
+    margin-bottom: 20px;
+}
+
+/* =========================================
+   MODAL
+   ========================================= */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.9);
+    backdrop-filter: blur(8px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    opacity: 0;
+    visibility: hidden;
+    transition: 0.3s;
+}
+
+.modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-content {
+    background: #1e293b;
+    border-radius: 24px;
+    width: 90%;
+    max-width: 900px;
+    position: relative;
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    transform: scale(0.9);
+    transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    overflow: hidden;
+}
+
+.modal-overlay.active .modal-content {
+    transform: scale(1);
+}
+
+.modal-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+    background: rgba(0,0,0,0.5);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    transition: 0.3s;
+    font-size: 24px;
+    color: white;
+}
+
+.modal-close:hover {
+    background: var(--primary);
+    transform: rotate(90deg);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .hero-content h1 { font-size: 3rem; }
+    .section { padding: 60px 5%; }
+    .section-title { font-size: 2rem; }
+}

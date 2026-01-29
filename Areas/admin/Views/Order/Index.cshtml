@@ -1,0 +1,200 @@
+@model IEnumerable<ASM1_NET.Models.Order>
+
+@{
+    ViewData["Title"] = "Quản lý đơn hàng";
+    var pendingCount = Model.Count(o => o.Status == "Pending");
+    var deliveringCount = Model.Count(o => o.Status == "Delivering");
+    var completedCount = Model.Count(o => o.Status == "Completed");
+    var totalRevenue = Model.Where(o => o.Status == "Completed").Sum(o => o.TotalAmount);
+}
+
+<!-- ALERTS -->
+@if (TempData["Success"] != null)
+{
+    <div class="admin-alert success">✅ @TempData["Success"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="admin-alert danger">❌ @TempData["Error"]</div>
+}
+
+<!-- STATS -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon warning">⏳</div>
+        <div class="stat-info">
+            <h3>@pendingCount</h3>
+            <p>Đơn chờ xử lý</p>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon primary">🚚</div>
+        <div class="stat-info">
+            <h3>@deliveringCount</h3>
+            <p>Đang giao</p>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon success">✅</div>
+        <div class="stat-info">
+            <h3>@completedCount</h3>
+            <p>Hoàn thành</p>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon danger">💰</div>
+        <div class="stat-info">
+            <h3>@totalRevenue.ToString("N0") ₫</h3>
+            <p>Doanh thu</p>
+        </div>
+    </div>
+</div>
+
+<!-- HEADER -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1">📦 Quản lý đơn hàng</h2>
+        <p class="text-muted mb-0">Tổng: <strong>@Model.Count()</strong> đơn</p>
+    </div>
+</div>
+
+<!-- TABLE CARD -->
+<div class="admin-table-card">
+    <div class="table-header">
+        <h3>📋 Danh sách đơn hàng</h3>
+        <div class="table-search">
+            <select id="filterStatus" onchange="filterByStatus()" class="form-select form-select-sm" style="width: auto;">
+                <option value="">Tất cả trạng thái</option>
+                <option value="Pending">⏳ Chờ xử lý</option>
+                <option value="Delivering">🚚 Đang giao</option>
+                <option value="Completed">✅ Hoàn thành</option>
+                <option value="Cancelled">❌ Đã hủy</option>
+            </select>
+            <input type="text" id="searchOrder" placeholder="Tìm kiếm..." onkeyup="filterTable()" />
+        </div>
+    </div>
+    
+    <table class="admin-table" id="orderTable">
+        <thead>
+            <tr>
+                <th>Mã đơn</th>
+                <th>Khách hàng</th>
+                <th>Ngày đặt</th>
+                <th>Tổng tiền</th>
+                <th>Trạng thái</th>
+                <th>Shipper</th>
+                <th style="width: 180px;">Hành động</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var o in Model.OrderByDescending(o => o.OrderDate))
+            {
+                var statusClass = o.Status switch
+                {
+                    "Pending" => "warning",
+                    "Delivering" => "info",
+                    "Completed" => "success",
+                    "Cancelled" => "danger",
+                    _ => "info"
+                };
+                var statusIcon = o.Status switch
+                {
+                    "Pending" => "⏳",
+                    "Delivering" => "🚚",
+                    "Completed" => "✅",
+                    "Cancelled" => "❌",
+                    _ => "📦"
+                };
+                var statusText = o.Status switch
+                {
+                    "Pending" => "Chờ xử lý",
+                    "Delivering" => "Đang giao",
+                    "Completed" => "Hoàn thành",
+                    "Cancelled" => "Đã hủy",
+                    _ => o.Status
+                };
+                
+                <tr data-status="@o.Status">
+                    <td>
+                        <strong class="text-primary">#@o.OrderCode</strong>
+                    </td>
+                    <td>
+                        <strong>@(o.Customer?.FullName ?? "N/A")</strong>
+                        <br /><small class="text-muted">📞 @o.Phone</small>
+                    </td>
+                    <td>
+                        <span>@o.OrderDate.ToString("dd/MM/yyyy")</span>
+                        <br /><small class="text-muted">@o.OrderDate.ToString("HH:mm")</small>
+                    </td>
+                    <td>
+                        <strong class="text-success">@o.TotalAmount.ToString("N0") ₫</strong>
+                    </td>
+                    <td>
+                        <span class="badge-admin @statusClass">@statusIcon @statusText</span>
+                    </td>
+                    <td>
+                        @if (o.Shipper != null)
+                        {
+                            <span class="badge-admin info">🚴 @o.Shipper.FullName</span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">Chưa có</span>
+                        }
+                    </td>
+                    <td>
+                        <div class="action-btns">
+                            <a asp-action="Detail" asp-route-id="@o.Id" class="action-btn view" title="Xem chi tiết">
+                                👁️
+                            </a>
+                            <a asp-action="Edit" asp-route-id="@o.Id" class="action-btn edit" title="Sửa">
+                                ✏️
+                            </a>
+                            <a asp-action="Delete" asp-route-id="@o.Id" class="action-btn delete" title="Xóa"
+                               onclick="return confirm('Bạn có chắc muốn xóa đơn hàng này?')">
+                                🗑️
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@section Scripts {
+<script>
+function filterTable() {
+    var input = document.getElementById("searchOrder");
+    var filter = input.value.toLowerCase();
+    var table = document.getElementById("orderTable");
+    var rows = table.getElementsByTagName("tr");
+    
+    for (var i = 1; i < rows.length; i++) {
+        var cells = rows[i].getElementsByTagName("td");
+        var found = false;
+        for (var j = 0; j < cells.length; j++) {
+            if (cells[j].textContent.toLowerCase().indexOf(filter) > -1) {
+                found = true;
+                break;
+            }
+        }
+        rows[i].style.display = found ? "" : "none";
+    }
+}
+
+function filterByStatus() {
+    var status = document.getElementById("filterStatus").value;
+    var table = document.getElementById("orderTable");
+    var rows = table.querySelectorAll("tbody tr");
+    
+    rows.forEach(function(row) {
+        if (status === "" || row.dataset.status === status) {
+            row.style.display = "";
+        } else {
+            row.style.display = "none";
+        }
+    });
+}
+</script>
+}

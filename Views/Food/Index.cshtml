@@ -1,0 +1,126 @@
+@model IEnumerable<ASM1_NET.Models.Food>
+@using ASM1_NET.Models
+@{
+    ViewData["Title"] = "Menu";
+    var categories = ViewBag.Categories as List<Category> ?? new List<Category>();
+    int? currentCategoryId = ViewBag.CategoryId;
+    var keyword = ViewBag.Keyword as string ?? "";
+}
+
+<link rel="stylesheet" href="~/client/css/menu.css" />
+<link rel="stylesheet" href="~/client/css/modal.css" />
+
+<div class="menu-page">
+    <div class="container">
+        <!-- HERO BANNER -->
+        <div class="menu-hero animate-fade-in">
+            <div class="menu-hero-content">
+                <h1>🍕 Thực đơn hấp dẫn</h1>
+                <p>Khám phá các món ăn ngon nhất từ FastFood</p>
+            </div>
+        </div>
+
+        <!-- SEARCH BAR -->
+        <div class="menu-search-container animate-slide-up">
+            <form method="get" asp-action="Index" class="menu-search-form">
+                <div class="search-input-wrapper">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" name="keyword" placeholder="Tìm món ăn yêu thích..." value="@keyword" />
+                    <input type="hidden" name="categoryId" value="@currentCategoryId" />
+                    @if (!string.IsNullOrEmpty(keyword))
+                    {
+                        <a href="/Food@(currentCategoryId.HasValue ? $"?categoryId={currentCategoryId}" : "")" class="clear-search">✕</a>
+                    }
+                </div>
+                <button type="submit" class="search-btn">Tìm kiếm</button>
+            </form>
+        </div>
+
+        <!-- CATEGORY FILTER -->
+        <div class="category-filter animate-slide-up">
+            <a href="/Food" class="category-chip @(currentCategoryId == null ? "active" : "")">
+                <span>🍽️</span> Tất cả
+            </a>
+            @foreach (var cat in categories)
+            {
+                <a href="/Food?categoryId=@cat.Id" 
+                   class="category-chip @(currentCategoryId == cat.Id ? "active" : "")">
+                    @cat.Name
+                </a>
+            }
+        </div>
+
+        <!-- SEARCH RESULT INFO -->
+        @if (!string.IsNullOrEmpty(keyword))
+        {
+            <div class="d-flex justify-content-center mb-4">
+                <div class="search-result-info">
+                    Tìm thấy <strong>@Model.Count()</strong> kết quả cho "<em>@keyword</em>"
+                </div>
+            </div>
+        }
+
+        <!-- FOOD GRID -->
+        <div class="menu-grid">
+            @if (!Model.Any())
+            {
+                <div style="grid-column: 1 / -1;">
+                    <div class="menu-empty-state animate-fade-in">
+                        <div class="empty-icon">🔍</div>
+                        <h3>Không tìm thấy món ăn</h3>
+                        <p>Hãy thử tìm kiếm với từ khóa khác</p>
+                        <a href="/Food" class="btn btn-primary btn-lg rounded-pill px-4">Xem tất cả món ăn</a>
+                    </div>
+                </div>
+            }
+            else
+            {
+                var delay = 0.0;
+                @foreach (var item in Model)
+                {
+                    <div class="menu-card animate-scale-in" style="animation-delay: @(delay)s;" onclick="openFoodModal(@item.Id)">
+                        <!-- Badge -->
+                        @if (item.Category != null)
+                        {
+                            <span class="card-badge">@item.Category.Name</span>
+                        }
+                        
+                        <!-- Image -->
+                        <div class="card-image">
+                            <img src="@item.ImageUrl" alt="@item.Name" onerror="this.src='/images/no-image.png'" loading="lazy" />
+                            <div class="card-overlay">
+                                <span class="view-detail">👁️ Xem chi tiết</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Info -->
+                        <div class="card-content">
+                            <h3 class="card-title">@item.Name</h3>
+                            <p class="card-description">@(item.Description?.Length > 60 ? item.Description.Substring(0, 60) + "..." : item.Description)</p>
+                            
+                            <div class="card-footer">
+                                <div class="card-price">
+                                    <span class="price-value">@item.Price.ToString("N0")</span>
+                                    <span class="price-unit">₫</span>
+                                </div>
+                                <button class="card-add-btn" onclick="event.stopPropagation(); addToCart(@item.Id)">
+                                    <span>🛒</span> Thêm
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    delay += 0.05;
+                    if (delay > 0.5) delay = 0;
+                }
+            }
+        </div>
+    </div>
+</div>
+
+<!-- FOOD MODAL -->
+<div id="foodModal" class="modal-overlay" style="display:none;">
+    <div class="modal-content">
+        <span class="modal-close" onclick="closeFoodModal()">×</span>
+        <div id="foodModalBody"></div>
+    </div>
+</div>

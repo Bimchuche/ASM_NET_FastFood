@@ -1,0 +1,126 @@
+@model IEnumerable<ASM1_NET.Models.Category>
+@{
+    ViewData["Title"] = "Quản lý danh mục";
+    var activeCount = Model.Count(c => c.IsActive);
+    var inactiveCount = Model.Count(c => !c.IsActive);
+}
+
+<!-- Page Header -->
+<div class="admin-page-header">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+            <h2 class="admin-page-title">📁 Quản lý danh mục</h2>
+            <p class="admin-page-subtitle">Quản lý danh mục sản phẩm</p>
+        </div>
+        <a asp-action="Create" class="btn btn-admin btn-admin-add">
+            ➕ Thêm danh mục
+        </a>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="admin-stats-row">
+    <div class="admin-stat-card">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #10b981, #059669);">📁</div>
+        <div class="stat-info">
+            <span class="stat-value">@Model.Count()</span>
+            <span class="stat-label">Tổng danh mục</span>
+        </div>
+    </div>
+    <div class="admin-stat-card">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">✅</div>
+        <div class="stat-info">
+            <span class="stat-value">@activeCount</span>
+            <span class="stat-label">Đang hiển thị</span>
+        </div>
+    </div>
+    <div class="admin-stat-card">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">🚫</div>
+        <div class="stat-info">
+            <span class="stat-value">@inactiveCount</span>
+            <span class="stat-label">Đang ẩn</span>
+        </div>
+    </div>
+</div>
+
+<!-- Search Filter -->
+<div class="admin-filter-bar">
+    <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="Tìm kiếm danh mục..." onkeyup="filterTable()" />
+    </div>
+</div>
+
+<!-- Data Table -->
+<div class="admin-table-card">
+    <table class="admin-table" id="categoryTable">
+        <thead>
+            <tr>
+                <th width="80">ID</th>
+                <th>Tên danh mục</th>
+                <th>Mô tả</th>
+                <th width="120">Trạng thái</th>
+                <th width="150">Hành động</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var cat in Model)
+            {
+                <tr>
+                    <td>
+                        <span class="id-badge">#@cat.Id</span>
+                    </td>
+                    <td>
+                        <strong>@cat.Name</strong>
+                    </td>
+                    <td>
+                        <span class="text-muted">@(cat.Description?.Length > 50 ? cat.Description.Substring(0, 50) + "..." : cat.Description ?? "—")</span>
+                    </td>
+                    <td>
+                        @if (cat.IsActive)
+                        {
+                            <span class="status-badge status-active">✅ Hiển thị</span>
+                        }
+                        else
+                        {
+                            <span class="status-badge status-inactive">🚫 Ẩn</span>
+                        }
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <a asp-action="Edit" asp-route-id="@cat.Id" class="btn-action btn-edit" title="Sửa">
+                                ✏️
+                            </a>
+                            <a asp-action="Delete" asp-route-id="@cat.Id" 
+                               class="btn-action btn-delete" 
+                               title="Xóa"
+                               onclick="return confirm('Bạn có chắc muốn xóa danh mục này?')">
+                                🗑️
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    
+    @if (!Model.Any())
+    {
+        <div class="empty-state">
+            <div class="empty-icon">📁</div>
+            <h4>Chưa có danh mục nào</h4>
+            <p>Hãy thêm danh mục đầu tiên</p>
+        </div>
+    }
+</div>
+
+<script>
+function filterTable() {
+    const input = document.getElementById('searchInput').value.toLowerCase();
+    const rows = document.querySelectorAll('#categoryTable tbody tr');
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(input) ? '' : 'none';
+    });
+}
+</script>

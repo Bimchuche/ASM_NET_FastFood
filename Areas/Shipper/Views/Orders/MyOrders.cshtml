@@ -1,0 +1,212 @@
+@using ASM1_NET.Models
+@model IEnumerable<Order>
+@{
+    ViewData["Title"] = "Đơn của tôi";
+    var deliveringCount = ViewBag.DeliveringCount ?? 0;
+    var completedCount = ViewBag.CompletedCount ?? 0;
+    var totalEarnings = ViewBag.TotalEarnings ?? 0m;
+}
+
+<h1 class="shipper-title">🚚 Đơn hàng của tôi</h1>
+
+<!-- ALERTS -->
+@if (TempData["Error"] != null)
+{
+    <div class="admin-alert danger" style="margin-bottom: 20px;">
+        ⚠️ @TempData["Error"]
+    </div>
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="admin-alert success" style="margin-bottom: 20px;">
+        ✅ @TempData["Success"]
+    </div>
+}
+
+<!-- STATS -->
+<div class="shipper-stats">
+    <div class="shipper-stat-card">
+        <div class="shipper-stat-icon warning">🚴</div>
+        <div class="shipper-stat-info">
+            <h3>@deliveringCount</h3>
+            <p>Đang giao</p>
+        </div>
+    </div>
+    <div class="shipper-stat-card">
+        <div class="shipper-stat-icon success">✅</div>
+        <div class="shipper-stat-info">
+            <h3>@completedCount</h3>
+            <p>Hoàn thành</p>
+        </div>
+    </div>
+    <div class="shipper-stat-card">
+        <div class="shipper-stat-icon info">💰</div>
+        <div class="shipper-stat-info">
+            <h3>@(((decimal)totalEarnings).ToString("N0")) ₫</h3>
+            <p>Tổng doanh thu</p>
+        </div>
+    </div>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="empty-state">
+        <div class="icon">📭</div>
+        <h3>Chưa có đơn hàng nào</h3>
+        <p>Hãy nhận đơn từ danh sách đơn chờ giao!</p>
+        <a href="/Shipper/Dashboard" class="order-btn accept" style="display: inline-block; margin-top: 15px; padding: 12px 30px;">
+            📋 Xem đơn chờ giao
+        </a>
+    </div>
+}
+else
+{
+    <div class="order-grid">
+        @foreach (var order in Model)
+        {
+            var statusClass = order.Status == "Delivering" ? "delivering" : "completed";
+            var statusText = order.Status == "Delivering" ? "Đang giao" : "Hoàn thành";
+            var customerName = order.Customer?.FullName ?? "Khách hàng";
+            var customerInitial = customerName.Substring(0, 1).ToUpper();
+            
+            <div class="order-card">
+                <div class="order-card-header">
+                    <span class="order-id">#@order.OrderCode</span>
+                    <span class="order-status @statusClass">@statusText</span>
+                </div>
+                
+                <div class="order-card-body">
+                    <div class="order-customer">
+                        <div class="customer-avatar">@customerInitial</div>
+                        <div>
+                            <div class="customer-name">@customerName</div>
+                            <div class="customer-phone">📞 @order.Phone</div>
+                        </div>
+                    </div>
+                    
+                    <div class="order-address">
+                        <span class="icon">📍</span>
+                        @order.Address
+                    </div>
+                    
+                    <div class="order-total">
+                        <span class="total-label">Tổng tiền:</span>
+                        <span class="total-value">@order.TotalAmount.ToString("N0") ₫</span>
+                    </div>
+                    
+                    @if (order.Status == "Delivering" && order.EstimatedMinutes.HasValue && order.ConfirmedAt.HasValue)
+                    {
+                        var elapsed = (DateTime.Now - order.ConfirmedAt.Value).TotalMinutes;
+                        var remaining = order.EstimatedMinutes.Value - elapsed;
+                        var progressPercent = Math.Min(100, (elapsed / order.EstimatedMinutes.Value) * 100);
+                        
+                        <div class="order-estimated-time" style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(147, 51, 234, 0.1)); padding: 10px 12px; border-radius: 10px; margin-top: 10px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <span style="font-size: 12px; color: #64748b;">⏱️ Thời gian giao dự kiến</span>
+                                <span style="font-weight: 600; color: @(remaining > 0 ? "#3b82f6" : "#22c55e");">
+                                    @if (remaining > 0)
+                                    {
+                                        <text>Còn ~@((int)Math.Ceiling(remaining)) phút</text>
+                                    }
+                                    else
+                                    {
+                                        <text>✓ Đã đủ thời gian</text>
+                                    }
+                                </span>
+                            </div>
+                            <div style="background: #e2e8f0; border-radius: 4px; height: 6px; overflow: hidden;">
+                                <div style="width: @progressPercent%; height: 100%; background: linear-gradient(90deg, #3b82f6, #22c55e); transition: width 0.3s;"></div>
+                            </div>
+                            <div style="font-size: 10px; color: #94a3b8; margin-top: 5px; text-align: right;">
+                                Nhận lúc: @order.ConfirmedAt.Value.ToString("HH:mm") • Dự kiến: @order.EstimatedMinutes phút
+                            </div>
+                        </div>
+                    }
+                    
+                    <div class="order-payment">
+                        @if (order.PaymentMethod == "QR")
+                        {
+                            <span class="order-payment-icon">📱</span>
+                            <span class="order-payment-text qr">Chuyển khoản QR</span>
+                            <span class="order-payment-badge paid">Đã thanh toán</span>
+                        }
+                        else
+                        {
+                            <span class="order-payment-icon">💵</span>
+                            <span class="order-payment-text cod">Thu tiền mặt</span>
+                            <span class="order-payment-badge collect">Thu khi giao</span>
+                        }
+                    </div>
+                </div>
+                
+                <div class="order-card-footer" style="flex-direction: column; gap: 0;">
+                    @if (order.Status == "Delivering")
+                    {
+                        <!-- Preview ảnh (tách riêng) -->
+                        <div id="proofPreview_@order.Id" style="display: none; margin-bottom: 15px; text-align: center; padding: 10px; background: rgba(59, 130, 246, 0.1); border-radius: 10px;">
+                            <img id="proofImg_@order.Id" style="max-width: 100%; max-height: 120px; border-radius: 8px; border: 2px solid var(--shipper-primary);" />
+                            <div style="font-size: 11px; color: var(--shipper-primary); margin-top: 5px;">� Ảnh xác nhận</div>
+                        </div>
+                        
+                        <!-- Row buttons -->
+                        <div style="display: flex; gap: 8px; align-items: stretch;">
+                            <!-- Xem chi tiết -->
+                            <a href="/Shipper/Orders/Detail/@order.Id" class="order-btn view" style="flex: 0 0 50px; display: flex; align-items: center; justify-content: center;">
+                                👁️
+                            </a>
+                            
+                            <!-- Form upload ảnh -->
+                            <form action="/Shipper/Orders/Complete" method="post" enctype="multipart/form-data" style="flex: 1; display: flex; flex-direction: column; gap: 5px;" id="completeForm_@order.Id">
+                                <input type="hidden" name="id" value="@order.Id" />
+                                <input type="file" name="proofImage" id="proofImage_@order.Id" accept="image/*" capture="environment" 
+                                       style="display: none;" onchange="showProofPreview(@order.Id)" />
+                                
+                                <!-- Nút chọn/chụp ảnh -->
+                                <button type="button" class="order-btn" id="selectPhotoBtn_@order.Id"
+                                        style="width: 100%; background: #3b82f6; color: white;"
+                                        onclick="document.getElementById('proofImage_@order.Id').click();">
+                                    📷 Chụp ảnh
+                                </button>
+                                
+                                <!-- Nút hoàn thành -->
+                                <button type="submit" class="order-btn complete" id="submitBtn_@order.Id" 
+                                        style="width: 100%; display: none;"
+                                        onclick="return validateProofImage(@order.Id);">
+                                    ✅ Hoàn thành
+                                </button>
+                            </form>
+                            
+                            <!-- Hủy nhận đơn -->
+                            <form action="/Shipper/Dashboard/CancelAccept" method="post" style="flex: 0 0 50px;">
+                                <input type="hidden" name="id" value="@order.Id" />
+                                <button type="submit" class="order-btn" style="width: 100%; height: 100%; background: #ef4444; color: white;"
+                                        onclick="return confirm('Bạn có chắc muốn hủy nhận đơn này?');">
+                                    ❌
+                                </button>
+                            </form>
+                        </div>
+                    }
+                    else
+                    {
+                        <!-- Xem chi tiết -->
+                        <a href="/Shipper/Orders/Detail/@order.Id" class="order-btn view" style="flex: 0.5;">
+                            👁️ Chi tiết
+                        </a>
+                        
+                        <div class="order-btn" style="flex: 1; text-align: center; cursor: default; background: #d4edda; color: #155724;">
+                            ✅ Đã giao thành công
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+    
+    <!-- Link to History -->
+    <div style="text-align: center; margin-top: 30px;">
+        <a href="/Shipper/Orders/History" style="color: var(--shipper-primary); font-weight: 600;">
+            📊 Xem lịch sử giao hàng đầy đủ →
+        </a>
+    </div>
+}

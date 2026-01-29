@@ -1,0 +1,41 @@
+@model ASM1_NET.Models.Order
+
+<h2>Chi tiết đơn hàng @Model.OrderCode</h2>
+
+<p><strong>Khách hàng:</strong> @Model.Customer?.FullName</p>
+<p><strong>SĐT:</strong> @Model.Phone</p>
+<p><strong>Địa chỉ:</strong> @Model.Address</p>
+<p><strong>Trạng thái:</strong> @Model.Status</p>
+
+<p>
+    <strong>Shipper:</strong>
+    @(Model.Shipper != null ? Model.Shipper.FullName : "Chưa phân công")
+</p>
+
+<hr />
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Món</th>
+            <th>Giá</th>
+            <th>Số lượng</th>
+            <th>Thành tiền</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var d in Model.OrderDetails)
+        {
+            <tr>
+                <td>@d.Food?.Name</td>
+                <td>@d.UnitPrice.ToString("N0") đ</td>
+                <td>@d.Quantity</td>
+                <td>@d.UnitPrice.ToString("N0") đ</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<a asp-area="Admin" asp-controller="Order" asp-action="Index" class="btn btn-secondary">
+    Quay lại
+</a>

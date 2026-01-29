@@ -1,0 +1,80 @@
+@model ASM1_NET.Models.Cart
+
+@{
+    var totalAmount = Model.CartItems.Sum(i => i.Price * i.Quantity);
+    var totalItems = Model.CartItems.Sum(i => i.Quantity);
+}
+
+<div class="mini-cart-wrapper">
+    <!-- Header -->
+    <div class="mini-cart-header">
+        <span class="mini-cart-title">🛒 Giỏ hàng</span>
+        <span class="mini-cart-count">@totalItems món</span>
+    </div>
+    
+    <!-- Body -->
+    <div class="mini-cart-body">
+        @if (Model.CartItems.Any())
+        {
+            @foreach (var item in Model.CartItems.Take(5))
+            {
+                var itemName = item.Food?.Name ?? item.Combo?.Name ?? "Sản phẩm";
+                var itemImage = item.Food?.ImageUrl ?? item.Combo?.ImageUrl ?? "";
+                var isCombo = item.ComboId.HasValue;
+                var subtotal = item.Price * item.Quantity;
+                
+                <div class="mini-cart-item">
+                    <div class="mini-cart-item-image">
+                        @if (!string.IsNullOrEmpty(itemImage))
+                        {
+                            <img src="@itemImage" alt="@itemName" onerror="this.parentElement.innerHTML='🍔'" />
+                        }
+                        else
+                        {
+                            <span>@(isCombo ? "🎁" : "🍔")</span>
+                        }
+                    </div>
+                    
+                    <div class="mini-cart-item-info">
+                        <span class="mini-cart-item-badge @(isCombo ? "combo" : "food")">
+                            @(isCombo ? "COMBO" : "MÓN ĂN")
+                        </span>
+                        <span class="mini-cart-item-name">@itemName</span>
+                        <span class="mini-cart-item-qty">×@item.Quantity</span>
+                    </div>
+                    
+                    <span class="mini-cart-item-price">@subtotal.ToString("N0")₫</span>
+                </div>
+            }
+            
+            @if (Model.CartItems.Count > 5)
+            {
+                <div class="mini-cart-more">
+                    +@(Model.CartItems.Count - 5) món khác...
+                </div>
+            }
+        }
+        else
+        {
+            <div class="mini-cart-empty">
+                <div class="mini-cart-empty-icon">🛒</div>
+                <p class="mini-cart-empty-text">Giỏ hàng trống</p>
+            </div>
+        }
+    </div>
+    
+    <!-- Footer -->
+    @if (Model.CartItems.Any())
+    {
+        <div class="mini-cart-footer">
+            <div class="mini-cart-total">
+                <span class="mini-cart-total-label">Tổng cộng:</span>
+                <span class="mini-cart-total-value">@totalAmount.ToString("N0")₫</span>
+            </div>
+            <div class="mini-cart-actions">
+                <a href="/Cart" class="mini-cart-btn mini-cart-btn-view">📋 Xem giỏ</a>
+                <a href="/Order/Checkout" class="mini-cart-btn mini-cart-btn-checkout">💳 Thanh toán</a>
+            </div>
+        </div>
+    }
+</div>

@@ -1,0 +1,161 @@
+/* =====================================================
+   MODAL POPUP STYLES - FASTFOOD PREMIUM
+   ===================================================== */
+
+/* Overlay */
+.modal-overlay {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    background: rgba(0, 0, 0, 0.85) !important;
+    backdrop-filter: blur(5px);
+    z-index: 9999 !important;
+    display: none;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Modal Container */
+.modal-content {
+    background: #1a1a2e !important;
+    border-radius: 16px !important;
+    width: 420px !important;
+    max-width: 90vw !important;
+    max-height: 85vh !important;
+    overflow: hidden !important;
+    position: relative !important;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6) !important;
+    animation: popupZoom 0.25s ease-out;
+}
+
+@keyframes popupZoom {
+    from {
+        opacity: 0;
+        transform: scale(0.85);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Close Button */
+.modal-close,
+.close-btn {
+    position: absolute !important;
+    top: 10px !important;
+    right: 10px !important;
+    width: 34px !important;
+    height: 34px !important;
+    background: rgba(0, 0, 0, 0.7) !important;
+    border: none !important;
+    border-radius: 50% !important;
+    color: #fff !important;
+    font-size: 22px !important;
+    cursor: pointer !important;
+    z-index: 100 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: all 0.2s !important;
+    line-height: 1 !important;
+}
+
+.modal-close:hover,
+.close-btn:hover {
+    background: #e74c3c !important;
+    transform: rotate(90deg) !important;
+}
+
+/* =====================================================
+   POPUP CONTENT STYLES
+   ===================================================== */
+
+/* Popup Wrapper */
+.popup-wrapper {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+}
+
+/* Popup Image - FORCE SIZE */
+.popup-image-detail {
+    width: 100% !important;
+    height: 200px !important;
+    max-height: 200px !important;
+    object-fit: cover !important;
+    display: block !important;
+}
+
+/* Popup Body */
+.popup-body {
+    padding: 20px !important;
+    background: #1a1a2e !important;
+}
+
+/* Badge */
+.popup-badge {
+    display: inline-block !important;
+    padding: 4px 12px !important;
+    border-radius: 20px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    margin-bottom: 10px !important;
+}
+
+.popup-badge.food {
+    background: rgba(16, 185, 129, 0.2) !important;
+    color: #10b981 !important;
+}
+
+.popup-badge.combo {
+    background: rgba(139, 92, 246, 0.2) !important;
+    color: #8b5cf6 !important;
+}
+
+/* Title */
+.popup-title {
+    font-size: 1.3rem !important;
+    font-weight: 700 !important;
+    color: #fff !important;
+    margin: 0 0 10px !important;
+}
+
+/* Description */
+.popup-desc {
+    color: #9ca3af !important;
+    font-size: 0.9rem !important;
+    line-height: 1.5 !important;
+    margin: 0 0 15px !important;
+}
+
+/* Price */
+.popup-price {
+    font-size: 1.5rem !important;
+    font-weight: 800 !important;
+    color: #fbbf24 !important;
+    margin: 0 0 20px !important;
+}
+
+/* Add to Cart Button */
+.popup-add-btn {
+    width: 100% !important;
+    padding: 14px !important;
+    background: linear-gradient(135deg, #ff6b6b, #ee5a24) !important;
+    border: none !important;
+    border-radius: 12px !important;
+    color: #fff !important;
+    font-size: 1rem !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    transition: all 0.2s !important;
+}
+
+.popup-add-btn:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 25px rgba(238, 90, 36, 0.5) !important;
+}
+
+

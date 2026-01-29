@@ -1,0 +1,185 @@
+@model IEnumerable<ASM1_NET.Models.User>
+@{
+    ViewData["Title"] = "Quản lý người dùng";
+    var adminCount = Model.Count(u => u.Role == "Admin");
+    var shipperCount = Model.Count(u => u.Role == "Shipper");
+    var customerCount = Model.Count(u => u.Role == "Customer");
+    var activeCount = Model.Count(u => u.IsActive);
+}
+
+<!-- Page Header -->
+<div class="admin-page-header">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+            <h2 class="admin-page-title">👥 Quản lý người dùng</h2>
+            <p class="admin-page-subtitle">Quản lý tài khoản người dùng hệ thống</p>
+        </div>
+        <a asp-action="Create" class="btn btn-admin btn-admin-add">
+            ➕ Thêm người dùng
+        </a>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="admin-stats-row">
+    <div class="admin-stat-card">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #10b981, #059669);">👥</div>
+        <div class="stat-info">
+            <span class="stat-value">@Model.Count()</span>
+            <span class="stat-label">Tổng người dùng</span>
+        </div>
+    </div>
+    <div class="admin-stat-card">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #ef4444, #dc2626);">👑</div>
+        <div class="stat-info">
+            <span class="stat-value">@adminCount</span>
+            <span class="stat-label">Admin</span>
+        </div>
+    </div>
+    <div class="admin-stat-card">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">🚚</div>
+        <div class="stat-info">
+            <span class="stat-value">@shipperCount</span>
+            <span class="stat-label">Shipper</span>
+        </div>
+    </div>
+    <div class="admin-stat-card">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">🛒</div>
+        <div class="stat-info">
+            <span class="stat-value">@customerCount</span>
+            <span class="stat-label">Khách hàng</span>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Bar -->
+<div class="admin-filter-bar">
+    <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="Tìm kiếm người dùng..." onkeyup="filterTable()" />
+    </div>
+    <div class="filter-group">
+        <select id="roleFilter" class="form-select" onchange="filterTable()">
+            <option value="">Tất cả vai trò</option>
+            <option value="Admin">Admin</option>
+            <option value="Shipper">Shipper</option>
+            <option value="Customer">Customer</option>
+        </select>
+    </div>
+</div>
+
+<!-- Data Table -->
+<div class="admin-table-card">
+    <table class="admin-table" id="userTable">
+        <thead>
+            <tr>
+                <th width="50">ID</th>
+                <th>Họ tên</th>
+                <th>Email</th>
+                <th>SĐT</th>
+                <th width="100">Vai trò</th>
+                <th width="100">Trạng thái</th>
+                <th width="180">Hành động</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var u in Model)
+            {
+                var roleClass = u.Role switch
+                {
+                    "Admin" => "role-admin",
+                    "Shipper" => "role-shipper",
+                    _ => "role-customer"
+                };
+                var roleIcon = u.Role switch
+                {
+                    "Admin" => "👑",
+                    "Shipper" => "🚚",
+                    _ => "🛒"
+                };
+                
+                <tr data-role="@u.Role">
+                    <td>
+                        <span class="id-badge">#@u.Id</span>
+                    </td>
+                    <td>
+                        <div class="user-info">
+                            @if (!string.IsNullOrEmpty(u.AvatarUrl))
+                            {
+                                <img src="@u.AvatarUrl" alt="@u.FullName" class="user-avatar-img" 
+                                     style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;" />
+                            }
+                            else
+                            {
+                                <div class="user-avatar">@(u.FullName?.Substring(0, 1).ToUpper() ?? "U")</div>
+                            }
+                            <strong>@u.FullName</strong>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="text-muted">📧 @u.Email</span>
+                    </td>
+                    <td>
+                        <span class="text-muted">📞 @(u.Phone ?? "—")</span>
+                    </td>
+                    <td>
+                        <span class="role-badge @roleClass">@roleIcon @u.Role</span>
+                    </td>
+                    <td>
+                        @if (u.IsActive)
+                        {
+                            <span class="status-badge status-active">✅ Hoạt động</span>
+                        }
+                        else
+                        {
+                            <span class="status-badge status-inactive">🔒 Bị khóa</span>
+                        }
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <a asp-action="Edit" asp-route-id="@u.Id" class="btn-action btn-edit" title="Sửa">
+                                ✏️
+                            </a>
+                            <a asp-action="ToggleActive" asp-route-id="@u.Id" 
+                               class="btn-action @(u.IsActive ? "btn-warning" : "btn-success")" 
+                               title="@(u.IsActive ? "Khóa" : "Mở khóa")">
+                                @(u.IsActive ? "🔒" : "🔓")
+                            </a>
+                            <form asp-action="Delete" asp-route-id="@u.Id" method="post" style="display:inline"
+                                  onsubmit="return confirm('Bạn chắc chắn muốn xóa người dùng này?');">
+                                <button type="submit" class="btn-action btn-delete" title="Xóa">
+                                    🗑️
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    
+    @if (!Model.Any())
+    {
+        <div class="empty-state">
+            <div class="empty-icon">👥</div>
+            <h4>Chưa có người dùng nào</h4>
+            <p>Hãy thêm người dùng đầu tiên</p>
+        </div>
+    }
+</div>
+
+<script>
+function filterTable() {
+    const searchInput = document.getElementById('searchInput').value.toLowerCase();
+    const roleFilter = document.getElementById('roleFilter').value;
+    const rows = document.querySelectorAll('#userTable tbody tr');
+    
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        const role = row.dataset.role;
+        const matchSearch = text.includes(searchInput);
+        const matchRole = !roleFilter || role === roleFilter;
+        row.style.display = (matchSearch && matchRole) ? '' : 'none';
+    });
+}
+</script>

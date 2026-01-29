@@ -1,0 +1,24 @@
+@model ASM1_NET.Models.Order
+
+<h2>Sửa đơn hàng</h2>
+
+<form method="post">
+    <div class="mb-3">
+        <label>Mã đơn</label>
+        <input class="form-control" value="@Model.OrderCode" disabled />
+    </div>
+
+    <div class="mb-3">
+        <label>Trạng thái</label>
+        <select name="Status" class="form-select">
+            <option value="Pending" selected="@("Pending" == Model.Status)">Pending</option>
+            <option value="Preparing" selected="@("Preparing" == Model.Status)">Preparing</option>
+            <option value="Delivering" selected="@("Delivering" == Model.Status)">Delivering</option>
+            <option value="Completed" selected="@("Completed" == Model.Status)">Completed</option>
+            <option value="Cancelled" selected="@("Cancelled" == Model.Status)">Cancelled</option>
+        </select>
+    </div>
+
+    <button class="btn btn-primary">Lưu</button>
+    <a asp-action="Index" class="btn btn-secondary">Quay lại</a>
+</form>

@@ -1,0 +1,19 @@
+# .NET Core
+bin/
+obj/
+.vs/
+.idea/
+.vscode/
+
+# User-specific files
+*.user
+*.userosscache
+*.suo
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Secrets
+appsettings.Development.json
+secrets.json

@@ -1,0 +1,40 @@
+@model ASM1_NET.Models.Food
+
+@{
+    ViewData["Title"] = Model.Name;
+}
+
+<link rel="stylesheet" href="~/client/css/food-detail-dark.css" />
+
+<div class="food-detail-page">
+
+    <div class="food-detail-card">
+
+        <div class="food-detail-image">
+            <img src="@Model.ImageUrl" alt="@Model.Name" onerror="this.src='/images/no-image.png'" />
+        </div>
+
+        <div class="food-detail-info">
+            <h2>@Model.Name</h2>
+
+            <p class="desc">
+                @Model.Description
+            </p>
+
+            <p class="price">
+                Giá: <strong>@Model.Price.ToString("N0") ₫</strong>
+            </p>
+
+            <button class="add-btn" type="button" onclick="addToCart(@Model.Id)">
+                Thêm vào giỏ hàng
+            </button>
+
+            <br /><br />
+
+            <a asp-action="Index" class="back-link">
+                ⬅ Quay lại Menu
+            </a>
+        </div>
+
+    </div>
+</div>
