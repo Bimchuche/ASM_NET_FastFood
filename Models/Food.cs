@@ -2,9 +2,6 @@ using System.ComponentModel.DataAnnotations;
 
 namespace ASM1_NET.Models;
 
-/// <summary>
-/// Model Food với Data Annotations đầy đủ
-/// </summary>
 public class Food
 {
     public int Id { get; set; }
@@ -27,18 +24,15 @@ public class Food
     [Display(Name = "Hình ảnh")]
     public string? ImageUrl { get; set; }
 
-    // Trạng thái bán
     [Display(Name = "Còn bán")]
     public bool IsAvailable { get; set; } = true;
 
-    // FK - Navigation Property
     [Required(ErrorMessage = "Vui lòng chọn danh mục")]
     [Display(Name = "Danh mục")]
     public int CategoryId { get; set; }
     
     public virtual Category? Category { get; set; }
 
-    // ===== SOFT DELETE =====
     [Display(Name = "Đã xóa")]
     public bool IsDeleted { get; set; } = false;
 

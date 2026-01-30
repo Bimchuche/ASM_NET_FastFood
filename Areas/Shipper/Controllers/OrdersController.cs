@@ -15,7 +15,6 @@ public class OrdersController : Controller
         _context = context;
     }
 
-    // 📌 ĐƠN CỦA RIÊNG SHIPPER
     public IActionResult MyOrders()
     {
         var shipperId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
@@ -23,12 +22,11 @@ public class OrdersController : Controller
         var orders = _context.Orders
             .Include(o => o.Customer)
             .Where(o => o.ShipperId == shipperId &&
-                        !o.IsDeleted &&  // ✅ Ẩn đơn đã xóa
+                        !o.IsDeleted &&
                         (o.Status == "Delivering" || o.Status == "Completed"))
             .OrderByDescending(o => o.OrderDate)
             .ToList();
         
-        // Thống kê
         ViewBag.DeliveringCount = orders.Count(o => o.Status == "Delivering");
         ViewBag.CompletedCount = orders.Count(o => o.Status == "Completed");
         ViewBag.TotalEarnings = orders.Where(o => o.Status == "Completed").Sum(o => o.TotalAmount);
@@ -36,7 +34,6 @@ public class OrdersController : Controller
         return View(orders);
     }
 
-    // 📌 HOÀN THÀNH ĐƠN (với ảnh xác nhận)
     [HttpPost]
     public async Task<IActionResult> Complete(int id, IFormFile proofImage)
     {
@@ -57,14 +54,12 @@ public class OrdersController : Controller
             return RedirectToAction("MyOrders");
         }
 
-        // Validate ảnh
         if (proofImage == null || proofImage.Length == 0)
         {
             TempData["Error"] = "Vui lòng chụp/chọn ảnh xác nhận giao hàng!";
             return RedirectToAction("MyOrders");
         }
 
-        // Lưu ảnh
         var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "delivery-proofs");
         if (!Directory.Exists(uploadsFolder))
             Directory.CreateDirectory(uploadsFolder);
@@ -77,7 +72,6 @@ public class OrdersController : Controller
             await proofImage.CopyToAsync(stream);
         }
 
-        // Update order
         order.Status = "Completed";
         order.DeliveryProofImageUrl = $"/uploads/delivery-proofs/{fileName}";
         order.DeliveryDate = DateTime.Now;
@@ -88,7 +82,6 @@ public class OrdersController : Controller
         return RedirectToAction("MyOrders");
     }
     
-    // 📌 XEM CHI TIẾT ĐƠN HÀNG
     public IActionResult Detail(int id)
     {
         var shipperId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
@@ -110,17 +103,15 @@ public class OrdersController : Controller
         return View(order);
     }
     
-    // 📌 LỊCH SỬ GIAO HÀNG (Chỉ đơn hoàn thành)
     public IActionResult History(string fromDate, string toDate)
     {
         var shipperId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
 
         var query = _context.Orders
             .Include(o => o.Customer)
-            .Where(o => o.ShipperId == shipperId && o.Status == "Completed" && !o.IsDeleted)  // ✅ Ẩn đơn đã xóa
+            .Where(o => o.ShipperId == shipperId && o.Status == "Completed" && !o.IsDeleted)
             .AsQueryable();
         
-        // Filter by date
         if (!string.IsNullOrEmpty(fromDate) && DateTime.TryParse(fromDate, out var from))
         {
             query = query.Where(o => o.OrderDate >= from);

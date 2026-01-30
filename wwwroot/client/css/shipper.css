@@ -21,7 +21,6 @@
 }
 
 body.shipper-body {
-    font-family: 'Segoe UI', Roboto, Arial, sans-serif;
     background: var(--shipper-light);
     min-height: 100vh;
 }

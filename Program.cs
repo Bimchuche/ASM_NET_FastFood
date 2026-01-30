@@ -5,32 +5,23 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ================= DB CONTEXT với Lazy Loading =================
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
-           .UseLazyLoadingProxies()  // ✅ Lazy Loading enabled
+           .UseLazyLoadingProxies()
 );
 
-// ================= MVC =================
 builder.Services.AddControllersWithViews();
 
-// ================= REPOSITORIES - Dependency Injection =================
-// Generic Repository
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
-
-// Specific Repositories
 builder.Services.AddScoped<IFoodRepository, FoodRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 
-// ================= EMAIL SERVICE =================
 builder.Services.AddScoped<ASM1_NET.Services.IEmailService, ASM1_NET.Services.EmailService>();
 
-// ================= ACTIVITY LOG SERVICE =================
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ASM1_NET.Services.IActivityLogService, ASM1_NET.Services.ActivityLogService>();
 
-// ================= AUTH =================
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
@@ -47,7 +38,6 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 
 builder.Services.AddAuthorization();
 
-// Session với cấu hình đầy đủ
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromHours(24);
@@ -59,13 +49,10 @@ builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 
-// ================= PIPELINE =================
 app.UseStaticFiles();
-
 app.UseRouting();
-
-app.UseSession();            // nếu dùng
-app.UseAuthentication();     // BẮT BUỘC
+app.UseSession();
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(

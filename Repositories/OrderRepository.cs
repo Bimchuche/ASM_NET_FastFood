@@ -4,22 +4,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ASM1_NET.Repositories
 {
-    /// <summary>
-    /// Order Repository Implementation
-    /// Demo: Stored Procedures, Eager Loading, LINQ to Entities
-    /// </summary>
     public class OrderRepository : Repository<Order>, IOrderRepository
     {
         public OrderRepository(AppDbContext context) : base(context) { }
 
-        /// <summary>
-        /// Execute Stored Procedure - EF Core
-        /// Sử dụng Raw SQL để gọi Stored Procedure
-        /// </summary>
         public async Task<OrderStatistics> GetStatisticsAsync(DateTime? startDate, DateTime? endDate)
         {
-            // ✅ Execute SQL / Stored Procedure
-            // Nếu chưa có SP, sử dụng LINQ thay thế
             var query = _dbSet.AsQueryable();
             
             if (startDate.HasValue)
@@ -41,12 +31,8 @@ namespace ASM1_NET.Repositories
             };
         }
 
-        /// <summary>
-        /// Raw SQL Query Example - Có thể dùng với SP
-        /// </summary>
         public async Task<OrderStatistics> GetStatisticsWithRawSqlAsync(DateTime? startDate, DateTime? endDate)
         {
-            // ✅ Raw SQL Query với EF Core 8.0+
             var sql = @"
                 SELECT 
                     COUNT(*) AS TotalOrders,
@@ -66,26 +52,20 @@ namespace ASM1_NET.Repositories
             return result ?? new OrderStatistics();
         }
 
-        /// <summary>
-        /// Eager Loading - Multiple levels với ThenInclude
-        /// </summary>
         public async Task<IEnumerable<Order>> GetByCustomerAsync(int customerId)
         {
             return await _dbSet
                 .Where(o => o.CustomerId == customerId)
-                .Include(o => o.OrderDetails)       // ✅ Eager Loading level 1
-                    .ThenInclude(od => od.Food)     // ✅ Eager Loading level 2
+                .Include(o => o.OrderDetails)
+                    .ThenInclude(od => od.Food)
                 .Include(o => o.OrderDetails)
                     .ThenInclude(od => od.Combo)
                 .Include(o => o.Shipper)
                 .OrderByDescending(o => o.OrderDate)
-                .AsNoTracking()                     // ✅ Query Performance
+                .AsNoTracking()
                 .ToListAsync();
         }
 
-        /// <summary>
-        /// LINQ to Entities - Filter by Status
-        /// </summary>
         public async Task<IEnumerable<Order>> GetByStatusAsync(string status)
         {
             return await _dbSet
@@ -96,9 +76,6 @@ namespace ASM1_NET.Repositories
                 .ToListAsync();
         }
 
-        /// <summary>
-        /// Eager Loading - Full details
-        /// </summary>
         public async Task<Order?> GetWithDetailsAsync(int orderId)
         {
             return await _dbSet
@@ -106,15 +83,12 @@ namespace ASM1_NET.Repositories
                 .Include(o => o.Shipper)
                 .Include(o => o.OrderDetails)
                     .ThenInclude(od => od.Food)
-                        .ThenInclude(f => f!.Category)  // ✅ Deep Eager Loading
+                        .ThenInclude(f => f!.Category)
                 .Include(o => o.OrderDetails)
                     .ThenInclude(od => od.Combo)
                 .FirstOrDefaultAsync(o => o.Id == orderId);
         }
 
-        /// <summary>
-        /// Query theo Shipper - LINQ to Entities
-        /// </summary>
         public async Task<IEnumerable<Order>> GetByShipperAsync(int shipperId)
         {
             return await _dbSet
@@ -124,6 +98,24 @@ namespace ASM1_NET.Repositories
                 .OrderByDescending(o => o.OrderDate)
                 .AsNoTracking()
                 .ToListAsync();
+        }
+
+        public async Task LoadOrderDetailsAsync(Order order)
+        {
+            await _context.Entry(order)
+                .Reference(o => o.Customer)
+                .LoadAsync();
+
+            await _context.Entry(order)
+                .Collection(o => o.OrderDetails)
+                .LoadAsync();
+
+            foreach (var detail in order.OrderDetails)
+            {
+                await _context.Entry(detail)
+                    .Reference(d => d.Food)
+                    .LoadAsync();
+            }
         }
     }
 }

@@ -6,9 +6,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ASM1_NET.Areas.Admin.Controllers
 {
-    /// <summary>
-    /// Controller quản lý Thùng rác (Soft Delete)
-    /// </summary>
     [Area("Admin")]
     [Authorize(Roles = "Admin")]
     public class TrashController : Controller
@@ -22,9 +19,6 @@ namespace ASM1_NET.Areas.Admin.Controllers
             _activityLogService = activityLogService;
         }
 
-        /// <summary>
-        /// Trang Thùng rác chính - hiển thị tất cả items đã xóa
-        /// </summary>
         public async Task<IActionResult> Index()
         {
             ViewData["Title"] = "Thùng rác";
@@ -45,7 +39,6 @@ namespace ASM1_NET.Areas.Admin.Controllers
             return View();
         }
 
-        // ================= FOOD =================
         public async Task<IActionResult> Foods()
         {
             ViewData["Title"] = "Món ăn đã xóa";
@@ -91,7 +84,6 @@ namespace ASM1_NET.Areas.Admin.Controllers
             return RedirectToAction(nameof(Foods));
         }
 
-        // ================= COMBO =================
         public async Task<IActionResult> Combos()
         {
             ViewData["Title"] = "Combo đã xóa";
@@ -136,7 +128,6 @@ namespace ASM1_NET.Areas.Admin.Controllers
             return RedirectToAction(nameof(Combos));
         }
 
-        // ================= CATEGORY =================
         public async Task<IActionResult> Categories()
         {
             ViewData["Title"] = "Danh mục đã xóa";
@@ -181,7 +172,6 @@ namespace ASM1_NET.Areas.Admin.Controllers
             return RedirectToAction(nameof(Categories));
         }
 
-        // ================= USER =================
         public async Task<IActionResult> Users()
         {
             ViewData["Title"] = "Người dùng đã xóa";
@@ -226,7 +216,6 @@ namespace ASM1_NET.Areas.Admin.Controllers
             return RedirectToAction(nameof(Users));
         }
 
-        // ================= ORDER =================
         public async Task<IActionResult> Orders()
         {
             ViewData["Title"] = "Đơn hàng đã xóa";
@@ -272,12 +261,10 @@ namespace ASM1_NET.Areas.Admin.Controllers
             return RedirectToAction(nameof(Orders));
         }
 
-        // ================= EMPTY TRASH =================
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EmptyAll()
         {
-            // Xóa tất cả items trong trash
             var foods = await _context.Foods.Where(f => f.IsDeleted).ToListAsync();
             var combos = await _context.Combos.Where(c => c.IsDeleted).ToListAsync();
             var categories = await _context.Categories.Where(c => c.IsDeleted).ToListAsync();

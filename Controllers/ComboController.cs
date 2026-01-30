@@ -12,13 +12,10 @@ namespace ASM1_NET.Controllers
             _context = context;
         }
 
-        // =========================
-        // KHÁCH HÀNG XEM + SEARCH COMBO
-        // =========================
         public IActionResult Index(string keyword)
         {
             var combos = _context.Combos
-                .Where(c => c.IsActive && !c.IsDeleted)  // ✅ Ẩn combo đã xóa
+                .Where(c => c.IsActive && !c.IsDeleted)
                 .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(keyword))
@@ -29,6 +26,7 @@ namespace ASM1_NET.Controllers
             ViewBag.Keyword = keyword;
             return View(combos.ToList());
         }
+
         public IActionResult DetailPopup(int id)
         {
             var combo = _context.Combos.FirstOrDefault(c => c.Id == id && c.IsActive && !c.IsDeleted);
@@ -36,7 +34,5 @@ namespace ASM1_NET.Controllers
 
             return PartialView("_ComboDetailPopup", combo);
         }
-
-
     }
 }

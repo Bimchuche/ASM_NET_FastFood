@@ -2,9 +2,6 @@ using System.ComponentModel.DataAnnotations;
 
 namespace ASM1_NET.Models;
 
-/// <summary>
-/// Model Order với Data Annotations đầy đủ
-/// </summary>
 public class Order
 {
     public int Id { get; set; }
@@ -41,22 +38,18 @@ public class Order
     public string Phone { get; set; } = "";
 
     [Display(Name = "Phương thức thanh toán")]
-    public string PaymentMethod { get; set; } = "COD"; // COD, QR
+    public string PaymentMethod { get; set; } = "COD";
 
-    // FK - Customer
     [Required]
     public int CustomerId { get; set; }
     public virtual User? Customer { get; set; }
 
-    // FK - Shipper (optional)
     public int? ShipperId { get; set; }
     public virtual User? Shipper { get; set; }
 
-    // Navigation Property
     public virtual ICollection<OrderDetail> OrderDetails { get; set; }
         = new List<OrderDetail>();
 
-    // Proof of delivery
     [Display(Name = "Ảnh xác nhận giao hàng")]
     public string? DeliveryProofImageUrl { get; set; }
     
@@ -64,7 +57,6 @@ public class Order
     [DataType(DataType.DateTime)]
     public DateTime? DeliveryDate { get; set; }
 
-    // Estimated delivery time
     [Display(Name = "Thời điểm xác nhận")]
     public DateTime? ConfirmedAt { get; set; }
     
@@ -76,7 +68,6 @@ public class Order
     [Display(Name = "Thời gian dự kiến (phút)")]
     public int? EstimatedMinutes { get; set; }
 
-    // ===== SOFT DELETE =====
     [Display(Name = "Đã xóa")]
     public bool IsDeleted { get; set; } = false;
 

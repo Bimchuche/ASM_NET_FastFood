@@ -2,9 +2,6 @@ using System.ComponentModel.DataAnnotations;
 
 namespace ASM1_NET.ViewModels
 {
-    /// <summary>
-    /// ViewModel cho form đăng nhập - Model Validation
-    /// </summary>
     public class LoginViewModel
     {
         [Required(ErrorMessage = "Vui lòng nhập email")]

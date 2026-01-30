@@ -16,7 +16,6 @@ body.auth-page {
     align-items: center;
     justify-content: center;
     background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-    font-family: 'Segoe UI', Roboto, Arial, sans-serif;
     position: relative;
     overflow: hidden;
 }

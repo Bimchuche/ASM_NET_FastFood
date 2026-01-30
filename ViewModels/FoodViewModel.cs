@@ -2,9 +2,6 @@ using System.ComponentModel.DataAnnotations;
 
 namespace ASM1_NET.ViewModels
 {
-    /// <summary>
-    /// ViewModel cho form tạo/sửa Food - Admin
-    /// </summary>
     public class FoodViewModel
     {
         public int Id { get; set; }

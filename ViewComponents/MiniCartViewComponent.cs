@@ -17,15 +17,11 @@ namespace ASM1_NET.ViewComponents
 
         public IViewComponentResult Invoke()
         {
-            // Try Session first (set during login)
             int? userId = HttpContext.Session.GetInt32("UserId");
             
-            // Fallback to Claims if Session not available
             if (userId == null)
             {
-                var userClaim = HttpContext.User
-                    .FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
-                    
+                var userClaim = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier);
                 if (userClaim != null && int.TryParse(userClaim.Value, out int parsedId))
                 {
                     userId = parsedId;
@@ -36,17 +32,13 @@ namespace ASM1_NET.ViewComponents
                 return View(new Cart { CartItems = new List<CartItem>() });
 
             var cart = _context.Carts
-     .Include(c => c.CartItems)
-         .ThenInclude(ci => ci.Food)     // ✅ ĐÚNG
-     .Include(c => c.CartItems)
-         .ThenInclude(ci => ci.Combo)    // ✅ ĐÚNG
-     .FirstOrDefault(c => c.UserId == userId);
-
+                .Include(c => c.CartItems)
+                    .ThenInclude(ci => ci.Food)
+                .Include(c => c.CartItems)
+                    .ThenInclude(ci => ci.Combo)
+                .FirstOrDefault(c => c.UserId == userId);
 
             return View(cart ?? new Cart { CartItems = new List<CartItem>() });
         }
-
-
-
     }
 }

@@ -4,42 +4,29 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ASM1_NET.Repositories
 {
-    /// <summary>
-    /// Food Repository Implementation
-    /// Demo: Eager Loading, Explicit Loading, LINQ to Entities, Query Performance
-    /// </summary>
     public class FoodRepository : Repository<Food>, IFoodRepository
     {
         public FoodRepository(AppDbContext context) : base(context) { }
 
-        /// <summary>
-        /// Eager Loading - Include Category
-        /// </summary>
         public async Task<IEnumerable<Food>> GetByCategoryAsync(int categoryId)
         {
             return await _dbSet
-                .Include(f => f.Category)  // ✅ Eager Loading
+                .Include(f => f.Category)
                 .Where(f => f.CategoryId == categoryId && f.IsAvailable)
-                .AsNoTracking()            // ✅ Query Performance
+                .AsNoTracking()
                 .ToListAsync();
         }
 
-        /// <summary>
-        /// Query Performance - AsNoTracking + Filtered
-        /// </summary>
         public async Task<IEnumerable<Food>> GetAvailableFoodsAsync()
         {
             return await _dbSet
                 .Where(f => f.IsAvailable)
-                .Include(f => f.Category)  // Eager Loading
+                .Include(f => f.Category)
                 .OrderBy(f => f.Name)
-                .AsNoTracking()            // Performance: read-only
+                .AsNoTracking()
                 .ToListAsync();
         }
 
-        /// <summary>
-        /// LINQ to Entities - Search với EF.Functions.Like
-        /// </summary>
         public async Task<IEnumerable<Food>> SearchAsync(string keyword)
         {
             if (string.IsNullOrWhiteSpace(keyword))
@@ -53,16 +40,12 @@ namespace ASM1_NET.Repositories
                 .ToListAsync();
         }
 
-        /// <summary>
-        /// Explicit Loading - Load navigation property khi cần
-        /// </summary>
         public async Task<Food?> GetWithCategoryAsync(int id)
         {
             var food = await _dbSet.FindAsync(id);
             
             if (food != null)
             {
-                // ✅ Explicit Loading - chỉ load khi cần
                 await _context.Entry(food)
                     .Reference(f => f.Category)
                     .LoadAsync();
@@ -71,9 +54,6 @@ namespace ASM1_NET.Repositories
             return food;
         }
 
-        /// <summary>
-        /// Query Performance - Select chỉ cần thiết
-        /// </summary>
         public async Task<IEnumerable<Food>> GetTopFoodsAsync(int count)
         {
             return await _dbSet

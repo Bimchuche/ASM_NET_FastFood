@@ -16,13 +16,13 @@ namespace ASM1_NET.Controllers
         public IActionResult Index()
         {
             ViewBag.Foods = _context.Foods
-                .Where(f => f.IsAvailable && !f.IsDeleted)  // ✅ Ẩn món đã xóa
+                .Where(f => f.IsAvailable && !f.IsDeleted)
                 .OrderByDescending(f => f.Id)
                 .Take(6)
                 .ToList();
 
             ViewBag.Combos = _context.Combos
-                .Where(c => c.IsActive && !c.IsDeleted)  // ✅ Ẩn combo đã xóa
+                .Where(c => c.IsActive && !c.IsDeleted)
                 .OrderByDescending(c => c.Id)
                 .Take(4)
                 .ToList();

@@ -20,18 +20,16 @@ namespace ASM1_NET.Areas.Admin.Controllers
             _activityLog = activityLog;
         }
 
-        // 📌 Danh sách user
         public async Task<IActionResult> Index()
         {
             var users = await _context.Users
-                .Where(u => !u.IsDeleted)  // ✅ Filter soft deleted
+                .Where(u => !u.IsDeleted)
                 .OrderByDescending(u => u.CreatedAt)
                 .ToListAsync();
 
             return View(users);
         }
 
-        // 📌 Tạo user
         public IActionResult Create()
         {
             return View();
@@ -60,9 +58,6 @@ namespace ASM1_NET.Areas.Admin.Controllers
             return RedirectToAction("Index");
         }
 
-
-
-        // 📌 Sửa user
         public async Task<IActionResult> Edit(int id)
         {
             var user = await _context.Users.FindAsync(id);
@@ -90,7 +85,6 @@ namespace ASM1_NET.Areas.Admin.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // 📌 Khóa / mở user
         public async Task<IActionResult> ToggleActive(int id)
         {
             var user = await _context.Users.FindAsync(id);
@@ -101,7 +95,7 @@ namespace ASM1_NET.Areas.Admin.Controllers
 
             return RedirectToAction(nameof(Index));
         }
-        // 📌 Xóa user (SOFT DELETE)
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
@@ -111,14 +105,12 @@ namespace ASM1_NET.Areas.Admin.Controllers
             if (user == null)
                 return NotFound();
 
-            // ❌ Không cho xóa Admin
             if (user.Role == "Admin")
             {
                 TempData["Error"] = "Không thể xóa tài khoản Admin";
                 return RedirectToAction(nameof(Index));
             }
 
-            // ✅ SOFT DELETE
             user.IsDeleted = true;
             user.DeletedAt = DateTime.Now;
             await _context.SaveChangesAsync();
@@ -128,6 +120,5 @@ namespace ASM1_NET.Areas.Admin.Controllers
             TempData["Success"] = $"Đã chuyển '{user.FullName}' vào thùng rác!";
             return RedirectToAction(nameof(Index));
         }
-
     }
 }

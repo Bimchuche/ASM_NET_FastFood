@@ -10,25 +10,18 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace ASM1_NET.Controllers;
 
-/// <summary>
-/// Controller xử lý đăng ký, đăng nhập, profile
-/// Demo: Model Validation, Dependency Injection
-/// </summary>
 public class AccountController : Controller
 {
     private readonly AppDbContext _context;
-    private readonly IEmailService _emailService;  // ✅ Dependency Injection
-    private readonly IActivityLogService _activityLog; // ✅ Activity Log
+    private readonly IEmailService _emailService;
+    private readonly IActivityLogService _activityLog;
 
-    // ✅ Constructor Injection
     public AccountController(AppDbContext context, IEmailService emailService, IActivityLogService activityLog)
     {
         _context = context;
         _emailService = emailService;
         _activityLog = activityLog;
     }
-
-    // ================= PROFILE =================
 
     [HttpGet]
     public IActionResult Profile()
@@ -68,7 +61,6 @@ public class AccountController : Controller
         user.Phone = Phone;
         user.Address = Address;
 
-        // Chỉ đổi mật khẩu nếu có nhập
         if (!string.IsNullOrEmpty(Password))
         {
             user.Password = Password;
@@ -126,36 +118,27 @@ public class AccountController : Controller
         return RedirectToAction("Profile");
     }
 
-
-    // ================= REGISTER với ViewModel & Model Validation =================
-    
     [HttpGet]
     public IActionResult Register()
     {
-        return View(new RegisterViewModel());  // ✅ Trả về ViewModel
+        return View(new RegisterViewModel());
     }
 
-    /// <summary>
-    /// POST Register - Model Validation
-    /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Register(RegisterViewModel model)
     {
-        // ✅ Model Validation - Kiểm tra ModelState
         if (!ModelState.IsValid)
         {
-            return View(model);  // Trả về View với lỗi validation
+            return View(model);
         }
 
-        // Business Validation - Email đã tồn tại
         if (_context.Users.Any(u => u.Email == model.Email))
         {
             ModelState.AddModelError("Email", "Email đã được sử dụng. Vui lòng chọn email khác.");
             return View(model);
         }
 
-        // Tạo User mới
         var user = new User
         {
             FullName = model.FullName,
@@ -170,30 +153,22 @@ public class AccountController : Controller
         _context.Users.Add(user);
         _context.SaveChanges();
 
-        // ✅ Activity Log
         await _activityLog.LogAsync("Register", "User", user.Id, user.FullName, $"User mới đăng ký: {user.Email}");
 
         TempData["Success"] = "Đăng ký thành công! Vui lòng đăng nhập.";
         return RedirectToAction("Login");
     }
 
-
-    // ================= LOGIN với ViewModel & Model Validation =================
-    
     [HttpGet]
     public IActionResult Login()
     {
-        return View(new LoginViewModel());  // ✅ Trả về ViewModel
+        return View(new LoginViewModel());
     }
 
-    /// <summary>
-    /// POST Login - Model Validation
-    /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Login(LoginViewModel model)
     {
-        // ✅ Model Validation
         if (!ModelState.IsValid)
         {
             return View(model);
@@ -204,7 +179,7 @@ public class AccountController : Controller
                 u.Email == model.Email &&
                 u.Password == model.Password &&
                 u.IsActive &&
-                !u.IsDeleted);  // ✅ Không cho user bị xóa đăng nhập
+                !u.IsDeleted);
 
         if (user == null)
         {
@@ -216,7 +191,6 @@ public class AccountController : Controller
         HttpContext.Session.SetString("UserRole", user.Role);
         HttpContext.Session.SetString("UserName", user.FullName);
 
-        // Tạo claims
         var claims = new List<Claim>
         {
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
@@ -224,20 +198,15 @@ public class AccountController : Controller
             new Claim(ClaimTypes.Role, user.Role)
         };
 
-        var identity = new ClaimsIdentity(
-            claims,
-            CookieAuthenticationDefaults.AuthenticationScheme
-        );
+        var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
 
         await HttpContext.SignInAsync(
             CookieAuthenticationDefaults.AuthenticationScheme,
             new ClaimsPrincipal(identity)
         );
 
-        // ✅ Activity Log
         await _activityLog.LogAsync("Login", "User", user.Id, user.FullName, $"{user.FullName} ({user.Role}) đã đăng nhập");
 
-        // Phân luồng theo Role
         if (user.Role == "Admin")
         {
             return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
@@ -248,20 +217,16 @@ public class AccountController : Controller
             return RedirectToAction("Index", "Dashboard", new { area = "Shipper" });
         }
 
-        // Customer
         return RedirectToAction("Index", "Home");
     }
 
     public async Task<IActionResult> Logout()
     {
-        // ✅ Activity Log trước khi logout
         var userName = User.Identity?.Name ?? "Unknown";
         await _activityLog.LogWithUserAsync("Logout", "User", null, userName, $"{userName} đã đăng xuất");
 
         HttpContext.Session.Clear();
-        await HttpContext.SignOutAsync(
-            CookieAuthenticationDefaults.AuthenticationScheme
-        );
+        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
         return RedirectToAction("Login");
     }
 
@@ -269,8 +234,6 @@ public class AccountController : Controller
     {
         return View();
     }
-
-    // ================= FORGOT PASSWORD =================
 
     [HttpGet]
     public IActionResult ForgotPassword()
@@ -307,7 +270,6 @@ public class AccountController : Controller
         _context.PasswordResetTokens.Add(token);
         await _context.SaveChangesAsync();
 
-        // ✅ Sử dụng injected service thay vì RequestServices
         await _emailService.SendPasswordResetCodeAsync(email, code);
 
         TempData["ResetEmail"] = email;
@@ -358,8 +320,6 @@ public class AccountController : Controller
         ViewBag.Error = "Có lỗi xảy ra, vui lòng thử lại";
         return View();
     }
-
-    // ================= GOOGLE OAUTH =================
 
     [HttpGet]
     public IActionResult ExternalLogin(string provider = "Google", string returnUrl = "/")

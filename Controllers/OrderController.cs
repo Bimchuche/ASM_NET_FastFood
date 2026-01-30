@@ -18,25 +18,20 @@ namespace ASM1_NET.Controllers
             _activityLog = activityLog;
         }
 
-        // =========================
-        // GET: /Order/Checkout
-        // =========================
         public IActionResult Checkout()
         {
-            // 1️⃣ Lấy userId từ login (INT)
             var claim = User.FindFirst(ClaimTypes.NameIdentifier);
             if (claim == null)
                 return RedirectToAction("Login", "Account");
 
             int userId = int.Parse(claim.Value);
 
-            // 2️⃣ Lấy cart bằng UserId (🔥 FIX LỖI)
             var cart = _context.Carts
                 .Include(c => c.CartItems)
                     .ThenInclude(ci => ci.Food)
                 .Include(c => c.CartItems)
                     .ThenInclude(ci => ci.Combo)
-                .FirstOrDefault(c => c.UserId == userId);   // ✅ ĐÚNG
+                .FirstOrDefault(c => c.UserId == userId);
 
             if (cart == null || cart.CartItems == null || !cart.CartItems.Any())
             {
@@ -44,7 +39,6 @@ namespace ASM1_NET.Controllers
                 return RedirectToAction("Index", "Cart");
             }
 
-            // 3️⃣ Lấy user để fill thông tin sẵn
             var user = _context.Users.FirstOrDefault(u => u.Id == userId);
             if (user != null)
             {
@@ -56,9 +50,6 @@ namespace ASM1_NET.Controllers
             return View(cart);
         }
 
-        // =========================
-        // POST: /Order/Checkout
-        // =========================
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Checkout(string address, string phone, string paymentMethod, double? latitude, double? longitude)
@@ -69,17 +60,15 @@ namespace ASM1_NET.Controllers
                 return RedirectToAction("Checkout");
             }
 
-            // 1️⃣ Lấy userId
             var claim = User.FindFirst(ClaimTypes.NameIdentifier);
             if (claim == null)
                 return RedirectToAction("Login", "Account");
 
             int userId = int.Parse(claim.Value);
 
-            // 2️⃣ Lấy cart theo UserId (🔥 FIX LỖI)
             var cart = _context.Carts
                 .Include(c => c.CartItems)
-                .FirstOrDefault(c => c.UserId == userId);   // ✅ ĐÚNG
+                .FirstOrDefault(c => c.UserId == userId);
 
             if (cart == null || !cart.CartItems.Any())
             {
@@ -87,7 +76,6 @@ namespace ASM1_NET.Controllers
                 return RedirectToAction("Index", "Cart");
             }
 
-            // 🆕 Auto-update user info nếu thiếu (Google OAuth users)
             var user = _context.Users.FirstOrDefault(u => u.Id == userId);
             if (user != null)
             {
@@ -111,7 +99,6 @@ namespace ASM1_NET.Controllers
                 }
             }
 
-            // 3️⃣ TẠO ORDER (DÙNG CustomerId)
             var order = new Order
             {
                 OrderCode = "ORD" + DateTime.Now.Ticks,
@@ -122,7 +109,6 @@ namespace ASM1_NET.Controllers
                 PaymentMethod = string.IsNullOrEmpty(paymentMethod) ? "COD" : paymentMethod,
                 CustomerId = userId,
                 TotalAmount = cart.CartItems.Sum(i => i.Price * i.Quantity),
-                // 🆕 Save delivery coordinates
                 DeliveryLatitude = latitude,
                 DeliveryLongitude = longitude
             };
@@ -130,7 +116,6 @@ namespace ASM1_NET.Controllers
             _context.Orders.Add(order);
             _context.SaveChanges();
 
-            // 4️⃣ ORDER DETAILS
             foreach (var item in cart.CartItems)
             {
                 _context.OrderDetails.Add(new OrderDetail
@@ -143,13 +128,11 @@ namespace ASM1_NET.Controllers
                 });
             }
 
-            // 5️⃣ Xóa cart
             _context.CartItems.RemoveRange(cart.CartItems);
             _context.Carts.Remove(cart);
 
             _context.SaveChanges();
 
-            // 6️⃣ Ghi log hoạt động tạo đơn hàng
             await _activityLog.LogAsync(
                 "Order", 
                 "Order", 
@@ -161,9 +144,6 @@ namespace ASM1_NET.Controllers
             return RedirectToAction("Success", new { id = order.Id });
         }
 
-        // =========================
-        // GET: /Order/Success
-        // =========================
         public IActionResult Success(int id)
         {
             var order = _context.Orders
@@ -171,13 +151,14 @@ namespace ASM1_NET.Controllers
                     .ThenInclude(d => d.Food)
                 .Include(o => o.OrderDetails)
                     .ThenInclude(d => d.Combo)
-                .FirstOrDefault(o => o.Id == id && !o.IsDeleted);  // ✅ Ẩn đơn đã xóa
+                .FirstOrDefault(o => o.Id == id && !o.IsDeleted);
 
             if (order == null)
                 return NotFound();
 
             return View(order);
         }
+
         public IActionResult Detail(int id)
         {
             var food = _context.Foods.FirstOrDefault(f => f.Id == id);
@@ -187,43 +168,34 @@ namespace ASM1_NET.Controllers
 
             return View(food);
         }
-        // =========================
-        // GET: /Order/History
-        // =========================
+
         public IActionResult History()
         {
-            // 1️⃣ Lấy userId từ login (INT)
-            var claim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+            var claim = User.FindFirst(ClaimTypes.NameIdentifier);
             if (claim == null)
                 return RedirectToAction("Login", "Account");
 
             int userId = int.Parse(claim.Value);
 
-            // 2️⃣ Lấy danh sách order của khách
             var orders = _context.Orders
-                .Where(o => o.CustomerId == userId && !o.IsDeleted)  // ✅ Ẩn đơn đã xóa
+                .Where(o => o.CustomerId == userId && !o.IsDeleted)
                 .OrderByDescending(o => o.OrderDate)
                 .ToList();
 
             return View(orders);
         }
 
-        // =========================
-        // POST: /Order/Cancel
-        // =========================
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Cancel(int id)
         {
-            // 1️⃣ Lấy userId từ login
-            var claim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+            var claim = User.FindFirst(ClaimTypes.NameIdentifier);
             if (claim == null)
                 return RedirectToAction("Login", "Account");
 
             int userId = int.Parse(claim.Value);
             var user = _context.Users.FirstOrDefault(u => u.Id == userId);
 
-            // 2️⃣ Tìm đơn hàng
             var order = _context.Orders.FirstOrDefault(o => o.Id == id && o.CustomerId == userId && !o.IsDeleted);
 
             if (order == null)
@@ -232,18 +204,15 @@ namespace ASM1_NET.Controllers
                 return RedirectToAction("History");
             }
 
-            // 3️⃣ Chỉ cho hủy khi đơn còn Pending
             if (order.Status != "Pending")
             {
                 TempData["Error"] = "Chỉ có thể hủy đơn hàng đang chờ xử lý";
                 return RedirectToAction("History");
             }
 
-            // 4️⃣ Cập nhật trạng thái
             order.Status = "Cancelled";
             _context.SaveChanges();
 
-            // 5️⃣ Ghi log hoạt động hủy đơn hàng
             await _activityLog.LogAsync(
                 "Cancel", 
                 "Order", 

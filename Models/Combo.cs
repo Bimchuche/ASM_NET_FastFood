@@ -3,9 +3,6 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ASM1_NET.Models
 {
-    /// <summary>
-    /// Model Combo với Data Annotations đầy đủ
-    /// </summary>
     public class Combo
     {
         public int Id { get; set; }
@@ -35,10 +32,8 @@ namespace ASM1_NET.Models
         [Display(Name = "Tải ảnh mới")]
         public IFormFile? ImageFile { get; set; }
 
-        // Navigation Property
         public virtual ICollection<ComboDetail>? ComboDetails { get; set; }
 
-        // ===== SOFT DELETE =====
         [Display(Name = "Đã xóa")]
         public bool IsDeleted { get; set; } = false;
 

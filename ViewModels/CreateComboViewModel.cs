@@ -2,9 +2,6 @@ using System.ComponentModel.DataAnnotations;
 
 namespace ASM1_NET.ViewModels
 {
-    /// <summary>
-    /// ViewModel cho tạo/sửa Combo - Data Validation
-    /// </summary>
     public class CreateComboViewModel
     {
         [Required(ErrorMessage = "Tên combo là bắt buộc")]
@@ -27,16 +24,11 @@ namespace ASM1_NET.ViewModels
         [Display(Name = "Ảnh combo")]
         public IFormFile? ImageFile { get; set; }
 
-        // Danh sách món ăn để chọn
         public List<FoodCheckboxItem> FoodList { get; set; } = new();
         
-        // Danh sách nước uống để chọn
         public List<FoodCheckboxItem> DrinkList { get; set; } = new();
     }
 
-    /// <summary>
-    /// Item cho checkbox chọn món
-    /// </summary>
     public class FoodCheckboxItem
     {
         public int Id { get; set; }

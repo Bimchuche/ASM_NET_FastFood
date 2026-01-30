@@ -2,9 +2,6 @@ using System.ComponentModel.DataAnnotations;
 
 namespace ASM1_NET.ViewModels
 {
-    /// <summary>
-    /// ViewModel cho form đăng ký - Data Validation
-    /// </summary>
     public class RegisterViewModel
     {
         [Required(ErrorMessage = "Vui lòng nhập họ tên")]

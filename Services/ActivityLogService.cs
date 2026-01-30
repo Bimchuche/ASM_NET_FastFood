@@ -4,9 +4,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ASM1_NET.Services
 {
-    /// <summary>
-    /// Service ghi và truy vấn Activity Log
-    /// </summary>
     public class ActivityLogService : IActivityLogService
     {
         private readonly AppDbContext _context;
@@ -18,9 +15,6 @@ namespace ASM1_NET.Services
             _httpContextAccessor = httpContextAccessor;
         }
 
-        /// <summary>
-        /// Ghi log hoạt động (không có user info)
-        /// </summary>
         public async Task LogAsync(string action, string? entityType, int? entityId, string? entityName, string description)
         {
             try
@@ -43,16 +37,12 @@ namespace ASM1_NET.Services
             }
             catch (Exception ex)
             {
-                // Log lỗi chi tiết để debug
                 Console.WriteLine($"[ActivityLog Error] {ex.Message}");
                 Console.WriteLine($"[ActivityLog Error] Inner: {ex.InnerException?.Message}");
                 Console.WriteLine($"[ActivityLog Error] Stack: {ex.StackTrace}");
             }
         }
 
-        /// <summary>
-        /// Ghi log với thông tin user từ HttpContext
-        /// </summary>
         public async Task LogWithUserAsync(string action, string? entityType, int? entityId, string? entityName, string description)
         {
             try
@@ -66,7 +56,6 @@ namespace ASM1_NET.Services
 
                 if (user?.Identity?.IsAuthenticated == true)
                 {
-                    // Lấy UserId từ Claims - sử dụng ClaimTypes.NameIdentifier
                     var userIdClaim = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
                     if (int.TryParse(userIdClaim, out int parsedId))
                     {
@@ -96,16 +85,12 @@ namespace ASM1_NET.Services
             }
             catch (Exception ex)
             {
-                // Log lỗi chi tiết để debug
                 Console.WriteLine($"[ActivityLog Error] {ex.Message}");
                 Console.WriteLine($"[ActivityLog Error] Inner: {ex.InnerException?.Message}");
                 Console.WriteLine($"[ActivityLog Error] Stack: {ex.StackTrace}");
             }
         }
 
-        /// <summary>
-        /// Lấy danh sách log gần đây
-        /// </summary>
         public async Task<List<ActivityLog>> GetRecentLogsAsync(int count = 50)
         {
             try
@@ -127,9 +112,6 @@ namespace ASM1_NET.Services
             }
         }
 
-        /// <summary>
-        /// Lấy log theo khoảng thời gian
-        /// </summary>
         public async Task<List<ActivityLog>> GetLogsByDateAsync(DateTime from, DateTime to)
         {
             return await _context.ActivityLogs
@@ -139,9 +121,6 @@ namespace ASM1_NET.Services
                 .ToListAsync();
         }
 
-        /// <summary>
-        /// Lấy log theo loại action
-        /// </summary>
         public async Task<List<ActivityLog>> GetLogsByActionAsync(string action, int count = 50)
         {
             return await _context.ActivityLogs
@@ -152,9 +131,6 @@ namespace ASM1_NET.Services
                 .ToListAsync();
         }
 
-        /// <summary>
-        /// Lấy log theo entity type
-        /// </summary>
         public async Task<List<ActivityLog>> GetLogsByEntityAsync(string entityType, int count = 50)
         {
             return await _context.ActivityLogs
@@ -165,9 +141,6 @@ namespace ASM1_NET.Services
                 .ToListAsync();
         }
 
-        /// <summary>
-        /// Đếm số log theo ngày (7 ngày gần nhất)
-        /// </summary>
         public async Task<Dictionary<string, int>> GetLogCountByDayAsync(int days = 7)
         {
             var fromDate = DateTime.Now.AddDays(-days).Date;

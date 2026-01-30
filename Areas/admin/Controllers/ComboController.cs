@@ -23,22 +23,18 @@ namespace ASM1_NET.Areas.Admin.Controllers
             _activityLog = activityLog;
         }
 
-        // ================= INDEX =================
         public IActionResult Index()
         {
-            var combos = _context.Combos.Where(c => !c.IsDeleted).ToList();  // ✅ Filter soft deleted
+            var combos = _context.Combos.Where(c => !c.IsDeleted).ToList();
             return View(combos);
         }
 
-        // ================= CREATE =================
         public IActionResult Create()
         {
             var viewModel = new CreateComboViewModel();
             
-            // Fetch relevant data
             var foods = _context.Foods.Include(f => f.Category).Where(f => f.IsAvailable).ToList();
             
-            // Split into Food and Drink lists
             foreach (var food in foods)
             {
                 var item = new FoodCheckboxItem
@@ -52,8 +48,6 @@ namespace ASM1_NET.Areas.Admin.Controllers
                     Quantity = 1
                 };
 
-                // Simple logic to distinguish drinks: category contains "drink" or "uống" or "nước"
-                // Adjust this logic based on your actual category names
                 var catName = (food.Category?.Name ?? "").ToLower();
                 if (catName.Contains("uống") || catName.Contains("nước") || catName.Contains("drink"))
                 {
@@ -71,14 +65,12 @@ namespace ASM1_NET.Areas.Admin.Controllers
         [HttpPost]
         public IActionResult Create(CreateComboViewModel model)
         {
-            // Basic validation
             if (string.IsNullOrWhiteSpace(model.Name))
             {
                 TempData["Error"] = "Vui lòng nhập tên combo!";
                 return RedirectToAction(nameof(Create));
             }
 
-            // 1. Create Combo
             var combo = new Combo
             {
                 Name = model.Name,
@@ -104,9 +96,8 @@ namespace ASM1_NET.Areas.Admin.Controllers
             }
 
             _context.Combos.Add(combo);
-            _context.SaveChanges(); // Save to get combo.Id
+            _context.SaveChanges();
 
-            // 2. Add Selected Foods
             var allSelected = model.FoodList.Concat(model.DrinkList).Where(x => x.IsSelected).ToList();
             foreach (var item in allSelected)
             {
@@ -127,13 +118,11 @@ namespace ASM1_NET.Areas.Admin.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // ================= EDIT =================
         public IActionResult Edit(int id)
         {
             var combo = _context.Combos.Find(id);
             if (combo == null) return NotFound();
 
-            // Get existing combo details
             var existingDetails = _context.ComboDetails
                 .Where(cd => cd.ComboId == id)
                 .ToList();
@@ -146,7 +135,6 @@ namespace ASM1_NET.Areas.Admin.Controllers
                 IsActive = combo.IsActive
             };
 
-            // Fetch all available foods
             var foods = _context.Foods.Include(f => f.Category).Where(f => f.IsAvailable).ToList();
             
             foreach (var food in foods)
@@ -186,7 +174,6 @@ namespace ASM1_NET.Areas.Admin.Controllers
             var combo = _context.Combos.Find(id);
             if (combo == null) return NotFound();
 
-            // Update combo info
             combo.Name = model.Name;
             combo.Price = model.Price;
             combo.Description = model.Description ?? "";
@@ -208,11 +195,9 @@ namespace ASM1_NET.Areas.Admin.Controllers
                 }
             }
 
-            // Remove old ComboDetails
             var oldDetails = _context.ComboDetails.Where(cd => cd.ComboId == id).ToList();
             _context.ComboDetails.RemoveRange(oldDetails);
 
-            // Add new selected items
             var allSelected = model.FoodList.Concat(model.DrinkList).Where(x => x.IsSelected).ToList();
             foreach (var item in allSelected)
             {
@@ -230,13 +215,11 @@ namespace ASM1_NET.Areas.Admin.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // ================= DELETE (SOFT DELETE) =================
         public async Task<IActionResult> Delete(int id)
         {
             var combo = _context.Combos.Find(id);
             if (combo == null) return NotFound();
 
-            // ✅ SOFT DELETE - Chuyển vào thùng rác
             combo.IsDeleted = true;
             combo.DeletedAt = DateTime.Now;
             _context.SaveChanges();

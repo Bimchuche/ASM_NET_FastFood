@@ -20,18 +20,16 @@ namespace ASM1_NET.Areas.Admin.Controllers
             _activityLog = activityLog;
         }
 
-        // ================= INDEX =================
         public IActionResult Index()
         {
             var categories = _context.Categories
-                .Where(c => !c.IsDeleted)  // ✅ Filter soft deleted
+                .Where(c => !c.IsDeleted)
                 .Include(c => c.Foods)
                 .ToList();
 
             return View(categories);
         }
 
-        // ================= CREATE =================
         public IActionResult Create()
         {
             return View();
@@ -51,7 +49,6 @@ namespace ASM1_NET.Areas.Admin.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // ================= EDIT =================
         public IActionResult Edit(int id)
         {
             var category = _context.Categories.Find(id);
@@ -74,7 +71,6 @@ namespace ASM1_NET.Areas.Admin.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // ================= DELETE (SOFT DELETE) =================
         public async Task<IActionResult> Delete(int id)
         {
             var category = _context.Categories
@@ -83,7 +79,6 @@ namespace ASM1_NET.Areas.Admin.Controllers
 
             if (category == null) return NotFound();
 
-            // ✅ SOFT DELETE - Chuyển vào thùng rác
             category.IsDeleted = true;
             category.DeletedAt = DateTime.Now;
             _context.SaveChanges();

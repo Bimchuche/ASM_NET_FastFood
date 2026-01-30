@@ -4,8 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using ASM1_NET.Data;
 using ASM1_NET.Models;
-using System.Linq;
-using System.Collections.Generic;
 
 namespace ASM1_NET.Controllers
 {
@@ -18,6 +16,7 @@ namespace ASM1_NET.Controllers
         {
             _context = context;
         }
+
         private int? GetUserId()
         {
             var claim = User.FindFirst(ClaimTypes.NameIdentifier);
@@ -26,7 +25,7 @@ namespace ASM1_NET.Controllers
 
         public IActionResult Index()
         {
-            var userClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+            var userClaim = User.FindFirst(ClaimTypes.NameIdentifier);
             if (userClaim == null)
             {
                 return RedirectToAction("Login", "Account");
@@ -41,16 +40,11 @@ namespace ASM1_NET.Controllers
                     .ThenInclude(i => i.Combo)
                 .FirstOrDefault(c => c.UserId == userId);
 
-            // ⭐ QUAN TRỌNG: TRẢ VỀ CART RỖNG NẾU NULL
             if (cart == null)
             {
-                cart = new Cart
-                {
-                    CartItems = new List<CartItem>()
-                };
+                cart = new Cart { CartItems = new List<CartItem>() };
             }
 
-            // ⭐ QUAN TRỌNG: CartItems KHÔNG BAO GIỜ NULL
             if (cart.CartItems == null)
             {
                 cart.CartItems = new List<CartItem>();
@@ -59,10 +53,6 @@ namespace ASM1_NET.Controllers
             return View(cart);
         }
 
-
-        // =========================
-        // ADD TO CART (AJAX)
-        // =========================
         [HttpPost]
         public IActionResult Add(int foodId)
         {
@@ -86,7 +76,7 @@ namespace ASM1_NET.Controllers
                 _context.Carts.Add(cart);
             }
 
-            var food = _context.Foods.FirstOrDefault(f => f.Id == foodId && !f.IsDeleted);  // ✅ Không cho thêm món đã xóa
+            var food = _context.Foods.FirstOrDefault(f => f.Id == foodId && !f.IsDeleted);
             if (food == null)
                 return Json(new { success = false });
 
@@ -107,9 +97,9 @@ namespace ASM1_NET.Controllers
             }
 
             _context.SaveChanges();
-
             return Json(new { success = true });
         }
+
         [HttpPost]
         public IActionResult AddCombo(int comboId)
         {
@@ -119,33 +109,27 @@ namespace ASM1_NET.Controllers
 
             int userId = int.Parse(userClaim.Value);
 
-            // Lấy hoặc tạo cart
-            var cart = _context.Carts
-                .FirstOrDefault(c => c.UserId == userId);
+            var cart = _context.Carts.FirstOrDefault(c => c.UserId == userId);
 
             if (cart == null)
             {
                 cart = new Cart { UserId = userId };
                 _context.Carts.Add(cart);
-                _context.SaveChanges(); // ⭐ BẮT BUỘC
+                _context.SaveChanges();
             }
 
-            // Lấy combo
-            var combo = _context.Combos
-                .FirstOrDefault(c => c.Id == comboId && c.IsActive && !c.IsDeleted);  // ✅ Không cho thêm combo đã xóa
+            var combo = _context.Combos.FirstOrDefault(c => c.Id == comboId && c.IsActive && !c.IsDeleted);
 
             if (combo == null)
                 return Json(new { success = false });
 
-            // Lấy cart item
-            var item = _context.CartItems
-                .FirstOrDefault(i => i.CartId == cart.Id && i.ComboId == comboId);
+            var item = _context.CartItems.FirstOrDefault(i => i.CartId == cart.Id && i.ComboId == comboId);
 
             if (item == null)
             {
                 item = new CartItem
                 {
-                    CartId = cart.Id,     // ⭐ DÒNG QUAN TRỌNG NHẤT
+                    CartId = cart.Id,
                     ComboId = comboId,
                     Quantity = 1,
                     Price = combo.Price
@@ -161,15 +145,10 @@ namespace ASM1_NET.Controllers
             return Json(new { success = true });
         }
 
-
-
-        // =========================
-        // TĂNG COMBO
-        // =========================
         [HttpPost]
         public IActionResult IncreaseCombo(int comboId)
         {
-            var userClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+            var userClaim = User.FindFirst(ClaimTypes.NameIdentifier);
             if (userClaim == null) return Json(new { success = false });
 
             int userId = int.Parse(userClaim.Value);
@@ -187,13 +166,10 @@ namespace ASM1_NET.Controllers
             return Json(new { success = true });
         }
 
-        // =========================
-        // GIẢM COMBO
-        // =========================
         [HttpPost]
         public IActionResult DecreaseCombo(int comboId)
         {
-            var userClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+            var userClaim = User.FindFirst(ClaimTypes.NameIdentifier);
             if (userClaim == null) return Json(new { success = false });
 
             int userId = int.Parse(userClaim.Value);
@@ -214,13 +190,10 @@ namespace ASM1_NET.Controllers
             return Json(new { success = true });
         }
 
-        // =========================
-        // XÓA COMBO
-        // =========================
         [HttpPost]
         public IActionResult RemoveCombo(int comboId)
         {
-            var userClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+            var userClaim = User.FindFirst(ClaimTypes.NameIdentifier);
             if (userClaim == null) return Json(new { success = false });
 
             int userId = int.Parse(userClaim.Value);
@@ -238,13 +211,10 @@ namespace ASM1_NET.Controllers
             return Json(new { success = true });
         }
 
-        // =========================
-        // TĂNG SỐ LƯỢNG
-        // =========================
         [HttpPost]
         public IActionResult Increase(int foodId)
         {
-            var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
             if (userIdClaim == null) return Json(new { success = false });
 
             int userId = int.Parse(userIdClaim.Value);
@@ -262,13 +232,10 @@ namespace ASM1_NET.Controllers
             return Json(new { success = true });
         }
 
-        // =========================
-        // GIẢM SỐ LƯỢNG
-        // =========================
         [HttpPost]
         public IActionResult Decrease(int foodId)
         {
-            var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
             if (userIdClaim == null) return Json(new { success = false });
 
             int userId = int.Parse(userIdClaim.Value);
@@ -289,13 +256,10 @@ namespace ASM1_NET.Controllers
             return Json(new { success = true });
         }
 
-        // =========================
-        // XÓA MÓN
-        // =========================
         [HttpPost]
         public IActionResult Remove(int foodId)
         {
-            var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
             if (userIdClaim == null) return Json(new { success = false });
 
             int userId = int.Parse(userIdClaim.Value);
@@ -313,9 +277,6 @@ namespace ASM1_NET.Controllers
             return Json(new { success = true });
         }
 
-        // =========================
-        // MINI CART (NULL-SAFE)
-        // =========================
         [HttpGet]
         public IActionResult MiniCart()
         {
@@ -323,10 +284,7 @@ namespace ASM1_NET.Controllers
 
             if (userIdClaim == null)
             {
-                return PartialView("MiniCart", new Cart
-                {
-                    CartItems = new List<CartItem>()
-                });
+                return PartialView("MiniCart", new Cart { CartItems = new List<CartItem>() });
             }
 
             int userId = int.Parse(userIdClaim.Value);
@@ -338,10 +296,7 @@ namespace ASM1_NET.Controllers
 
             if (cart == null)
             {
-                cart = new Cart
-                {
-                    CartItems = new List<CartItem>()
-                };
+                cart = new Cart { CartItems = new List<CartItem>() };
             }
             else if (cart.CartItems == null)
             {
@@ -354,7 +309,7 @@ namespace ASM1_NET.Controllers
         [HttpPost]
         public IActionResult Checkout(string address, string phone)
         {
-            var userClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+            var userClaim = User.FindFirst(ClaimTypes.NameIdentifier);
             if (userClaim == null)
                 return RedirectToAction("Login", "Account");
 

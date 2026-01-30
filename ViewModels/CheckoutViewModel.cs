@@ -2,9 +2,6 @@ using System.ComponentModel.DataAnnotations;
 
 namespace ASM1_NET.ViewModels
 {
-    /// <summary>
-    /// ViewModel cho form thanh toán - Data Validation
-    /// </summary>
     public class CheckoutViewModel
     {
         [Required(ErrorMessage = "Vui lòng nhập địa chỉ giao hàng")]
@@ -26,7 +23,6 @@ namespace ASM1_NET.ViewModels
         [StringLength(500, ErrorMessage = "Ghi chú tối đa 500 ký tự")]
         public string? Note { get; set; }
 
-        // Tọa độ giao hàng (tùy chọn)
         public double? Latitude { get; set; }
         public double? Longitude { get; set; }
     }

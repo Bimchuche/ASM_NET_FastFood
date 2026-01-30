@@ -13,20 +13,17 @@ namespace ASM1_NET.Controllers
             _context = context;
         }
 
-        // Guest xem được
         public IActionResult Index(string keyword, int? categoryId)
         {
             var query = _context.Foods
                 .Include(f => f.Category)
-                .Where(f => f.IsAvailable && !f.IsDeleted);  // ✅ Ẩn món đã xóa
+                .Where(f => f.IsAvailable && !f.IsDeleted);
 
-            // Filter by category
             if (categoryId.HasValue && categoryId > 0)
             {
                 query = query.Where(f => f.CategoryId == categoryId.Value);
             }
 
-            // Filter by keyword
             if (!string.IsNullOrWhiteSpace(keyword))
             {
                 keyword = keyword.Trim();
@@ -37,10 +34,11 @@ namespace ASM1_NET.Controllers
 
             ViewBag.Keyword = keyword;
             ViewBag.CategoryId = categoryId;
-            ViewBag.Categories = _context.Categories.Where(c => c.IsActive && !c.IsDeleted).ToList();  // ✅ Ẩn danh mục đã xóa
+            ViewBag.Categories = _context.Categories.Where(c => c.IsActive && !c.IsDeleted).ToList();
 
             return View(query.ToList());
         }
+
         public IActionResult DetailPopup(int id)
         {
             var food = _context.Foods.FirstOrDefault(f => f.Id == id && f.IsAvailable && !f.IsDeleted);
@@ -48,6 +46,5 @@ namespace ASM1_NET.Controllers
 
             return PartialView("_FoodDetailPopup", food);
         }
-
     }
 }

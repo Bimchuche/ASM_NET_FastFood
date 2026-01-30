@@ -2,9 +2,6 @@ using System.ComponentModel.DataAnnotations;
 
 namespace ASM1_NET.Models;
 
-/// <summary>
-/// Model User - Navigation properties phải là virtual cho Lazy Loading
-/// </summary>
 public class User
 {
     public int Id { get; set; }
@@ -36,21 +33,18 @@ public class User
 
     [Required]
     [Display(Name = "Vai trò")]
-    public string Role { get; set; } = "Customer"; // Admin | Staff | Shipper | Customer
+    public string Role { get; set; } = "Customer";
 
     [Display(Name = "Hoạt động")]
     public bool IsActive { get; set; } = true;
 
     public DateTime CreatedAt { get; set; } = DateTime.Now;
 
-    // Avatar
     [Display(Name = "Ảnh đại diện")]
     public string? AvatarUrl { get; set; }
 
-    // ✅ virtual cho Lazy Loading
     public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
 
-    // ===== SOFT DELETE =====
     [Display(Name = "Đã xóa")]
     public bool IsDeleted { get; set; } = false;
 

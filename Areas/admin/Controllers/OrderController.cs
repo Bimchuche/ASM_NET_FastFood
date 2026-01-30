@@ -20,11 +20,10 @@ namespace ASM1_NET.Areas.Admin.Controllers
             _activityLog = activityLog;
         }
 
-        // 📌 DANH SÁCH ĐƠN
         public async Task<IActionResult> Index()
         {
             var orders = await _context.Orders
-                .Where(o => !o.IsDeleted)  // ✅ Filter soft deleted
+                .Where(o => !o.IsDeleted)
                 .Include(o => o.Customer)
                 .Include(o => o.Shipper)
                 .OrderByDescending(o => o.OrderDate)
@@ -33,7 +32,6 @@ namespace ASM1_NET.Areas.Admin.Controllers
             return View(orders);
         }
 
-        // 📌 CHI TIẾT ĐƠN
         public async Task<IActionResult> Detail(int id)
         {
             var order = await _context.Orders
@@ -48,7 +46,6 @@ namespace ASM1_NET.Areas.Admin.Controllers
             return View(order);
         }
 
-        // 📌 SỬA ĐƠN (chỉ sửa trạng thái)
         public async Task<IActionResult> Edit(int id)
         {
             var order = await _context.Orders
@@ -74,7 +71,6 @@ namespace ASM1_NET.Areas.Admin.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // 📌 XOÁ ĐƠN
         public async Task<IActionResult> Delete(int id)
         {
             var order = await _context.Orders
@@ -94,7 +90,6 @@ namespace ASM1_NET.Areas.Admin.Controllers
 
             if (order == null) return NotFound();
 
-            // ✅ SOFT DELETE
             order.IsDeleted = true;
             order.DeletedAt = DateTime.Now;
             await _context.SaveChangesAsync();

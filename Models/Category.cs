@@ -2,9 +2,6 @@ using System.ComponentModel.DataAnnotations;
 
 namespace ASM1_NET.Models
 {
-    /// <summary>
-    /// Model Category với Data Annotations đầy đủ
-    /// </summary>
     public class Category
     {
         public int Id { get; set; }
@@ -21,10 +18,8 @@ namespace ASM1_NET.Models
         [Display(Name = "Hoạt động")]
         public bool IsActive { get; set; } = true;
 
-        // Navigation Property - virtual cho Lazy Loading
         public virtual ICollection<Food> Foods { get; set; } = new List<Food>();
 
-        // ===== SOFT DELETE =====
         [Display(Name = "Đã xóa")]
         public bool IsDeleted { get; set; } = false;
 
