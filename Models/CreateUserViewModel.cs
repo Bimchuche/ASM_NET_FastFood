@@ -8,7 +8,7 @@ public class CreateUserViewModel
     [Required, EmailAddress]
     public string Email { get; set; }
 
-    [Required] // ✔ bắt buộc khi tạo
+    [Required] 
     public string Password { get; set; }
 
     [Required]
