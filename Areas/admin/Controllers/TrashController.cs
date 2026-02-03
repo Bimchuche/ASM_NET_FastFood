@@ -207,11 +207,35 @@ namespace ASM1_NET.Areas.Admin.Controllers
             if (user != null)
             {
                 var name = user.FullName;
-                _context.Users.Remove(user);
-                await _context.SaveChangesAsync();
+                
+                // Check if user has orders as Customer (cannot delete)
+                var hasCustomerOrders = await _context.Orders.AnyAsync(o => o.CustomerId == id);
+                if (hasCustomerOrders)
+                {
+                    TempData["Error"] = $"Không thể xóa '{name}' vì đã có đơn hàng trong hệ thống. Vui lòng xóa các đơn hàng của khách này trước.";
+                    return RedirectToAction(nameof(Users));
+                }
+                
+                // Auto-unassign shipper from orders (set ShipperId = null)
+                var shipperOrders = await _context.Orders.Where(o => o.ShipperId == id).ToListAsync();
+                foreach (var order in shipperOrders)
+                {
+                    order.ShipperId = null;
+                }
+                
+                try
+                {
+                    _context.Users.Remove(user);
+                    await _context.SaveChangesAsync();
 
-                await _activityLogService.LogWithUserAsync("Delete", "User", id, name, $"Xóa vĩnh viễn user: {name}");
-                TempData["Success"] = $"Đã xóa vĩnh viễn user '{name}'";
+                    var unassignMsg = shipperOrders.Count > 0 ? $" và gỡ khỏi {shipperOrders.Count} đơn hàng" : "";
+                    await _activityLogService.LogWithUserAsync("Delete", "User", id, name, $"Xóa vĩnh viễn user: {name}{unassignMsg}");
+                    TempData["Success"] = $"Đã xóa vĩnh viễn user '{name}'{unassignMsg}";
+                }
+                catch (DbUpdateException)
+                {
+                    TempData["Error"] = $"Không thể xóa '{name}' vì còn dữ liệu liên quan (đánh giá, chat...). Vui lòng xóa dữ liệu liên quan trước.";
+                }
             }
             return RedirectToAction(nameof(Users));
         }
@@ -284,6 +308,183 @@ namespace ASM1_NET.Areas.Admin.Controllers
             
             TempData["Success"] = $"Đã dọn sạch thùng rác ({total} items)";
             return RedirectToAction(nameof(Index));
+        }
+
+        // ==================== BULK ACTIONS ====================
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> BulkRestoreUsers(int[] ids)
+        {
+            if (ids == null || ids.Length == 0)
+            {
+                TempData["Error"] = "Vui lòng chọn ít nhất 1 user";
+                return RedirectToAction(nameof(Users));
+            }
+
+            var users = await _context.Users.Where(u => ids.Contains(u.Id)).ToListAsync();
+            foreach (var user in users)
+            {
+                user.IsDeleted = false;
+                user.DeletedAt = null;
+            }
+            await _context.SaveChangesAsync();
+            await _activityLogService.LogWithUserAsync("Restore", "User", null, null, $"Khôi phục hàng loạt {users.Count} users");
+            TempData["Success"] = $"Đã khôi phục {users.Count} user";
+            return RedirectToAction(nameof(Users));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> BulkDeleteUsers(int[] ids)
+        {
+            if (ids == null || ids.Length == 0)
+            {
+                TempData["Error"] = "Vui lòng chọn ít nhất 1 user";
+                return RedirectToAction(nameof(Users));
+            }
+
+            var users = await _context.Users.Where(u => ids.Contains(u.Id)).ToListAsync();
+            var skipped = new List<string>();
+            var deleted = 0;
+            var unassignedOrders = 0;
+
+            foreach (var user in users)
+            {
+                // Check if user has orders as Customer (cannot delete)
+                var hasCustomerOrders = await _context.Orders.AnyAsync(o => o.CustomerId == user.Id);
+                if (hasCustomerOrders)
+                {
+                    skipped.Add(user.FullName + " (có đơn hàng)");
+                    continue;
+                }
+                
+                // Auto-unassign shipper from orders
+                var shipperOrders = await _context.Orders.Where(o => o.ShipperId == user.Id).ToListAsync();
+                foreach (var order in shipperOrders)
+                {
+                    order.ShipperId = null;
+                    unassignedOrders++;
+                }
+                
+                _context.Users.Remove(user);
+                deleted++;
+            }
+            await _context.SaveChangesAsync();
+            
+            var msg = $"Xóa hàng loạt {deleted} users";
+            if (unassignedOrders > 0) msg += $", gỡ shipper khỏi {unassignedOrders} đơn";
+            await _activityLogService.LogWithUserAsync("Delete", "User", null, null, msg);
+            
+            if (skipped.Any())
+                TempData["Error"] = $"Không thể xóa: {string.Join(", ", skipped)}";
+            if (deleted > 0)
+                TempData["Success"] = $"Đã xóa vĩnh viễn {deleted} user" + (unassignedOrders > 0 ? $" và gỡ shipper khỏi {unassignedOrders} đơn" : "");
+            return RedirectToAction(nameof(Users));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> BulkRestoreFoods(int[] ids)
+        {
+            if (ids == null || ids.Length == 0) { TempData["Error"] = "Vui lòng chọn ít nhất 1 món"; return RedirectToAction(nameof(Foods)); }
+            var items = await _context.Foods.Where(f => ids.Contains(f.Id)).ToListAsync();
+            foreach (var item in items) { item.IsDeleted = false; item.DeletedAt = null; }
+            await _context.SaveChangesAsync();
+            await _activityLogService.LogWithUserAsync("Restore", "Food", null, null, $"Khôi phục hàng loạt {items.Count} món");
+            TempData["Success"] = $"Đã khôi phục {items.Count} món";
+            return RedirectToAction(nameof(Foods));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> BulkDeleteFoods(int[] ids)
+        {
+            if (ids == null || ids.Length == 0) { TempData["Error"] = "Vui lòng chọn ít nhất 1 món"; return RedirectToAction(nameof(Foods)); }
+            var items = await _context.Foods.Where(f => ids.Contains(f.Id)).ToListAsync();
+            _context.Foods.RemoveRange(items);
+            await _context.SaveChangesAsync();
+            await _activityLogService.LogWithUserAsync("Delete", "Food", null, null, $"Xóa hàng loạt {items.Count} món");
+            TempData["Success"] = $"Đã xóa vĩnh viễn {items.Count} món";
+            return RedirectToAction(nameof(Foods));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> BulkRestoreCombos(int[] ids)
+        {
+            if (ids == null || ids.Length == 0) { TempData["Error"] = "Vui lòng chọn ít nhất 1 combo"; return RedirectToAction(nameof(Combos)); }
+            var items = await _context.Combos.Where(c => ids.Contains(c.Id)).ToListAsync();
+            foreach (var item in items) { item.IsDeleted = false; item.DeletedAt = null; }
+            await _context.SaveChangesAsync();
+            await _activityLogService.LogWithUserAsync("Restore", "Combo", null, null, $"Khôi phục hàng loạt {items.Count} combo");
+            TempData["Success"] = $"Đã khôi phục {items.Count} combo";
+            return RedirectToAction(nameof(Combos));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> BulkDeleteCombos(int[] ids)
+        {
+            if (ids == null || ids.Length == 0) { TempData["Error"] = "Vui lòng chọn ít nhất 1 combo"; return RedirectToAction(nameof(Combos)); }
+            var items = await _context.Combos.Where(c => ids.Contains(c.Id)).ToListAsync();
+            _context.Combos.RemoveRange(items);
+            await _context.SaveChangesAsync();
+            await _activityLogService.LogWithUserAsync("Delete", "Combo", null, null, $"Xóa hàng loạt {items.Count} combo");
+            TempData["Success"] = $"Đã xóa vĩnh viễn {items.Count} combo";
+            return RedirectToAction(nameof(Combos));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> BulkRestoreCategories(int[] ids)
+        {
+            if (ids == null || ids.Length == 0) { TempData["Error"] = "Vui lòng chọn ít nhất 1 danh mục"; return RedirectToAction(nameof(Categories)); }
+            var items = await _context.Categories.Where(c => ids.Contains(c.Id)).ToListAsync();
+            foreach (var item in items) { item.IsDeleted = false; item.DeletedAt = null; }
+            await _context.SaveChangesAsync();
+            await _activityLogService.LogWithUserAsync("Restore", "Category", null, null, $"Khôi phục hàng loạt {items.Count} danh mục");
+            TempData["Success"] = $"Đã khôi phục {items.Count} danh mục";
+            return RedirectToAction(nameof(Categories));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> BulkDeleteCategories(int[] ids)
+        {
+            if (ids == null || ids.Length == 0) { TempData["Error"] = "Vui lòng chọn ít nhất 1 danh mục"; return RedirectToAction(nameof(Categories)); }
+            var items = await _context.Categories.Where(c => ids.Contains(c.Id)).ToListAsync();
+            _context.Categories.RemoveRange(items);
+            await _context.SaveChangesAsync();
+            await _activityLogService.LogWithUserAsync("Delete", "Category", null, null, $"Xóa hàng loạt {items.Count} danh mục");
+            TempData["Success"] = $"Đã xóa vĩnh viễn {items.Count} danh mục";
+            return RedirectToAction(nameof(Categories));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> BulkRestoreOrders(int[] ids)
+        {
+            if (ids == null || ids.Length == 0) { TempData["Error"] = "Vui lòng chọn ít nhất 1 đơn"; return RedirectToAction(nameof(Orders)); }
+            var items = await _context.Orders.Where(o => ids.Contains(o.Id)).ToListAsync();
+            foreach (var item in items) { item.IsDeleted = false; item.DeletedAt = null; }
+            await _context.SaveChangesAsync();
+            await _activityLogService.LogWithUserAsync("Restore", "Order", null, null, $"Khôi phục hàng loạt {items.Count} đơn");
+            TempData["Success"] = $"Đã khôi phục {items.Count} đơn hàng";
+            return RedirectToAction(nameof(Orders));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> BulkDeleteOrders(int[] ids)
+        {
+            if (ids == null || ids.Length == 0) { TempData["Error"] = "Vui lòng chọn ít nhất 1 đơn"; return RedirectToAction(nameof(Orders)); }
+            var items = await _context.Orders.Where(o => ids.Contains(o.Id)).ToListAsync();
+            _context.Orders.RemoveRange(items);
+            await _context.SaveChangesAsync();
+            await _activityLogService.LogWithUserAsync("Delete", "Order", null, null, $"Xóa hàng loạt {items.Count} đơn");
+            TempData["Success"] = $"Đã xóa vĩnh viễn {items.Count} đơn hàng";
+            return RedirectToAction(nameof(Orders));
         }
     }
 }

@@ -1,0 +1,64 @@
+@model ASM1_NET.Models.ShippingZone
+@{
+    ViewData["Title"] = "Thêm khu vực giao hàng";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<link rel="stylesheet" href="~/admin/css/admin-theme.css" />
+<link rel="stylesheet" href="~/admin/css/coupon.css" />
+
+<div class="admin-page-header">
+    <div>
+        <h1>➕ Thêm khu vực giao hàng</h1>
+        <p>Thiết lập phí giao theo khoảng cách</p>
+    </div>
+    <a asp-action="Index" class="btn-admin secondary">← Quay lại</a>
+</div>
+
+<div class="coupon-form-card">
+    <form asp-action="Create" method="post">
+        @Html.AntiForgeryToken()
+        
+        <div class="form-group">
+            <label>🏷️ Tên khu vực <span style="color: #ef4444;">*</span></label>
+            <input type="text" asp-for="Name" class="form-control" placeholder="VD: Nội thành" required />
+            <span asp-validation-for="Name" style="color: #ef4444;"></span>
+        </div>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label>📍 Khoảng cách tối thiểu (km)</label>
+                <input type="number" asp-for="MinDistance" class="form-control" 
+                       min="0" step="0.5" value="0" />
+            </div>
+            
+            <div class="form-group">
+                <label>📍 Khoảng cách tối đa (km)</label>
+                <input type="number" asp-for="MaxDistance" class="form-control" 
+                       min="0" step="0.5" value="5" />
+            </div>
+        </div>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label>💰 Phí giao hàng (₫)</label>
+                <input type="number" asp-for="ShippingFee" class="form-control" 
+                       min="0" step="1000" value="0" />
+                <small class="form-text">Đặt 0 = Miễn phí</small>
+            </div>
+            
+            <div class="form-group">
+                <label>⚡ Trạng thái</label>
+                <div class="toggle-switch">
+                    <input type="checkbox" asp-for="IsActive" checked />
+                    <label asp-for="IsActive">Kích hoạt ngay</label>
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-actions">
+            <button type="submit" class="btn-admin primary">✨ Tạo khu vực</button>
+            <a asp-action="Index" class="btn-admin secondary">Hủy</a>
+        </div>
+    </form>
+</div>

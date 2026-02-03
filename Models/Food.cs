@@ -19,10 +19,10 @@ public class Food
 
     [StringLength(1000, ErrorMessage = "Mô tả tối đa 1000 ký tự")]
     [Display(Name = "Mô tả")]
-    public string? Description { get; set; }
+    public string? Description { get; set; } = "";
 
     [Display(Name = "Hình ảnh")]
-    public string? ImageUrl { get; set; }
+    public string? ImageUrl { get; set; } = "";
 
     [Display(Name = "Còn bán")]
     public bool IsAvailable { get; set; } = true;
@@ -32,6 +32,8 @@ public class Food
     public int CategoryId { get; set; }
     
     public virtual Category? Category { get; set; }
+    
+    public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
 
     [Display(Name = "Đã xóa")]
     public bool IsDeleted { get; set; } = false;

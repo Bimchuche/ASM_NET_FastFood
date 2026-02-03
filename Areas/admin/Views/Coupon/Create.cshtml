@@ -1,0 +1,87 @@
+@model ASM1_NET.Models.Coupon
+@{
+    ViewData["Title"] = "Tạo mã giảm giá";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<link rel="stylesheet" href="~/admin/css/admin-theme.css" />
+<link rel="stylesheet" href="~/admin/css/coupon.css" />
+
+<div class="admin-page-header">
+    <div>
+        <h1>➕ Tạo mã giảm giá mới</h1>
+        <p>Thiết lập thông tin mã khuyến mãi</p>
+    </div>
+    <a asp-action="Index" class="btn-admin secondary">
+        ← Quay lại
+    </a>
+</div>
+
+<div class="coupon-form-card">
+    <form asp-action="Create" method="post">
+        @Html.AntiForgeryToken()
+        
+        <div class="form-group">
+            <label>🏷️ Mã giảm giá <span style="color: #ef4444;">*</span></label>
+            <input type="text" asp-for="Code" class="form-control" placeholder="VD: SALE50" 
+                   style="text-transform: uppercase; font-family: monospace; font-size: 1.2rem; letter-spacing: 2px;" required />
+            <span asp-validation-for="Code" style="color: #ef4444;"></span>
+            <small class="form-text">Mã sẽ được chuyển thành CHỮ IN HOA tự động</small>
+        </div>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label>💰 Phần trăm giảm (%) <span style="color: #ef4444;">*</span></label>
+                <input type="number" asp-for="DiscountPercent" class="form-control" 
+                       min="1" max="100" step="1" placeholder="VD: 10" required />
+                <span asp-validation-for="DiscountPercent" style="color: #ef4444;"></span>
+            </div>
+            
+            <div class="form-group">
+                <label>📦 Đơn tối thiểu (₫)</label>
+                <input type="number" asp-for="MinOrderAmount" class="form-control" 
+                       min="0" step="1000" placeholder="VD: 100000" />
+                <small class="form-text">Để trống = không yêu cầu</small>
+            </div>
+        </div>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label>🔝 Giảm tối đa (₫)</label>
+                <input type="number" asp-for="MaxDiscountAmount" class="form-control" 
+                       min="0" step="1000" placeholder="VD: 50000" />
+                <small class="form-text">Để trống = không giới hạn</small>
+            </div>
+            
+            <div class="form-group">
+                <label>📅 Hạn sử dụng</label>
+                <input type="date" asp-for="ExpiryDate" class="form-control" />
+                <small class="form-text">Để trống = không hết hạn</small>
+            </div>
+        </div>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label>🔢 Giới hạn lượt dùng</label>
+                <input type="number" asp-for="UsageLimit" class="form-control" 
+                       min="0" step="1" value="0" placeholder="VD: 100" />
+                <small class="form-text">0 = không giới hạn</small>
+            </div>
+            
+            <div class="form-group">
+                <label>⚡ Trạng thái</label>
+                <div class="toggle-switch">
+                    <input type="checkbox" asp-for="IsActive" checked />
+                    <label asp-for="IsActive">Kích hoạt ngay</label>
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-actions">
+            <button type="submit" class="btn-admin primary">
+                ✨ Tạo mã giảm giá
+            </button>
+            <a asp-action="Index" class="btn-admin secondary">Hủy</a>
+        </div>
+    </form>
+</div>

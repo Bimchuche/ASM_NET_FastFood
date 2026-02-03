@@ -88,5 +88,28 @@ namespace ASM1_NET.Areas.Admin.Controllers
             TempData["Success"] = $"Đã chuyển '{category.Name}' vào thùng rác!";
             return RedirectToAction(nameof(Index));
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> BulkDelete(int[] ids)
+        {
+            if (ids == null || ids.Length == 0)
+            {
+                TempData["Error"] = "Vui lòng chọn ít nhất 1 danh mục";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var categories = await _context.Categories.Where(c => ids.Contains(c.Id)).ToListAsync();
+            foreach (var cat in categories)
+            {
+                cat.IsDeleted = true;
+                cat.DeletedAt = DateTime.Now;
+            }
+            await _context.SaveChangesAsync();
+            
+            await _activityLog.LogWithUserAsync("SoftDelete", "Category", null, null, $"Xóa hàng loạt {categories.Count} danh mục");
+            TempData["Success"] = $"Đã chuyển {categories.Count} danh mục vào thùng rác";
+            return RedirectToAction(nameof(Index));
+        }
     }
 }

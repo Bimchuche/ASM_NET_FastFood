@@ -1,0 +1,92 @@
+@model List<ASM1_NET.Models.UserAddress>
+@{
+    ViewData["Title"] = "Địa chỉ giao hàng";
+}
+
+<link rel="stylesheet" href="~/client/css/fastfood-theme.css" />
+<link rel="stylesheet" href="~/client/css/address.css" />
+
+<div class="address-page">
+    <div class="container">
+        <div class="address-hero">
+            <h1>📍 Địa chỉ giao hàng</h1>
+            <p>Quản lý các địa chỉ nhận hàng của bạn</p>
+        </div>
+
+        <div class="address-actions">
+            <button class="btn-add-address" onclick="showAddModal()">➕ Thêm địa chỉ mới</button>
+            <a href="/Account/Profile" class="btn-back">← Quay lại hồ sơ</a>
+        </div>
+
+        <div class="address-list" id="addressList">
+            @if (Model.Count == 0)
+            {
+                <div class="empty-state">
+                    <div class="empty-icon">📭</div>
+                    <h3>Chưa có địa chỉ nào</h3>
+                    <p>Thêm địa chỉ giao hàng để đặt hàng nhanh hơn!</p>
+                </div>
+            }
+            else
+            {
+                @foreach (var addr in Model)
+                {
+                    <div class="address-card @(addr.IsDefault ? "default" : "")" data-id="@addr.Id">
+                        @if (addr.IsDefault)
+                        {
+                            <span class="default-badge">✓ Mặc định</span>
+                        }
+                        <h3>@addr.Name</h3>
+                        <p class="address-full">@addr.FullAddress</p>
+                        @if (!string.IsNullOrEmpty(addr.Phone))
+                        {
+                            <p class="address-phone">📞 @addr.Phone</p>
+                        }
+                        <div class="address-card-actions">
+                            @if (!addr.IsDefault)
+                            {
+                                <button class="btn-set-default" onclick="setDefault(@addr.Id)">Đặt mặc định</button>
+                            }
+                            <button class="btn-edit" onclick="editAddress(@addr.Id, '@addr.Name', '@addr.FullAddress.Replace("'", "\\'")', '@addr.Phone', @addr.IsDefault.ToString().ToLower())">Sửa</button>
+                            <button class="btn-delete" onclick="deleteAddress(@addr.Id)">Xóa</button>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Add/Edit Modal -->
+<div id="addressModal" class="modal-overlay" style="display:none;">
+    <div class="modal-content">
+        <h3 id="modalTitle">➕ Thêm địa chỉ mới</h3>
+        <form id="addressForm">
+            <input type="hidden" id="addressId" value="" />
+            <div class="form-group">
+                <label>📝 Tên địa chỉ</label>
+                <input type="text" id="addressName" placeholder="VD: Nhà, Công ty..." required />
+            </div>
+            <div class="form-group">
+                <label>📍 Địa chỉ đầy đủ</label>
+                <textarea id="fullAddress" rows="3" placeholder="Số nhà, đường, phường, quận, thành phố..." required></textarea>
+            </div>
+            <div class="form-group">
+                <label>📞 Số điện thoại</label>
+                <input type="tel" id="addressPhone" placeholder="Số điện thoại nhận hàng" />
+            </div>
+            <div class="form-group checkbox-group">
+                <label>
+                    <input type="checkbox" id="isDefault" />
+                    <span>Đặt làm địa chỉ mặc định</span>
+                </label>
+            </div>
+            <div class="modal-buttons">
+                <button type="submit" class="btn-save">💾 Lưu</button>
+                <button type="button" class="btn-cancel" onclick="closeModal()">Hủy</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="~/client/js/address-page.js"></script>

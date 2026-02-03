@@ -1,0 +1,130 @@
+@model ASM1_NET.Models.Order
+@{
+    ViewData["Title"] = "Thanh toán đơn hàng";
+}
+
+<link rel="stylesheet" href="~/client/css/checkout.css" />
+
+<div class="checkout-page">
+    <div class="container">
+        <div class="checkout-hero">
+            <h1>💳 Thanh toán đơn hàng #@Model.OrderCode</h1>
+            <p>Quét mã QR hoặc nhấn nút bên dưới để thanh toán</p>
+        </div>
+
+        <div class="checkout-grid" style="grid-template-columns: 1fr 1fr;">
+            <!-- LEFT: Order Info -->
+            <div class="checkout-card">
+                <div class="checkout-card-header">
+                    <h3>📦 Thông tin đơn hàng</h3>
+                </div>
+                <div class="checkout-card-body">
+                    @foreach (var item in Model.OrderDetails)
+                    {
+                        var itemName = item.Food?.Name ?? item.Combo?.Name ?? "Sản phẩm";
+                        <div class="checkout-item">
+                            <div class="checkout-item-info">
+                                <span class="checkout-item-name">@itemName</span>
+                                <span class="checkout-item-qty">×@item.Quantity • @item.UnitPrice.ToString("N0")₫/món</span>
+                            </div>
+                            <span class="checkout-item-price">@((item.Quantity * item.UnitPrice).ToString("N0"))₫</span>
+                        </div>
+                    }
+                    
+                    <div class="checkout-summary" style="margin-top: 20px;">
+                        <div class="checkout-summary-row total">
+                            <span>Tổng thanh toán</span>
+                            <span>@Model.TotalAmount.ToString("N0")₫</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT: Payment -->
+            <div class="checkout-card">
+                <div class="checkout-card-header">
+                    <h3>💳 Thanh toán PayOS</h3>
+                </div>
+                <div class="checkout-card-body" id="paymentSection">
+                    <div class="text-center" id="loadingSection">
+                        <div style="font-size: 3rem; margin-bottom: 15px;">⏳</div>
+                        <p style="color: #94a3b8;">Đang tạo link thanh toán...</p>
+                    </div>
+                    
+                    <div id="paymentReady" style="display: none; text-align: center;">
+                        <div style="font-size: 4rem; margin-bottom: 20px;">✅</div>
+                        <h4 style="color: #10b981; margin-bottom: 15px;">Sẵn sàng thanh toán!</h4>
+                        <p style="color: #94a3b8; margin-bottom: 25px;">
+                            Nhấn nút bên dưới để chuyển đến trang thanh toán PayOS
+                        </p>
+                        
+                        <a id="paymentLink" href="#" class="btn-checkout-submit" style="display: inline-block; padding: 18px 40px; text-decoration: none;">
+                            🔐 Thanh toán ngay @Model.TotalAmount.ToString("N0")₫
+                        </a>
+                        
+                        <div style="margin-top: 25px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 10px;">
+                            <p style="color: #94a3b8; font-size: 0.85rem; margin: 0;">
+                                🔒 Thanh toán an toàn qua <strong style="color: #10b981;">PayOS</strong><br/>
+                                Hỗ trợ: VietQR, Momo, ZaloPay, VNPAY...
+                            </p>
+                        </div>
+                    </div>
+
+                    <div id="errorSection" style="display: none; text-align: center;">
+                        <div style="font-size: 3rem; margin-bottom: 15px;">❌</div>
+                        <p style="color: #ef4444;" id="errorMessage">Có lỗi xảy ra</p>
+                        <button onclick="createPaymentLink()" class="btn-checkout-submit" style="margin-top: 15px;">
+                            🔄 Thử lại
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 30px;">
+            <a href="/Order/History" class="btn-checkout-back" style="display: inline-block; padding: 12px 30px;">
+                ← Quay lại lịch sử đơn hàng
+            </a>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    const orderId = @Model.Id;
+
+    async function createPaymentLink() {
+        document.getElementById('loadingSection').style.display = 'block';
+        document.getElementById('paymentReady').style.display = 'none';
+        document.getElementById('errorSection').style.display = 'none';
+
+        try {
+            const response = await fetch('/Payment/CreatePaymentLink', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `orderId=${orderId}`
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                document.getElementById('loadingSection').style.display = 'none';
+                document.getElementById('paymentReady').style.display = 'block';
+                document.getElementById('paymentLink').href = data.checkoutUrl;
+            } else {
+                document.getElementById('loadingSection').style.display = 'none';
+                document.getElementById('errorSection').style.display = 'block';
+                document.getElementById('errorMessage').textContent = data.message || 'Có lỗi xảy ra';
+            }
+        } catch (error) {
+            document.getElementById('loadingSection').style.display = 'none';
+            document.getElementById('errorSection').style.display = 'block';
+            document.getElementById('errorMessage').textContent = error.message;
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', createPaymentLink);
+</script>
+}

@@ -319,7 +319,7 @@ function showProofPreview(orderId) {
 function validateProofImage(orderId) {
     var input = document.getElementById('proofImage_' + orderId);
     if (!input.files || input.files.length === 0) {
-        alert('Vui lòng chụp/chọn ảnh xác nhận giao hàng trước khi hoàn thành!');
+        showToast('Vui lòng chụp/chọn ảnh xác nhận giao hàng trước khi hoàn thành!', 'error');
         return false;
     }
     return confirm('Bạn xác nhận đã giao hàng thành công?');
@@ -347,7 +347,7 @@ function showProofPreviewDetail() {
     function validateProofImageDetail() {
         var input = document.getElementById('proofImageDetail');
         if (!input.files || input.files.length === 0) {
-            alert('Vui lòng chụp/chọn ảnh xác nhận giao hàng!');
+            showToast('Vui lòng chụp/chọn ảnh xác nhận giao hàng!', 'error');
             return false;
         }
         return confirm('Bạn xác nhận đã giao hàng thành công?');

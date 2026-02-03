@@ -1,0 +1,139 @@
+/* Review List Page Styles */
+.review-list-page {
+    min-height: calc(100vh - 200px);
+    padding: 80px 20px 40px;
+    background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%);
+}
+
+.review-hero {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.review-hero h1 {
+    font-size: 2.2rem;
+    color: #fff;
+    margin-bottom: 10px;
+}
+
+.review-hero p {
+    color: #94a3b8;
+}
+
+.reviews-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.review-card {
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    border-radius: 16px;
+    padding: 20px;
+    transition: all 0.2s;
+}
+
+.review-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.review-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+}
+
+.review-user {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.review-avatar {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: 700;
+}
+
+.review-meta h4 {
+    color: #fff;
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+.review-meta span {
+    color: #6b7280;
+    font-size: 0.8rem;
+}
+
+.review-stars {
+    color: #fbbf24;
+    font-size: 1rem;
+}
+
+.review-product {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 10px;
+    margin-bottom: 12px;
+}
+
+.review-product img {
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+    object-fit: cover;
+}
+
+.review-product-name {
+    color: #60a5fa;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.review-comment {
+    color: #94a3b8;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.review-empty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 60px 20px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 20px;
+}
+
+.review-empty-icon {
+    font-size: 60px;
+    margin-bottom: 20px;
+}
+
+.review-empty-state h3 {
+    color: #fff;
+    margin-bottom: 10px;
+}
+
+.review-empty-state p {
+    color: #94a3b8;
+}
+
+@media (max-width: 768px) {
+    .reviews-grid {
+        grid-template-columns: 1fr;
+    }
+}

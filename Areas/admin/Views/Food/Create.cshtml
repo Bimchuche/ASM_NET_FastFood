@@ -16,6 +16,11 @@
     </div>
 </div>
 
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">⚠️ @TempData["Error"]</div>
+}
+
 <!-- Form Card -->
 <div class="admin-form-card">
     <div class="form-card-header">
@@ -59,7 +64,7 @@
                                 <label class="form-label">
                                     <span class="label-icon">💰</span> Giá (VNĐ) <span class="required">*</span>
                                 </label>
-                                <input asp-for="Price" type="number" class="form-control" min="0" step="1000" placeholder="Nhập giá..." required />
+                                <input asp-for="Price" type="number" class="form-control" min="1000" max="50000000" step="1000" placeholder="Nhập giá..." required />
                             </div>
                         </div>
                         <div class="col-md-6">

@@ -136,7 +136,7 @@
     cursor: pointer;
     text-align: center;
     transition: all 0.3s ease;
-    background: white;
+    background: black   ;
 }
 
 .address-type-option:hover {

@@ -2,10 +2,19 @@
 @{
     ViewData["Title"] = "Combo";
     var keyword = ViewBag.Keyword as string ?? "";
+    var sortBy = ViewBag.SortBy as string ?? "";
+    var minPrice = ViewBag.MinPrice as decimal?;
+    var maxPrice = ViewBag.MaxPrice as decimal?;
+    var minRating = ViewBag.MinRating as int?;
+    var comboRatings = ViewBag.ComboRatings as Dictionary<int, dynamic> ?? new Dictionary<int, dynamic>();
+    var currentPage = (int)(ViewBag.CurrentPage ?? 1);
+    var totalPages = (int)(ViewBag.TotalPages ?? 1);
+    var totalItems = (int)(ViewBag.TotalItems ?? 0);
 }
 
 <link rel="stylesheet" href="~/client/css/menu.css" />
 <link rel="stylesheet" href="~/client/css/modal.css" />
+<link rel="stylesheet" href="~/client/css/combo-search.css" />
 
 <div class="combo-page menu-page">
     <div class="container">
@@ -17,31 +26,88 @@
             </div>
         </div>
 
-        <!-- SEARCH BAR -->
-        <div class="menu-search-container animate-slide-up">
-            <form method="get" asp-action="Index" class="menu-search-form">
-                <div class="search-input-wrapper">
-                    <span class="search-icon">🔍</span>
-                    <input type="text" name="keyword" placeholder="Tìm combo yêu thích..." value="@keyword" />
-                    @if (!string.IsNullOrEmpty(keyword))
-                    {
-                        <a href="/Combo" class="clear-search">✕</a>
-                    }
+        <!-- ADVANCED SEARCH BAR -->
+        <div class="advanced-search-container animate-slide-up">
+            <form method="get" asp-action="Index" class="advanced-search-form" id="searchForm">
+                <!-- Row 1: Keyword search -->
+                <div class="search-row">
+                    <div class="search-input-wrapper">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" name="keyword" placeholder="Tìm combo yêu thích..." value="@keyword" />
+                        @if (!string.IsNullOrEmpty(keyword))
+                        {
+                            <a href="/Combo" class="clear-search">✕</a>
+                        }
+                    </div>
+                    <button type="submit" class="search-btn">Tìm kiếm</button>
                 </div>
-                <button type="submit" class="search-btn" style="background: #6c5ce7;">Tìm kiếm</button>
+                
+                <!-- Row 2: Filters -->
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label>💰 Giá từ</label>
+                        <input type="number" name="minPrice" placeholder="VD: 50000" value="@minPrice" class="filter-input" />
+                    </div>
+                    <div class="filter-group">
+                        <label>💰 Đến</label>
+                        <input type="number" name="maxPrice" placeholder="VD: 200000" value="@maxPrice" class="filter-input" />
+                    </div>
+                    <div class="filter-group">
+                        <label>⭐ Đánh giá tối thiểu</label>
+                        <select name="minRating" class="filter-select">
+                            <option value="">Tất cả</option>
+                            <option value="5" selected="@(minRating == 5)">⭐⭐⭐⭐⭐ 5 sao</option>
+                            <option value="4" selected="@(minRating == 4)">⭐⭐⭐⭐ 4+ sao</option>
+                            <option value="3" selected="@(minRating == 3)">⭐⭐⭐ 3+ sao</option>
+                            <option value="2" selected="@(minRating == 2)">⭐⭐ 2+ sao</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>📊 Sắp xếp theo</label>
+                        <select name="sortBy" class="filter-select">
+                            <option value="" selected="@(string.IsNullOrEmpty(sortBy))">Mới nhất</option>
+                            <option value="price_asc" selected="@(sortBy == "price_asc")">Giá: Thấp → Cao</option>
+                            <option value="price_desc" selected="@(sortBy == "price_desc")">Giá: Cao → Thấp</option>
+                            <option value="name_asc" selected="@(sortBy == "name_asc")">Tên: A → Z</option>
+                            <option value="name_desc" selected="@(sortBy == "name_desc")">Tên: Z → A</option>
+                            <option value="rating" selected="@(sortBy == "rating")">Đánh giá cao nhất</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Active filters -->
+                @if (!string.IsNullOrEmpty(keyword) || minPrice.HasValue || maxPrice.HasValue || minRating.HasValue || !string.IsNullOrEmpty(sortBy))
+                {
+                    <div class="active-filters">
+                        <span class="filter-label">🏷️ Bộ lọc đang áp dụng:</span>
+                        @if (!string.IsNullOrEmpty(keyword))
+                        {
+                            <span class="filter-tag">🔍 "@keyword"</span>
+                        }
+                        @if (minPrice.HasValue)
+                        {
+                            <span class="filter-tag">💰 Từ @minPrice.Value.ToString("N0")đ</span>
+                        }
+                        @if (maxPrice.HasValue)
+                        {
+                            <span class="filter-tag">💰 Đến @maxPrice.Value.ToString("N0")đ</span>
+                        }
+                        @if (minRating.HasValue)
+                        {
+                            <span class="filter-tag">⭐ @minRating+ sao</span>
+                        }
+                        <a href="/Combo" class="clear-all-filters">✕ Xóa tất cả</a>
+                    </div>
+                }
             </form>
         </div>
 
         <!-- SEARCH RESULT INFO -->
-        @if (!string.IsNullOrEmpty(keyword))
-        {
-            <div class="d-flex justify-content-center mb-4">
-                <div class="search-result-info">
-                    Tìm thấy <strong>@Model.Count()</strong> kết quả cho "<em>@keyword</em>"
-                    <a href="/Combo" class="text-warning ms-2">Xóa bộ lọc</a>
-                </div>
+        <div class="d-flex justify-content-center mb-4">
+            <div class="search-result-info">
+                Hiển thị <strong>@Model.Count()</strong> / <strong>@totalItems</strong> combo
             </div>
-        }
+        </div>
 
         <!-- COMBO GRID -->
         <div class="menu-grid">
@@ -51,7 +117,7 @@
                     <div class="menu-empty-state animate-fade-in">
                         <div class="empty-icon">🔍</div>
                         <h3>Không tìm thấy combo nào</h3>
-                        <p>Hãy thử tìm kiếm với từ khóa khác</p>
+                        <p>Hãy thử tìm kiếm với từ khóa khác hoặc điều chỉnh bộ lọc</p>
                         <a href="/Combo" class="btn btn-primary btn-lg rounded-pill px-4" style="background: #6c5ce7; border: none;">Xem tất cả combo</a>
                     </div>
                 </div>
@@ -61,6 +127,10 @@
                 var delay = 0.0;
                 @foreach (var combo in Model)
                 {
+                    var hasRating = comboRatings.ContainsKey(combo.Id);
+                    var avgRating = hasRating ? (double)comboRatings[combo.Id].AvgRating : 0;
+                    var reviewCount = hasRating ? (int)comboRatings[combo.Id].ReviewCount : 0;
+                    
                     <div class="menu-card combo-card animate-scale-in" style="animation-delay: @(delay)s;" onclick="openComboModal(@combo.Id)">
                         <!-- Badge -->
                         <span class="combo-badge">🔥 HOT</span>
@@ -76,6 +146,33 @@
                         <!-- Info -->
                         <div class="card-content">
                             <h3 class="card-title">@combo.Name</h3>
+                            
+                            <!-- Rating -->
+                            <div class="card-rating">
+                                @if (reviewCount > 0)
+                                {
+                                    <div class="rating-stars">
+                                        @for (int i = 1; i <= 5; i++)
+                                        {
+                                            if (i <= Math.Round(avgRating))
+                                            {
+                                                <span class="star filled">★</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="star empty">☆</span>
+                                            }
+                                        }
+                                    </div>
+                                    <span class="rating-text">@avgRating.ToString("0.0")</span>
+                                    <span class="review-count">(@reviewCount đánh giá)</span>
+                                }
+                                else
+                                {
+                                    <span class="no-rating">Chưa có đánh giá</span>
+                                }
+                            </div>
+                            
                             <p class="card-description">@(combo.Description?.Length > 60 ? combo.Description.Substring(0, 60) + "..." : combo.Description)</p>
                             
                             <div class="card-footer">
@@ -94,6 +191,47 @@
                 }
             }
         </div>
+
+        <!-- PAGINATION -->
+        @if (totalPages > 1)
+        {
+            <div class="pagination-container animate-fade-in">
+                <div class="pagination-info">
+                    Trang <strong>@currentPage</strong> / <strong>@totalPages</strong>
+                </div>
+                <div class="pagination-nav">
+                    @if (currentPage > 1)
+                    {
+                        <a href="@Url.Action("Index", new { keyword, sortBy, minPrice, maxPrice, minRating, page = currentPage - 1 })" class="page-btn">
+                            ← Trước
+                        </a>
+                    }
+                    
+                    @for (int i = 1; i <= totalPages; i++)
+                    {
+                        if (i == currentPage)
+                        {
+                            <span class="page-btn active">@i</span>
+                        }
+                        else if (i == 1 || i == totalPages || (i >= currentPage - 1 && i <= currentPage + 1))
+                        {
+                            <a href="@Url.Action("Index", new { keyword, sortBy, minPrice, maxPrice, minRating, page = i })" class="page-btn">@i</a>
+                        }
+                        else if (i == currentPage - 2 || i == currentPage + 2)
+                        {
+                            <span class="page-dots">...</span>
+                        }
+                    }
+                    
+                    @if (currentPage < totalPages)
+                    {
+                        <a href="@Url.Action("Index", new { keyword, sortBy, minPrice, maxPrice, minRating, page = currentPage + 1 })" class="page-btn">
+                            Sau →
+                        </a>
+                    }
+                </div>
+            </div>
+        }
     </div>
 </div>
 

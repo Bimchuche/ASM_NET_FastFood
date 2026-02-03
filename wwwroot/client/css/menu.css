@@ -14,6 +14,269 @@
     padding-bottom: 60px;
 }
 
+/* Menu Layout - Sidebar + Main */
+.menu-layout {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 30px;
+    margin-top: 30px;
+}
+
+@media (max-width: 992px) {
+    .menu-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Filter Sidebar */
+.filter-sidebar {
+    background: rgba(255,255,255,0.08);
+    border-radius: 20px;
+    padding: 25px;
+    height: fit-content;
+    position: sticky;
+    top: 100px;
+}
+
+.filter-section {
+    margin-bottom: 25px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.filter-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.filter-section h4 {
+    color: #fff;
+    font-size: 0.95rem;
+    margin-bottom: 15px;
+}
+
+.filter-options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.filter-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 10px;
+    transition: all 0.2s;
+}
+
+.filter-option:hover {
+    background: rgba(255,255,255,0.05);
+    color: #fff;
+}
+
+.filter-option input[type="radio"] {
+    accent-color: var(--menu-primary);
+}
+
+.filter-option input:checked + span {
+    color: var(--menu-primary);
+    font-weight: 600;
+}
+
+.price-inputs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.price-inputs input {
+    flex: 1;
+    min-width: 0;
+    padding: 12px 10px;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 10px;
+    background: rgba(255,255,255,0.08);
+    color: #fff;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+.price-inputs input:focus {
+    outline: none;
+    border-color: var(--menu-primary);
+    background: rgba(255,255,255,0.12);
+}
+
+.price-inputs input::placeholder {
+    color: #9ca3af;
+}
+
+.price-inputs span {
+    color: #94a3b8;
+    font-weight: 500;
+    padding: 0 5px;
+}
+
+.filter-section select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 10px;
+    background: rgba(255,255,255,0.05);
+    color: #fff;
+    font-size: 0.9rem;
+}
+
+.filter-section select option {
+    background: #1a1a2e;
+    color: #fff;
+}
+
+.btn-apply-filter {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, var(--menu-primary), var(--menu-secondary));
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 10px;
+    transition: all 0.2s;
+}
+
+.btn-apply-filter:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(255, 107, 107, 0.3);
+}
+
+.btn-clear-filter {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    background: rgba(255,255,255,0.1);
+    color: #94a3b8;
+    border: none;
+    border-radius: 12px;
+    text-align: center;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.btn-clear-filter:hover {
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+}
+
+/* Main Content */
+.menu-main {
+    flex: 1;
+}
+
+/* Results Info */
+.results-info {
+    color: #94a3b8;
+    margin-bottom: 20px;
+    font-size: 0.9rem;
+}
+
+/* Wishlist Button */
+.btn-wishlist {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    width: 40px;
+    height: 40px;
+    background: rgba(0,0,0,0.5);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 20px;
+    z-index: 3;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-wishlist:hover {
+    background: rgba(255,255,255,0.2);
+    transform: scale(1.1);
+}
+
+.btn-wishlist.active {
+    background: rgba(239, 68, 68, 0.8);
+}
+
+/* Card Rating */
+.card-rating {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-bottom: 8px;
+    font-size: 0.85rem;
+}
+
+.card-rating .stars {
+    font-size: 0.8rem;
+}
+
+.card-rating .rating-value {
+    color: #f59e0b;
+    font-weight: 600;
+}
+
+.card-rating .review-count {
+    color: #94a3b8;
+}
+
+/* Pagination */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-top: 40px;
+    flex-wrap: wrap;
+}
+
+.page-btn {
+    padding: 10px 18px;
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.page-btn:hover {
+    background: rgba(255,255,255,0.2);
+    color: #fff;
+}
+
+.page-btn.active {
+    background: linear-gradient(135deg, var(--menu-primary), var(--menu-secondary));
+    color: white;
+    box-shadow: 0 5px 15px rgba(255, 107, 107, 0.3);
+}
+
+.page-dots {
+    color: #94a3b8;
+    padding: 0 5px;
+}
+
+@media (max-width: 992px) {
+    .filter-sidebar {
+        position: static;
+    }
+}
+
 /* Hero Banner - Fixed margins */
 .menu-hero {
     background: linear-gradient(135deg, var(--menu-primary) 0%, var(--menu-secondary) 100%);

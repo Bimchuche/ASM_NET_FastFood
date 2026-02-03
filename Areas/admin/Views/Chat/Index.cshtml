@@ -1,0 +1,133 @@
+@model List<ASM1_NET.Models.ChatSession>
+@{
+    ViewData["Title"] = "Quản lý Chat";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="chat-admin-container">
+    <!-- Header -->
+    <div class="chat-admin-header">
+        <div class="header-left">
+            <div class="header-icon">
+                <span>💬</span>
+            </div>
+            <div class="header-text">
+                <h1>Chat Hỗ trợ Khách hàng</h1>
+                <p>Quản lý và trả lời tin nhắn từ khách hàng</p>
+            </div>
+        </div>
+        <div class="header-stats">
+            <div class="stat-item open">
+                <span class="stat-value">@Model.Count(s => s.Status == "Open")</span>
+                <span class="stat-label">Đang mở</span>
+            </div>
+            <div class="stat-item total">
+                <span class="stat-value">@Model.Count</span>
+                <span class="stat-label">Tổng cộng</span>
+            </div>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="toast-message success">
+            <span class="toast-icon">✅</span>
+            <span>@TempData["Success"]</span>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="toast-message error">
+            <span class="toast-icon">⚠️</span>
+            <span>@TempData["Error"]</span>
+        </div>
+    }
+
+    <!-- Chat List -->
+    <div class="chat-list-wrapper">
+        @if (!Model.Any())
+        {
+            <div class="empty-chat-state">
+                <div class="empty-illustration">
+                    <div class="bubble bubble-1">💬</div>
+                    <div class="bubble bubble-2">🎧</div>
+                    <div class="bubble bubble-3">✨</div>
+                </div>
+                <h3>Chưa có cuộc trò chuyện nào</h3>
+                <p>Khi khách hàng gửi tin nhắn hỗ trợ,<br>cuộc trò chuyện sẽ xuất hiện ở đây</p>
+            </div>
+        }
+        else
+        {
+            <div class="chat-list">
+                @foreach (var session in Model)
+                {
+                    var unreadCount = session.Messages.Count(m => m.IsFromCustomer && !m.IsRead);
+                    var lastMessage = session.Messages.OrderByDescending(m => m.CreatedAt).FirstOrDefault();
+                    var isOpen = session.Status == "Open";
+                    var customerInitial = session.Customer?.FullName?.Substring(0, 1).ToUpper() ?? "K";
+                    
+                    <div class="chat-item @(isOpen ? "open" : "closed") @(unreadCount > 0 ? "has-unread" : "")">
+                        <div class="chat-item-avatar" style="background: linear-gradient(135deg, @(isOpen ? "#10b981, #059669" : "#6b7280, #4b5563"));">
+                            <span>@customerInitial</span>
+                            @if (isOpen)
+                            {
+                                <div class="status-dot"></div>
+                            }
+                        </div>
+                        
+                        <div class="chat-item-content">
+                            <div class="chat-item-header">
+                                <h4>@(session.Customer?.FullName ?? "Khách hàng")</h4>
+                                @if (unreadCount > 0)
+                                {
+                                    <span class="unread-count">@unreadCount</span>
+                                }
+                            </div>
+                            
+                            <div class="chat-item-preview">
+                                @if (lastMessage != null)
+                                {
+                                    <span class="preview-sender">@(lastMessage.IsFromCustomer ? "" : "Bạn: ")</span>
+                                    <span class="preview-text">@(lastMessage.Message.Length > 40 ? lastMessage.Message.Substring(0, 40) + "..." : lastMessage.Message)</span>
+                                }
+                                else
+                                {
+                                    <span class="preview-empty">Chưa có tin nhắn</span>
+                                }
+                            </div>
+                            
+                            <div class="chat-item-meta">
+                                <span class="meta-time">
+                                    <i>🕐</i> @(lastMessage?.CreatedAt.ToString("dd/MM HH:mm") ?? session.CreatedAt.ToString("dd/MM HH:mm"))
+                                </span>
+                                <span class="meta-status @(isOpen ? "open" : "closed")">
+                                    @(isOpen ? "● Đang mở" : "○ Đã đóng")
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="chat-item-actions">
+                            <a href="/Admin/Chat/Session/@session.Id" class="action-btn primary" title="Xem chat">
+                                <span>💬</span>
+                                <span>Xem</span>
+                            </a>
+                            @if (isOpen)
+                            {
+                                <form method="post" action="/Admin/Chat/CloseSession/@session.Id" class="inline-form">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="action-btn secondary" title="Đóng chat" onclick="return confirm('Đóng cuộc trò chuyện này?')">
+                                        <span>✕</span>
+                                    </button>
+                                </form>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+<link rel="stylesheet" href="~/admin/css/chat-index.css" />
+

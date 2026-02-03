@@ -5,6 +5,7 @@
     var pendingCount = Model.Count(o => o.Status == "Pending");
     var deliveringCount = Model.Count(o => o.Status == "Delivering");
     var completedCount = Model.Count(o => o.Status == "Completed");
+    var refundPendingCount = Model.Count(o => o.PaymentStatus == "RefundPending");
     var totalRevenue = Model.Where(o => o.Status == "Completed").Sum(o => o.TotalAmount);
 }
 
@@ -15,8 +16,14 @@
 }
 @if (TempData["Error"] != null)
 {
-    <div class="admin-alert danger">❌ @TempData["Error"]</div>
+    <div class="admin-alert danger">⚠️ @TempData["Error"]</div>
 }
+
+<!-- Hidden form for bulk delete -->
+<form id="bulkDeleteForm" asp-action="BulkDelete" method="post" style="display:none;">
+    @Html.AntiForgeryToken()
+    <div id="deleteIds"></div>
+</form>
 
 <!-- STATS -->
 <div class="stats-grid">
@@ -41,6 +48,16 @@
             <p>Hoàn thành</p>
         </div>
     </div>
+    @if (refundPendingCount > 0)
+    {
+        <div class="stat-card" style="border: 2px solid #f59e0b;">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">💸</div>
+            <div class="stat-info">
+                <h3 style="color: #f59e0b;">@refundPendingCount</h3>
+                <p>Chờ hoàn tiền</p>
+            </div>
+        </div>
+    }
     <div class="stat-card">
         <div class="stat-icon danger">💰</div>
         <div class="stat-info">
@@ -56,6 +73,11 @@
         <h2 class="mb-1">📦 Quản lý đơn hàng</h2>
         <p class="text-muted mb-0">Tổng: <strong>@Model.Count()</strong> đơn</p>
     </div>
+    <div class="d-flex gap-2">
+        <button type="button" class="btn-admin danger" onclick="submitBulkDelete()">
+            🗑️ Xóa đã chọn (<span id="selectedCount">0</span>)
+        </button>
+    </div>
 </div>
 
 <!-- TABLE CARD -->
@@ -64,11 +86,19 @@
         <h3>📋 Danh sách đơn hàng</h3>
         <div class="table-search">
             <select id="filterStatus" onchange="filterByStatus()" class="form-select form-select-sm" style="width: auto;">
-                <option value="">Tất cả trạng thái</option>
-                <option value="Pending">⏳ Chờ xử lý</option>
-                <option value="Delivering">🚚 Đang giao</option>
-                <option value="Completed">✅ Hoàn thành</option>
-                <option value="Cancelled">❌ Đã hủy</option>
+                <option value="">Tất cả</option>
+                <optgroup label="Trạng thái đơn hàng">
+                    <option value="status:Pending">⏳ Chờ xử lý</option>
+                    <option value="status:Đang xử lý">🔄 Đang xử lý</option>
+                    <option value="status:Delivering">🚚 Đang giao</option>
+                    <option value="status:Completed">✅ Hoàn thành</option>
+                    <option value="status:Cancelled">❌ Đã hủy</option>
+                </optgroup>
+                <optgroup label="Trạng thái thanh toán">
+                    <option value="payment:Paid">💳 Đã thanh toán (QR)</option>
+                    <option value="payment:RefundPending">💸 Chờ hoàn tiền</option>
+                    <option value="payment:Refunded">✅ Đã hoàn tiền</option>
+                </optgroup>
             </select>
             <input type="text" id="searchOrder" placeholder="Tìm kiếm..." onkeyup="filterTable()" />
         </div>
@@ -77,6 +107,7 @@
     <table class="admin-table" id="orderTable">
         <thead>
             <tr>
+                <th style="width: 40px;"><input type="checkbox" id="selectAll" onclick="toggleAll(this)"></th>
                 <th>Mã đơn</th>
                 <th>Khách hàng</th>
                 <th>Ngày đặt</th>
@@ -92,6 +123,8 @@
                 var statusClass = o.Status switch
                 {
                     "Pending" => "warning",
+                    "Đã thanh toán" => "primary",
+                    "Đang xử lý" => "info",
                     "Delivering" => "info",
                     "Completed" => "success",
                     "Cancelled" => "danger",
@@ -100,6 +133,8 @@
                 var statusIcon = o.Status switch
                 {
                     "Pending" => "⏳",
+                    "Đã thanh toán" => "💳",
+                    "Đang xử lý" => "🔄",
                     "Delivering" => "🚚",
                     "Completed" => "✅",
                     "Cancelled" => "❌",
@@ -108,13 +143,16 @@
                 var statusText = o.Status switch
                 {
                     "Pending" => "Chờ xử lý",
+                    "Đã thanh toán" => "Đã thanh toán",
+                    "Đang xử lý" => "Đang xử lý",
                     "Delivering" => "Đang giao",
                     "Completed" => "Hoàn thành",
                     "Cancelled" => "Đã hủy",
                     _ => o.Status
                 };
                 
-                <tr data-status="@o.Status">
+                <tr data-status="@o.Status" data-payment="@o.PaymentStatus">
+                    <td><input type="checkbox" class="item-checkbox" data-id="@o.Id" onclick="updateCount()"></td>
                     <td>
                         <strong class="text-primary">#@o.OrderCode</strong>
                     </td>
@@ -131,6 +169,14 @@
                     </td>
                     <td>
                         <span class="badge-admin @statusClass">@statusIcon @statusText</span>
+                        @if (o.PaymentStatus == "RefundPending")
+                        {
+                            <br /><span style="color: #f59e0b; font-size: 0.75rem;">💸 Chờ hoàn tiền</span>
+                        }
+                        else if (o.PaymentStatus == "Refunded")
+                        {
+                            <br /><span style="color: #10b981; font-size: 0.75rem;">✅ Đã hoàn tiền</span>
+                        }
                     </td>
                     <td>
                         @if (o.Shipper != null)
@@ -150,6 +196,19 @@
                             <a asp-action="Edit" asp-route-id="@o.Id" class="action-btn edit" title="Sửa">
                                 ✏️
                             </a>
+                            @if (o.PaymentStatus == "RefundPending")
+                            {
+                                <form asp-action="ConfirmRefund" method="post" style="display: inline;">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@o.Id" />
+                                    <button type="submit" class="action-btn" 
+                                            style="background: linear-gradient(135deg, #10b981, #059669);" 
+                                            title="Xác nhận đã hoàn tiền"
+                                            onclick="return confirm('Xác nhận đã hoàn tiền cho đơn hàng này?');">
+                                        💸
+                                    </button>
+                                </form>
+                            }
                             <a asp-action="Delete" asp-route-id="@o.Id" class="action-btn delete" title="Xóa"
                                onclick="return confirm('Bạn có chắc muốn xóa đơn hàng này?')">
                                 🗑️
@@ -163,38 +222,16 @@
 </div>
 
 @section Scripts {
+<script src="~/admin/js/admin-table.js"></script>
 <script>
-function filterTable() {
-    var input = document.getElementById("searchOrder");
-    var filter = input.value.toLowerCase();
-    var table = document.getElementById("orderTable");
-    var rows = table.getElementsByTagName("tr");
-    
-    for (var i = 1; i < rows.length; i++) {
-        var cells = rows[i].getElementsByTagName("td");
-        var found = false;
-        for (var j = 0; j < cells.length; j++) {
-            if (cells[j].textContent.toLowerCase().indexOf(filter) > -1) {
-                found = true;
-                break;
-            }
-        }
-        rows[i].style.display = found ? "" : "none";
-    }
+function filterTable() { 
+    window.filterTable('searchOrder', 'orderTable'); 
 }
-
 function filterByStatus() {
-    var status = document.getElementById("filterStatus").value;
-    var table = document.getElementById("orderTable");
-    var rows = table.querySelectorAll("tbody tr");
-    
-    rows.forEach(function(row) {
-        if (status === "" || row.dataset.status === status) {
-            row.style.display = "";
-        } else {
-            row.style.display = "none";
-        }
-    });
+    window.filterByStatus('filterStatus', 'orderTable');
+}
+function submitBulkDelete() {
+    window.submitBulkDelete('đơn hàng');
 }
 </script>
 }

@@ -1,0 +1,233 @@
+@model IEnumerable<ASM1_NET.Models.Order>
+@{
+    ViewData["Title"] = "Đơn hàng đã hoàn thành";
+    var shippers = ViewBag.Shippers as List<ASM1_NET.Models.User>;
+    var selectedShipperId = ViewBag.SelectedShipperId as int?;
+    var totalRevenue = Model.Sum(o => o.TotalAmount);
+    var totalOrders = Model.Count();
+    var shipperCount = Model.Select(o => o.ShipperId).Distinct().Count();
+}
+
+<div class="completed-orders-page">
+    <!-- Animated Header -->
+    <div class="page-header-premium">
+        <div class="header-content">
+            <div class="header-left">
+                <div class="header-icon-wrapper">
+                    <span class="header-icon">✅</span>
+                    <div class="pulse-ring"></div>
+                </div>
+                <div class="header-text">
+                    <h1>Đơn hàng đã hoàn thành</h1>
+                    <p>Quản lý các đơn hàng đã được shipper giao thành công</p>
+                </div>
+            </div>
+            <a asp-action="Index" class="btn-back-premium">
+                <span>⬅️</span> Tất cả đơn hàng
+            </a>
+        </div>
+    </div>
+
+    <!-- Toast Messages -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="toast-success">
+            <span class="toast-icon">✅</span>
+            <span>@TempData["Success"]</span>
+            <button type="button" class="toast-close" onclick="this.parentElement.remove()">×</button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="toast-error">
+            <span class="toast-icon">❌</span>
+            <span>@TempData["Error"]</span>
+            <button type="button" class="toast-close" onclick="this.parentElement.remove()">×</button>
+        </div>
+    }
+
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+        <div class="stat-card stat-success">
+            <div class="stat-icon-box">📦</div>
+            <div class="stat-content">
+                <span class="stat-number">@totalOrders</span>
+                <span class="stat-label">Đơn đã giao</span>
+            </div>
+            <div class="stat-decoration"></div>
+        </div>
+        <div class="stat-card stat-primary">
+            <div class="stat-icon-box">💰</div>
+            <div class="stat-content">
+                <span class="stat-number">@totalRevenue.ToString("N0")đ</span>
+                <span class="stat-label">Tổng doanh thu</span>
+            </div>
+            <div class="stat-decoration"></div>
+        </div>
+        <div class="stat-card stat-info">
+            <div class="stat-icon-box">🚚</div>
+            <div class="stat-content">
+                <span class="stat-number">@shipperCount</span>
+                <span class="stat-label">Shipper tham gia</span>
+            </div>
+            <div class="stat-decoration"></div>
+        </div>
+    </div>
+
+    <!-- Filter & Search Bar -->
+    <div class="filter-bar-premium">
+        <form method="get" class="filter-form">
+            <div class="filter-group">
+                <label>🚚 Lọc theo Shipper</label>
+                <select name="shipperId" class="filter-select" onchange="this.form.submit()">
+                    <option value="">-- Tất cả shipper --</option>
+                    @if (shippers != null)
+                    {
+                        @foreach (var shipper in shippers)
+                        {
+                            <option value="@shipper.Id" selected="@(selectedShipperId == shipper.Id)">@shipper.FullName</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>🔍 Tìm kiếm</label>
+                <input type="text" id="searchInput" class="filter-input" placeholder="Mã đơn, khách hàng..." />
+            </div>
+            @if (selectedShipperId.HasValue)
+            {
+                <a asp-action="Completed" class="btn-clear-filter">🔄 Xóa bộ lọc</a>
+            }
+        </form>
+    </div>
+
+    <!-- Bulk Actions -->
+    <form asp-action="BulkDeleteCompleted" method="post" id="bulkForm">
+        <div class="bulk-actions-bar" id="bulkActions" style="display: none;">
+            <div class="bulk-info">
+                <span class="bulk-icon">📋</span>
+                <span>Đã chọn: <strong id="selectedCount">0</strong> đơn hàng</span>
+            </div>
+            <button type="submit" class="btn-bulk-delete" onclick="return confirm('Xác nhận xóa các đơn hàng đã chọn?')">
+                🗑️ Xóa đã chọn
+            </button>
+        </div>
+
+        <!-- Orders Table -->
+        <div class="table-container">
+            <table class="orders-table" id="ordersTable">
+                <thead>
+                    <tr>
+                        <th class="th-checkbox">
+                            <label class="custom-checkbox">
+                                <input type="checkbox" id="selectAll" />
+                                <span class="checkmark"></span>
+                            </label>
+                        </th>
+                        <th>Mã đơn</th>
+                        <th>Khách hàng</th>
+                        <th>Shipper</th>
+                        <th>Tổng tiền</th>
+                        <th>Ngày giao</th>
+                        <th>Thanh toán</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="8">
+                                <div class="empty-state">
+                                    <div class="empty-animation">
+                                        <span>📭</span>
+                                    </div>
+                                    <h3>Chưa có đơn hàng đã hoàn thành</h3>
+                                    <p>Các đơn hàng được giao thành công sẽ xuất hiện ở đây</p>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var order in Model)
+                        {
+                            <tr class="order-row" data-search="@order.OrderCode @order.Customer?.FullName @order.Shipper?.FullName">
+                                <td>
+                                    <label class="custom-checkbox">
+                                        <input type="checkbox" name="ids" value="@order.Id" class="row-checkbox" />
+                                        <span class="checkmark"></span>
+                                    </label>
+                                </td>
+                                <td>
+                                    <span class="order-code">#@order.OrderCode</span>
+                                </td>
+                                <td>
+                                    <div class="customer-info">
+                                        <div class="customer-avatar">@order.Customer?.FullName?.Substring(0, 1).ToUpper()</div>
+                                        <div class="customer-details">
+                                            <span class="customer-name">@order.Customer?.FullName</span>
+                                            <span class="customer-phone">📞 @order.Phone</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="shipper-badge">
+                                        <span class="shipper-icon">🚚</span>
+                                        <span>@order.Shipper?.FullName</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="amount-badge">@order.TotalAmount.ToString("N0")đ</span>
+                                </td>
+                                <td>
+                                    @if (order.DeliveryDate.HasValue)
+                                    {
+                                        <div class="date-info">
+                                            <span class="date-main">@order.DeliveryDate.Value.ToString("dd/MM/yyyy")</span>
+                                            <span class="date-time">@order.DeliveryDate.Value.ToString("HH:mm")</span>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">--</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (order.PaymentMethod == "COD")
+                                    {
+                                        <span class="payment-badge cod">💵 COD</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="payment-badge qr">💳 QR</span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <a asp-action="Detail" asp-route-id="@order.Id" class="btn-action btn-view" title="Xem chi tiết">
+                                            👁️
+                                        </a>
+                                        <button type="button" class="btn-action btn-delete" 
+                                                onclick="deleteOrder(@order.Id, '@order.OrderCode')" title="Xóa">
+                                            🗑️
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </form>
+</div>
+
+<!-- Delete Form -->
+<form asp-action="DeleteCompleted" method="post" id="deleteForm" style="display: none;">
+    <input type="hidden" name="id" id="deleteId" />
+</form>
+
+<script src="~/admin/js/order-completed.js"></script>
+
+<link rel="stylesheet" href="~/admin/css/order-completed.css" />

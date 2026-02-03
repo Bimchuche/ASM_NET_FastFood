@@ -1,41 +1,228 @@
 @model ASM1_NET.Models.Order
+@{
+    ViewData["Title"] = "Chi tiết đơn hàng";
+    var statusClass = Model.Status switch {
+        "Pending" => "status-pending",
+        "Confirmed" => "status-confirmed",
+        "Delivering" => "status-delivering",
+        "Completed" => "status-completed",
+        "Cancelled" => "status-cancelled",
+        _ => "status-default"
+    };
+    var statusIcon = Model.Status switch {
+        "Pending" => "⏳",
+        "Confirmed" => "✅",
+        "Delivering" => "🚚",
+        "Completed" => "🎉",
+        "Cancelled" => "❌",
+        _ => "📦"
+    };
+    var statusText = Model.Status switch {
+        "Pending" => "Chờ xác nhận",
+        "Confirmed" => "Đã xác nhận",
+        "Delivering" => "Đang giao",
+        "Completed" => "Hoàn thành",
+        "Cancelled" => "Đã hủy",
+        _ => Model.Status
+    };
+}
 
-<h2>Chi tiết đơn hàng @Model.OrderCode</h2>
+<link rel="stylesheet" href="~/admin/css/order-detail.css" />
 
-<p><strong>Khách hàng:</strong> @Model.Customer?.FullName</p>
-<p><strong>SĐT:</strong> @Model.Phone</p>
-<p><strong>Địa chỉ:</strong> @Model.Address</p>
-<p><strong>Trạng thái:</strong> @Model.Status</p>
+<div class="order-detail-page">
+    <!-- Header -->
+    <div class="detail-header">
+        <div class="header-content">
+            <div class="header-left">
+                <a asp-action="Index" class="btn-back">
+                    <span>←</span>
+                </a>
+                <div class="header-info">
+                    <span class="order-badge">#@Model.OrderCode</span>
+                    <h1>Chi tiết đơn hàng</h1>
+                    <div class="order-meta">
+                        <span>📅 @Model.OrderDate.ToString("dd/MM/yyyy HH:mm")</span>
+                        <span class="status-badge @statusClass">@statusIcon @statusText</span>
+                    </div>
+                </div>
+            </div>
+            <div class="header-actions">
+                <a asp-action="Index" class="btn-secondary">
+                    ⬅️ Danh sách đơn hàng
+                </a>
+            </div>
+        </div>
+    </div>
 
-<p>
-    <strong>Shipper:</strong>
-    @(Model.Shipper != null ? Model.Shipper.FullName : "Chưa phân công")
-</p>
+    <div class="detail-content">
+        <!-- Left Column -->
+        <div class="detail-left">
+            <!-- Customer Info Card -->
+            <div class="info-card customer-card">
+                <div class="card-header">
+                    <span class="card-icon">👤</span>
+                    <h3>Thông tin khách hàng</h3>
+                </div>
+                <div class="card-body">
+                    <div class="info-row">
+                        <div class="info-item">
+                            <span class="info-label">Họ tên</span>
+                            <span class="info-value">@Model.Customer?.FullName</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Email</span>
+                            <span class="info-value">@Model.Customer?.Email</span>
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-item">
+                            <span class="info-label">📞 Số điện thoại</span>
+                            <a href="tel:@Model.Phone" class="info-value phone-link">@Model.Phone</a>
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-item full">
+                            <span class="info-label">📍 Địa chỉ giao hàng</span>
+                            <span class="info-value address">@Model.Address</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-<hr />
+            <!-- Shipper Info Card -->
+            <div class="info-card shipper-card">
+                <div class="card-header">
+                    <span class="card-icon">🚚</span>
+                    <h3>Thông tin giao hàng</h3>
+                </div>
+                <div class="card-body">
+                    @if (Model.Shipper != null)
+                    {
+                        <div class="shipper-info">
+                            <div class="shipper-avatar">
+                                @Model.Shipper.FullName?.Substring(0, 1).ToUpper()
+                            </div>
+                            <div class="shipper-details">
+                                <span class="shipper-name">@Model.Shipper.FullName</span>
+                                <span class="shipper-phone">📞 @Model.Shipper.Phone</span>
+                            </div>
+                        </div>
+                        @if (Model.DeliveryDate.HasValue)
+                        {
+                            <div class="delivery-time">
+                                <span class="label">⏰ Thời gian giao:</span>
+                                <span class="value">@Model.DeliveryDate.Value.ToString("dd/MM/yyyy HH:mm")</span>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="no-shipper">
+                            <span class="icon">🔍</span>
+                            <span>Chưa phân công shipper</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
 
-<table class="table table-bordered">
-    <thead>
-        <tr>
-            <th>Món</th>
-            <th>Giá</th>
-            <th>Số lượng</th>
-            <th>Thành tiền</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var d in Model.OrderDetails)
-        {
-            <tr>
-                <td>@d.Food?.Name</td>
-                <td>@d.UnitPrice.ToString("N0") đ</td>
-                <td>@d.Quantity</td>
-                <td>@d.UnitPrice.ToString("N0") đ</td>
-            </tr>
-        }
-    </tbody>
-</table>
+        <!-- Right Column -->
+        <div class="detail-right">
+            <!-- Order Items Card -->
+            <div class="info-card items-card">
+                <div class="card-header">
+                    <span class="card-icon">🛒</span>
+                    <h3>Danh sách sản phẩm</h3>
+                    <span class="item-count">@Model.OrderDetails?.Count() món</span>
+                </div>
+                <div class="card-body">
+                    <div class="items-table">
+                        <div class="table-header">
+                            <span class="col-item">Sản phẩm</span>
+                            <span class="col-price">Đơn giá</span>
+                            <span class="col-qty">SL</span>
+                            <span class="col-total">Thành tiền</span>
+                        </div>
+                        @if (Model.OrderDetails != null)
+                        {
+                            @foreach (var d in Model.OrderDetails)
+                            {
+                                var itemName = d.Food?.Name ?? d.Combo?.Name ?? "Sản phẩm";
+                                var itemImage = d.Food?.ImageUrl ?? d.Combo?.ImageUrl ?? "/images/no-image.png";
+                                var lineTotal = d.UnitPrice * d.Quantity;
+                                
+                                <div class="table-row">
+                                    <div class="col-item">
+                                        <img src="@itemImage" alt="@itemName" onerror="this.src='/images/no-image.png'" />
+                                        <span class="item-name">@itemName</span>
+                                    </div>
+                                    <span class="col-price">@d.UnitPrice.ToString("N0")đ</span>
+                                    <span class="col-qty">x@d.Quantity</span>
+                                    <span class="col-total">@lineTotal.ToString("N0")đ</span>
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
 
-<a asp-area="Admin" asp-controller="Order" asp-action="Index" class="btn btn-secondary">
-    Quay lại
-</a>
+            <!-- Payment Summary Card -->
+            <div class="info-card payment-card">
+                <div class="card-header">
+                    <span class="card-icon">💰</span>
+                    <h3>Tổng thanh toán</h3>
+                </div>
+                <div class="card-body">
+                    <div class="payment-row">
+                        <span>Tạm tính</span>
+                        <span>@((Model.TotalAmount + Model.DiscountAmount).ToString("N0"))đ</span>
+                    </div>
+                    @if (Model.DiscountAmount > 0)
+                    {
+                        <div class="payment-row discount">
+                            <span>🎁 Giảm giá</span>
+                            <span>-@Model.DiscountAmount.ToString("N0")đ</span>
+                        </div>
+                    }
+                    <div class="payment-total">
+                        <span>Tổng cộng</span>
+                        <span class="total-amount">@Model.TotalAmount.ToString("N0")đ</span>
+                    </div>
+                    <div class="payment-method">
+                        @if (Model.PaymentMethod == "COD")
+                        {
+                            <span class="method-badge cod">💵 Thanh toán khi nhận hàng (COD)</span>
+                        }
+                        else
+                        {
+                            <span class="method-badge qr">💳 Thanh toán online (QR)</span>
+                            @if (!string.IsNullOrEmpty(Model.PaymentStatus))
+                            {
+                                <span class="payment-status @(Model.PaymentStatus == "Paid" ? "paid" : "")">
+                                    @(Model.PaymentStatus == "Paid" ? "✅ Đã thanh toán" : "⏳ Chờ thanh toán")
+                                </span>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delivery Proof -->
+    @if (!string.IsNullOrEmpty(Model.DeliveryProofImageUrl))
+    {
+        <div class="info-card proof-card">
+            <div class="card-header">
+                <span class="card-icon">📸</span>
+                <h3>Ảnh xác nhận giao hàng</h3>
+            </div>
+            <div class="card-body">
+                <div class="proof-image-wrapper">
+                    <img src="@Model.DeliveryProofImageUrl" alt="Ảnh xác nhận" onclick="window.open(this.src, '_blank')" />
+                    <span class="view-hint">Click để xem ảnh lớn</span>
+                </div>
+            </div>
+        </div>
+    }
+</div>

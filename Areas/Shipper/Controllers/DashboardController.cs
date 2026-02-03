@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using ASM1_NET.Data;
+using ASM1_NET.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -9,10 +10,12 @@ using Microsoft.EntityFrameworkCore;
 public class DashboardController : Controller
 {
     private readonly AppDbContext _context;
+    private readonly ILoyaltyService _loyaltyService;
 
-    public DashboardController(AppDbContext context)
+    public DashboardController(AppDbContext context, ILoyaltyService loyaltyService)
     {
         _context = context;
+        _loyaltyService = loyaltyService;
     }
 
     public IActionResult Index()
@@ -26,7 +29,7 @@ public class DashboardController : Controller
         
         var orders = _context.Orders
             .Include(o => o.Customer)
-            .Where(o => o.Status == "Pending" && o.ShipperId == null && !o.IsDeleted)
+            .Where(o => (o.Status == "Pending" || o.Status == "Đã thanh toán") && o.ShipperId == null && !o.IsDeleted)
             .OrderBy(o => o.OrderDate)
             .ToList();
 
@@ -96,6 +99,43 @@ public class DashboardController : Controller
         return RedirectToAction("MyOrders", "Orders");
     }
     
+    [HttpPost]
+    public async Task<IActionResult> CompleteDelivery(int id)
+    {
+        var shipperId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+        var order = await _context.Orders
+            .FirstOrDefaultAsync(o => o.Id == id && o.ShipperId == shipperId && o.Status == "Delivering" && !o.IsDeleted);
+
+        if (order == null)
+        {
+            TempData["Error"] = "Không tìm thấy đơn hàng!";
+            return RedirectToAction("MyOrders", "Orders");
+        }
+
+        order.Status = "Delivered";
+        order.DeliveryDate = DateTime.Now;
+        
+        await _context.SaveChangesAsync();
+        
+        // Award loyalty points to customer (1 point per 1000 VND)
+        var points = _loyaltyService.CalculatePointsForOrder(order.TotalAmount);
+        if (points > 0)
+        {
+            await _loyaltyService.AddPoints(
+                order.CustomerId, 
+                points, 
+                "Earn", 
+                $"Điểm thưởng đơn hàng #{order.OrderCode}",
+                order.Id
+            );
+        }
+        
+        TempData["Success"] = $"Đã hoàn thành đơn #{order.OrderCode}! Khách hàng được cộng {points} điểm.";
+
+        return RedirectToAction("MyOrders", "Orders");
+    }
+    
     private double CalculateDistance(double lat1, double lon1, double lat2, double lon2)
     {
         const double R = 6371;
@@ -138,3 +178,4 @@ public class DashboardController : Controller
         return RedirectToAction("Index");
     }
 }
+

@@ -68,7 +68,7 @@ namespace ASM1_NET.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, User model)
+        public async Task<IActionResult> Edit(int id, User model, string? NewPassword)
         {
             var user = await _context.Users.FindAsync(id);
             if (user == null) return NotFound();
@@ -78,10 +78,16 @@ namespace ASM1_NET.Areas.Admin.Controllers
             user.Address = model.Address;
             user.Role = model.Role;
             user.Email = model.Email;
-            user.Password = model.Password;
             user.IsActive = model.IsActive;
+            
+            // Only update password if new password is provided
+            if (!string.IsNullOrWhiteSpace(NewPassword))
+            {
+                user.Password = NewPassword;
+            }
 
             await _context.SaveChangesAsync();
+            TempData["Success"] = "Cập nhật người dùng thành công!";
             return RedirectToAction(nameof(Index));
         }
 
@@ -118,6 +124,35 @@ namespace ASM1_NET.Areas.Admin.Controllers
             await _activityLog.LogWithUserAsync("SoftDelete", "User", user.Id, user.FullName, $"Chuyển user vào thùng rác: {user.FullName}");
 
             TempData["Success"] = $"Đã chuyển '{user.FullName}' vào thùng rác!";
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> BulkDelete(int[] ids)
+        {
+            if (ids == null || ids.Length == 0)
+            {
+                TempData["Error"] = "Vui lòng chọn ít nhất 1 người dùng";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var users = await _context.Users.Where(u => ids.Contains(u.Id) && u.Role != "Admin").ToListAsync();
+            var adminCount = ids.Length - users.Count;
+            
+            foreach (var user in users)
+            {
+                user.IsDeleted = true;
+                user.DeletedAt = DateTime.Now;
+            }
+            await _context.SaveChangesAsync();
+            
+            await _activityLog.LogWithUserAsync("SoftDelete", "User", null, null, $"Xóa hàng loạt {users.Count} người dùng");
+            
+            if (adminCount > 0)
+                TempData["Error"] = $"Không thể xóa {adminCount} tài khoản Admin";
+            if (users.Count > 0)
+                TempData["Success"] = $"Đã chuyển {users.Count} người dùng vào thùng rác";
             return RedirectToAction(nameof(Index));
         }
     }

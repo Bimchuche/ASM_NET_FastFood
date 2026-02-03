@@ -153,6 +153,12 @@ a {
   background: rgba(255, 255, 255, 0.1);
 }
 
+.navbar-glass .nav-link.active {
+  color: var(--secondary) !important;
+  background: rgba(255, 193, 7, 0.15);
+  border-bottom: 2px solid var(--secondary);
+}
+
 .navbar-glass .cart-icon {
   font-size: 1.5rem;
   position: relative;

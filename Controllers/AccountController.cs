@@ -23,6 +23,63 @@ public class AccountController : Controller
         _activityLog = activityLog;
     }
 
+    // Complete profile for Google login users
+    [HttpGet]
+    public IActionResult CompleteProfile()
+    {
+        var userId = HttpContext.Session.GetInt32("UserId");
+        if (userId == null)
+            return RedirectToAction("Login");
+
+        var user = _context.Users.Find(userId);
+        if (user == null)
+            return RedirectToAction("Login");
+
+        // If profile already complete, redirect to home
+        if (!string.IsNullOrEmpty(user.Phone) && !string.IsNullOrEmpty(user.Address))
+            return RedirectToAction("Index", "Home");
+
+        return View(user);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> CompleteProfile(string FullName, string Phone, string Address, string? Password)
+    {
+        var userId = HttpContext.Session.GetInt32("UserId");
+        if (userId == null)
+            return RedirectToAction("Login");
+
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null)
+            return RedirectToAction("Login");
+
+        // Validate
+        if (string.IsNullOrWhiteSpace(FullName) || string.IsNullOrWhiteSpace(Phone) || string.IsNullOrWhiteSpace(Address))
+        {
+            TempData["Error"] = "Vui lòng nhập đầy đủ thông tin!";
+            return View(user);
+        }
+
+        user.FullName = FullName;
+        user.Phone = Phone;
+        user.Address = Address;
+        
+        // Set password if provided
+        if (!string.IsNullOrWhiteSpace(Password))
+        {
+            user.Password = Password;
+        }
+
+        await _context.SaveChangesAsync();
+        
+        // Update session
+        HttpContext.Session.SetString("UserName", user.FullName);
+
+        TempData["Success"] = "Hoàn thiện thông tin thành công! Chào mừng bạn đến với FastFood.";
+        return RedirectToAction("Index", "Home");
+    }
+
     [HttpGet]
     public IActionResult Profile()
     {
@@ -37,6 +94,13 @@ public class AccountController : Controller
         {
             return RedirectToAction("Login");
         }
+
+        // Load saved addresses for dropdown
+        ViewBag.SavedAddresses = _context.UserAddresses
+            .Where(a => a.UserId == userId)
+            .OrderByDescending(a => a.IsDefault)
+            .ThenByDescending(a => a.CreatedAt)
+            .ToList();
 
         return View(user);
     }
@@ -68,7 +132,14 @@ public class AccountController : Controller
 
         _context.SaveChanges();
 
-        ViewBag.Success = "Cập nhật thông tin thành công";
+        // Reload saved addresses for dropdown
+        ViewBag.SavedAddresses = _context.UserAddresses
+            .Where(a => a.UserId == userId)
+            .OrderByDescending(a => a.IsDefault)
+            .ThenByDescending(a => a.CreatedAt)
+            .ToList();
+
+        TempData["Success"] = "Cập nhật thông tin thành công!";
         return View(user);
     }
 
@@ -118,6 +189,78 @@ public class AccountController : Controller
         return RedirectToAction("Profile");
     }
 
+    // Request password change - sends OTP to email
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> RequestPasswordChange(string newPassword)
+    {
+        var userId = HttpContext.Session.GetInt32("UserId");
+        if (userId == null) return RedirectToAction("Login");
+
+        if (string.IsNullOrWhiteSpace(newPassword) || newPassword.Length < 6)
+        {
+            TempData["Error"] = "Mật khẩu mới phải có ít nhất 6 ký tự!";
+            return RedirectToAction("Profile");
+        }
+
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null) return RedirectToAction("Login");
+
+        // Generate 6-digit OTP
+        var otp = new Random().Next(100000, 999999).ToString();
+        user.PasswordChangeOTP = otp;
+        user.PasswordChangeOTPExpiry = DateTime.Now.AddMinutes(10);
+        user.NewPasswordPending = newPassword;
+        await _context.SaveChangesAsync();
+
+        // Send OTP via email
+        var emailBody = $@"
+            <h2>Xác nhận đổi mật khẩu</h2>
+            <p>Xin chào <strong>{user.FullName}</strong>,</p>
+            <p>Bạn đã yêu cầu đổi mật khẩu. Mã xác thực của bạn là:</p>
+            <div style='background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 20px 40px; font-size: 32px; font-weight: bold; text-align: center; border-radius: 10px; margin: 20px 0; letter-spacing: 8px;'>
+                {otp}
+            </div>
+            <p style='color: #888;'>Mã có hiệu lực trong 10 phút. Nếu không phải bạn yêu cầu, hãy bỏ qua email này.</p>
+        ";
+        await _emailService.SendEmailAsync(user.Email, "Mã xác thực đổi mật khẩu - FastFood", emailBody);
+
+        TempData["ShowOTPModal"] = true;
+        TempData["Success"] = "Mã xác thực đã được gửi đến email của bạn!";
+        return RedirectToAction("Profile");
+    }
+
+    // Confirm password change with OTP
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ConfirmPasswordChange(string otp)
+    {
+        var userId = HttpContext.Session.GetInt32("UserId");
+        if (userId == null) return RedirectToAction("Login");
+
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null) return RedirectToAction("Login");
+
+        if (string.IsNullOrEmpty(user.PasswordChangeOTP) || 
+            user.PasswordChangeOTPExpiry < DateTime.Now ||
+            user.PasswordChangeOTP != otp)
+        {
+            TempData["Error"] = "Mã xác thực không đúng hoặc đã hết hạn!";
+            TempData["ShowOTPModal"] = true;
+            return RedirectToAction("Profile");
+        }
+
+        // Update password
+        user.Password = user.NewPasswordPending!;
+        user.PasswordChangeOTP = null;
+        user.PasswordChangeOTPExpiry = null;
+        user.NewPasswordPending = null;
+        await _context.SaveChangesAsync();
+
+        TempData["Success"] = "Đổi mật khẩu thành công!";
+        return RedirectToAction("Profile");
+    }
+
     [HttpGet]
     public IActionResult Register()
     {
@@ -133,11 +276,38 @@ public class AccountController : Controller
             return View(model);
         }
 
-        if (_context.Users.Any(u => u.Email == model.Email))
+        // Validate Gmail format
+        if (!model.Email.EndsWith("@gmail.com", StringComparison.OrdinalIgnoreCase))
         {
-            ModelState.AddModelError("Email", "Email đã được sử dụng. Vui lòng chọn email khác.");
+            ModelState.AddModelError("Email", "Chỉ chấp nhận email Gmail (@gmail.com)");
             return View(model);
         }
+
+        // Check if email exists (including deleted users)
+        var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == model.Email);
+        if (existingUser != null)
+        {
+            if (existingUser.IsDeleted)
+            {
+                ModelState.AddModelError("Email", "Email này thuộc tài khoản đã bị xóa. Vui lòng liên hệ Admin để khôi phục.");
+            }
+            else
+            {
+                ModelState.AddModelError("Email", "Email đã được sử dụng. Vui lòng chọn email khác.");
+            }
+            return View(model);
+        }
+
+        // Check duplicate phone number
+        var existingPhone = await _context.Users.FirstOrDefaultAsync(u => u.Phone == model.Phone && !u.IsDeleted);
+        if (existingPhone != null)
+        {
+            ModelState.AddModelError("Phone", "Số điện thoại đã được sử dụng. Vui lòng dùng số khác.");
+            return View(model);
+        }
+
+        // Generate verification token
+        var verificationToken = Guid.NewGuid().ToString("N");
 
         var user = new User
         {
@@ -147,15 +317,73 @@ public class AccountController : Controller
             Phone = model.Phone,
             Address = model.Address,
             Role = "Customer",
-            IsActive = true
+            IsActive = true,
+            EmailVerified = false,
+            EmailVerificationToken = verificationToken,
+            EmailVerificationTokenExpiry = DateTime.Now.AddHours(24)
         };
 
         _context.Users.Add(user);
-        _context.SaveChanges();
+        await _context.SaveChangesAsync();
+
+        // Send verification email with try-catch
+        try
+        {
+            var verifyUrl = Url.Action("VerifyEmail", "Account", new { token = verificationToken }, Request.Scheme);
+            var emailBody = $@"
+                <h2>Xác thực email của bạn</h2>
+                <p>Xin chào <strong>{user.FullName}</strong>,</p>
+                <p>Cảm ơn bạn đã đăng ký tài khoản tại FastFood Shop!</p>
+                <p>Vui lòng nhấn vào nút bên dưới để xác thực email:</p>
+                <p style='margin: 30px 0;'>
+                    <a href='{verifyUrl}' style='background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 15px 30px; text-decoration: none; border-radius: 10px; font-weight: bold;'>
+                        ✅ Xác thực Email
+                    </a>
+                </p>
+                <p>Hoặc copy link này vào trình duyệt:</p>
+                <p style='word-break: break-all; color: #3b82f6;'>{verifyUrl}</p>
+                <p style='color: #888;'>Link sẽ hết hạn sau 24 giờ.</p>
+            ";
+            await _emailService.SendEmailAsync(user.Email, "Xác thực email - FastFood Shop", emailBody);
+            TempData["Success"] = "Đăng ký thành công! Vui lòng kiểm tra email để xác thực tài khoản.";
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Email sending failed: {ex.Message}");
+            // Still allow registration but notify user
+            TempData["Success"] = "Đăng ký thành công! Tuy nhiên không gửi được email xác thực. Vui lòng liên hệ Admin.";
+        }
 
         await _activityLog.LogAsync("Register", "User", user.Id, user.FullName, $"User mới đăng ký: {user.Email}");
 
-        TempData["Success"] = "Đăng ký thành công! Vui lòng đăng nhập.";
+        return RedirectToAction("Login");
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> VerifyEmail(string token)
+    {
+        if (string.IsNullOrEmpty(token))
+        {
+            TempData["Error"] = "Link xác thực không hợp lệ!";
+            return RedirectToAction("Login");
+        }
+
+        var user = await _context.Users.FirstOrDefaultAsync(u => 
+            u.EmailVerificationToken == token && 
+            u.EmailVerificationTokenExpiry > DateTime.Now);
+
+        if (user == null)
+        {
+            TempData["Error"] = "Link xác thực không hợp lệ hoặc đã hết hạn!";
+            return RedirectToAction("Login");
+        }
+
+        user.EmailVerified = true;
+        user.EmailVerificationToken = null;
+        user.EmailVerificationTokenExpiry = null;
+        await _context.SaveChangesAsync();
+
+        TempData["Success"] = "Xác thực email thành công! Bạn có thể đăng nhập ngay bây giờ.";
         return RedirectToAction("Login");
     }
 
@@ -174,18 +402,41 @@ public class AccountController : Controller
             return View(model);
         }
 
-        var user = await _context.Users
-            .FirstOrDefaultAsync(u =>
-                u.Email == model.Email &&
-                u.Password == model.Password &&
-                u.IsActive &&
-                !u.IsDeleted);
-
-        if (user == null)
+        // Check if user exists with email
+        var userCheck = await _context.Users.FirstOrDefaultAsync(u => u.Email == model.Email);
+        
+        if (userCheck == null)
         {
             ModelState.AddModelError("", "Sai email hoặc mật khẩu");
             return View(model);
         }
+        
+        if (userCheck.IsDeleted)
+        {
+            ModelState.AddModelError("", "Tài khoản này đã bị xóa. Vui lòng liên hệ Admin để khôi phục.");
+            return View(model);
+        }
+        
+        if (!userCheck.IsActive)
+        {
+            ModelState.AddModelError("", "Tài khoản đã bị khóa. Vui lòng liên hệ Admin.");
+            return View(model);
+        }
+        
+        if (userCheck.Password != model.Password)
+        {
+            ModelState.AddModelError("", "Sai email hoặc mật khẩu");
+            return View(model);
+        }
+
+        // Check email verification
+        if (!userCheck.EmailVerified)
+        {
+            ModelState.AddModelError("", "Vui lòng xác thực email trước khi đăng nhập. Kiểm tra hộp thư của bạn.");
+            return View(model);
+        }
+
+        var user = userCheck;
 
         HttpContext.Session.SetInt32("UserId", user.Id);
         HttpContext.Session.SetString("UserRole", user.Role);
@@ -353,13 +604,45 @@ public class AccountController : Controller
         try
         {
             var user = _context.Users.FirstOrDefault(u => u.Email.ToLower() == email.ToLower());
-            if (user == null)
+            bool isNewUser = false;
+            
+            if (user != null)
             {
+                // Check if user is deleted
+                if (user.IsDeleted)
+                {
+                    TempData["Error"] = "Tài khoản này đã bị xóa. Vui lòng liên hệ Admin để khôi phục.";
+                    return RedirectToAction("Login");
+                }
+                
+                // Check if user is inactive
+                if (!user.IsActive)
+                {
+                    TempData["Error"] = "Tài khoản đã bị khóa. Vui lòng liên hệ Admin.";
+                    return RedirectToAction("Login");
+                }
+                
+                // Update avatar if not set
+                if (!string.IsNullOrEmpty(avatar) && string.IsNullOrEmpty(user.AvatarUrl))
+                {
+                    user.AvatarUrl = avatar;
+                    await _context.SaveChangesAsync();
+                }
+                
+                // Check if profile is incomplete (no password means Google-only user who hasn't set info)
+                if (string.IsNullOrEmpty(user.Phone) || string.IsNullOrEmpty(user.Address))
+                {
+                    isNewUser = true;
+                }
+            }
+            else
+            {
+                // Create new user with empty password (will be set in CompleteProfile)
                 user = new User
                 {
                     Email = email,
                     FullName = name ?? email.Split('@')[0],
-                    Password = Guid.NewGuid().ToString(),
+                    Password = "", // Empty for Google users
                     Phone = "",
                     Address = "",
                     Role = "Customer",
@@ -368,11 +651,7 @@ public class AccountController : Controller
                 };
                 _context.Users.Add(user);
                 await _context.SaveChangesAsync();
-            }
-            else if (!string.IsNullOrEmpty(avatar) && string.IsNullOrEmpty(user.AvatarUrl))
-            {
-                user.AvatarUrl = avatar;
-                await _context.SaveChangesAsync();
+                isNewUser = true;
             }
 
             HttpContext.Session.SetInt32("UserId", user.Id);
@@ -390,6 +669,13 @@ public class AccountController : Controller
                 CookieAuthenticationDefaults.AuthenticationScheme,
                 new ClaimsPrincipal(identity)
             );
+
+            // Redirect new users to complete their profile
+            if (isNewUser)
+            {
+                TempData["Info"] = "Vui lòng hoàn thiện thông tin tài khoản của bạn!";
+                return RedirectToAction("CompleteProfile");
+            }
 
             if (user.Role == "Admin")
                 return RedirectToAction("Index", "Dashboard", new { area = "Admin" });

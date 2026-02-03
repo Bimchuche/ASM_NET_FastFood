@@ -5,6 +5,22 @@
     var inactiveCount = Model.Count(c => !c.IsActive);
 }
 
+<!-- ALERTS -->
+@if (TempData["Success"] != null)
+{
+    <div class="admin-alert success">✅ @TempData["Success"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="admin-alert danger">⚠️ @TempData["Error"]</div>
+}
+
+<!-- Hidden form for bulk delete -->
+<form id="bulkDeleteForm" asp-action="BulkDelete" method="post" style="display:none;">
+    @Html.AntiForgeryToken()
+    <div id="deleteIds"></div>
+</form>
+
 <!-- Page Header -->
 <div class="admin-page-header">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
@@ -12,9 +28,14 @@
             <h2 class="admin-page-title">📁 Quản lý danh mục</h2>
             <p class="admin-page-subtitle">Quản lý danh mục sản phẩm</p>
         </div>
-        <a asp-action="Create" class="btn btn-admin btn-admin-add">
-            ➕ Thêm danh mục
-        </a>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-admin btn-admin-delete" onclick="submitBulkDelete()">
+                🗑️ Xóa đã chọn (<span id="selectedCount">0</span>)
+            </button>
+            <a asp-action="Create" class="btn btn-admin btn-admin-add">
+                ➕ Thêm danh mục
+            </a>
+        </div>
     </div>
 </div>
 
@@ -56,6 +77,7 @@
     <table class="admin-table" id="categoryTable">
         <thead>
             <tr>
+                <th width="40"><input type="checkbox" id="selectAll" onclick="toggleAll(this)"></th>
                 <th width="80">ID</th>
                 <th>Tên danh mục</th>
                 <th>Mô tả</th>
@@ -67,6 +89,7 @@
             @foreach (var cat in Model)
             {
                 <tr>
+                    <td><input type="checkbox" class="item-checkbox" data-id="@cat.Id" onclick="updateCount()"></td>
                     <td>
                         <span class="id-badge">#@cat.Id</span>
                     </td>
@@ -114,13 +137,12 @@
     }
 </div>
 
+<script src="~/admin/js/admin-table.js"></script>
 <script>
 function filterTable() {
-    const input = document.getElementById('searchInput').value.toLowerCase();
-    const rows = document.querySelectorAll('#categoryTable tbody tr');
-    rows.forEach(row => {
-        const text = row.textContent.toLowerCase();
-        row.style.display = text.includes(input) ? '' : 'none';
-    });
+    window.filterTable('searchInput', 'categoryTable');
+}
+function submitBulkDelete() {
+    window.submitBulkDelete('danh mục');
 }
 </script>

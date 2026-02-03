@@ -15,6 +15,10 @@
 </head>
 
 <body class="admin-body">
+    @{
+        var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+        var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+    }
 
     <!-- SIDEBAR -->
     <aside class="admin-sidebar">
@@ -32,7 +36,8 @@
             {
                 <li class="menu-label">Tổng quan</li>
                 <li>
-                    <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
+                    <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index"
+                       class="@(currentController == "Dashboard" ? "active" : "")">
                         <span class="icon">📊</span>
                         <span>Dashboard</span>
                     </a>
@@ -40,19 +45,22 @@
 
                 <li class="menu-label">Quản lý sản phẩm</li>
                 <li>
-                    <a asp-area="Admin" asp-controller="Food" asp-action="Index">
+                    <a asp-area="Admin" asp-controller="Food" asp-action="Index"
+                       class="@(currentController == "Food" ? "active" : "")">
                         <span class="icon">🍕</span>
                         <span>Món ăn</span>
                     </a>
                 </li>
                 <li>
-                    <a asp-area="Admin" asp-controller="Combo" asp-action="Index">
+                    <a asp-area="Admin" asp-controller="Combo" asp-action="Index"
+                       class="@(currentController == "Combo" ? "active" : "")">
                         <span class="icon">🎁</span>
                         <span>Combo</span>
                     </a>
                 </li>
                 <li>
-                    <a asp-area="Admin" asp-controller="Category" asp-action="Index">
+                    <a asp-area="Admin" asp-controller="Category" asp-action="Index"
+                       class="@(currentController == "Category" ? "active" : "")">
                         <span class="icon">📂</span>
                         <span>Danh mục</span>
                     </a>
@@ -60,15 +68,24 @@
 
                 <li class="menu-label">Quản lý đơn hàng</li>
                 <li>
-                    <a asp-area="Admin" asp-controller="Order" asp-action="Index">
+                    <a asp-area="Admin" asp-controller="Order" asp-action="Index"
+                       class="@(currentController == "Order" && ViewContext.RouteData.Values["action"]?.ToString() != "Completed" ? "active" : "")">
                         <span class="icon">📦</span>
                         <span>Đơn hàng</span>
+                    </a>
+                </li>
+                <li>
+                    <a asp-area="Admin" asp-controller="Order" asp-action="Completed"
+                       class="@(ViewContext.RouteData.Values["action"]?.ToString() == "Completed" ? "active" : "")">
+                        <span class="icon">✅</span>
+                        <span>Đơn đã giao</span>
                     </a>
                 </li>
 
                 <li class="menu-label">Quản lý người dùng</li>
                 <li>
-                    <a asp-area="Admin" asp-controller="User" asp-action="Index">
+                    <a asp-area="Admin" asp-controller="User" asp-action="Index"
+                       class="@(currentController == "User" ? "active" : "")">
                         <span class="icon">👥</span>
                         <span>Người dùng</span>
                     </a>
@@ -76,15 +93,47 @@
 
                 <li class="menu-label">Hệ thống</li>
                 <li>
-                    <a asp-area="Admin" asp-controller="Activity" asp-action="Index">
+                    <a asp-area="Admin" asp-controller="Activity" asp-action="Index"
+                       class="@(currentController == "Activity" ? "active" : "")">
                         <span class="icon">📋</span>
                         <span>Nhật ký hoạt động</span>
                     </a>
                 </li>
                 <li>
-                    <a asp-area="Admin" asp-controller="Trash" asp-action="Index">
+                    <a asp-area="Admin" asp-controller="Chat" asp-action="Index"
+                       class="@(currentController == "Chat" ? "active" : "")">
+                        <span class="icon">💬</span>
+                        <span>Chat hỗ trợ</span>
+                    </a>
+                </li>
+                <li>
+                    <a asp-area="Admin" asp-controller="Trash" asp-action="Index"
+                       class="@(currentController == "Trash" ? "active" : "")">
                         <span class="icon">🗑️</span>
                         <span>Thùng rác</span>
+                    </a>
+                </li>
+
+                <li class="menu-label">Khuyến mãi & Báo cáo</li>
+                <li>
+                    <a asp-area="Admin" asp-controller="Coupon" asp-action="Index"
+                       class="@(currentController == "Coupon" ? "active" : "")">
+                        <span class="icon">🎟️</span>
+                        <span>Mã giảm giá</span>
+                    </a>
+                </li>
+                <li>
+                    <a asp-area="Admin" asp-controller="Export" asp-action="Index"
+                       class="@(currentController == "Export" ? "active" : "")">
+                        <span class="icon">📥</span>
+                        <span>Xuất Excel</span>
+                    </a>
+                </li>
+                <li>
+                    <a asp-area="Admin" asp-controller="ShippingZone" asp-action="Index"
+                       class="@(currentController == "ShippingZone" ? "active" : "")">
+                        <span class="icon">🚚</span>
+                        <span>Khu vực giao hàng</span>
                     </a>
                 </li>
             }
@@ -94,13 +143,15 @@
             {
                 <li class="menu-label">Nhân viên</li>
                 <li>
-                    <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
+                    <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index"
+                       class="@(currentController == "Dashboard" ? "active" : "")">
                         <span class="icon">📊</span>
                         <span>Dashboard</span>
                     </a>
                 </li>
                 <li>
-                    <a asp-area="Admin" asp-controller="Order" asp-action="Index">
+                    <a asp-area="Admin" asp-controller="Order" asp-action="Index"
+                       class="@(currentController == "Order" ? "active" : "")">
                         <span class="icon">📦</span>
                         <span>Đơn hàng</span>
                     </a>
@@ -112,7 +163,8 @@
             {
                 <li class="menu-label">Shipper</li>
                 <li>
-                    <a asp-area="Shipper" asp-controller="Shipper" asp-action="Index">
+                    <a asp-area="Shipper" asp-controller="Shipper" asp-action="Index"
+                       class="@(currentController == "Shipper" ? "active" : "")">
                         <span class="icon">🚚</span>
                         <span>Đơn đang giao</span>
                     </a>

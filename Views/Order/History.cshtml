@@ -127,16 +127,26 @@
                                     </span>
                                 </td>
                                 <td>
-                                    <div style="display: flex; gap: 8px;">
+                                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                                         <a asp-action="Success" asp-route-id="@order.Id" class="order-action-btn primary">
                                             👁️ Xem
                                         </a>
-                                        @if (order.Status == "Pending")
+                                        @if (order.Status == "Completed")
                                         {
+                                            <a asp-controller="Review" asp-action="Create" asp-route-orderId="@order.Id" 
+                                               class="order-action-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white;">
+                                                ⭐ Đánh giá
+                                            </a>
+                                        }
+                                        @if (order.Status == "Pending" || order.Status == "Đã thanh toán" || order.Status == "Đang xử lý")
+                                        {
+                                            var cancelMessage = order.PaymentMethod == "QR" && order.PaymentStatus == "Paid" 
+                                                ? "Bạn có chắc muốn hủy đơn hàng này? Tiền sẽ được hoàn lại qua PayOS." 
+                                                : "Bạn có chắc muốn hủy đơn hàng này?";
                                             <form asp-action="Cancel" method="post" style="display: inline;">
                                                 <input type="hidden" name="id" value="@order.Id" />
                                                 <button type="submit" class="order-action-btn cancel" 
-                                                        onclick="return confirm('Bạn có chắc muốn hủy đơn hàng này?');">
+                                                        onclick="return confirm('@cancelMessage');">
                                                     ❌ Hủy
                                                 </button>
                                             </form>
@@ -152,12 +162,4 @@
     </div>
 </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Animate table rows on scroll
-    const rows = document.querySelectorAll('.order-table tbody tr');
-    rows.forEach((row, index) => {
-        row.style.animationDelay = (index * 0.05) + 's';
-    });
-});
-</script>
+<script src="~/client/js/order-history.js"></script>

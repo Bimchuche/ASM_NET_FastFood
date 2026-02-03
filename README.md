@@ -1,93 +1,126 @@
-# 🍔 Fast Food Shop (ASM1_NET)
+# 🍔 Fast Food Shop
 
-**Fast Food Shop** là một hệ thống website thương mại điện tử chuyên nghiệp cung cấp giải pháp đặt món ăn nhanh, quản lý cửa hàng và giao hàng. Dự án được xây dựng trên nền tảng **ASP.NET Core 8.0** với kiến trúc hiện đại, bảo mật và dễ mở rộng.
-
-## 🌟 Chức Năng Nổi Bật
-
-### 🛒 Dành Cho Khách Hàng (Customer)
-
-- **Tài Khoản & Bảo Mật**:
-  - Đăng ký và Đăng nhập dễ dàng.
-  - **Đăng nhập bằng Google** (OAuth 2.0) tiện lợi.
-  - Quản lý thông tin cá nhân, cập nhật địa chỉ giao hàng.
-- **Trải Nghiệm Mua Sắm**:
-  - Xem danh sách Món ăn (Food) và Combo khuyến mãi.
-  - Tìm kiếm thông minh và Lọc món ăn theo Danh mục.
-  - Xem chi tiết món ăn với hình ảnh trực quan.
-- **Giỏ Hàng & Đặt Hàng**:
-  - Thêm/Sửa/Xóa món trong Giỏ hàng real-time.
-  - **Checkout (Thanh toán)**: Quy trình đặt hàng 3 bước (Thông tin - Xác nhận - Hoàn tất).
-  - Hỗ trợ nhiều phương thức thanh toán (COD, v.v.).
-- **Quản Lý Đơn Hàng**:
-  - Xem lại **Lịch sử đơn hàng** đã đặt.
-  - Theo dõi trạng thái đơn hàng (Đang xử lý, Đang giao, Hoàn tất).
-  - **Hủy đơn hàng chủ động**: Khách hàng có thể hủy đơn ngay lập tức nếu đơn chưa được xử lý.
-
-### 🛠 Dành Cho Quản Trị Viên (Admin)
-
-- **Dashboard (Bảng điều khiển)**:
-  - Xem tổng quan báo cáo doanh thu, số lượng đơn hàng, món ăn bán chạy.
-- **Quản Lý Sản Phẩm (Món ăn & Combo)**:
-  - Thêm mới, Cập nhật, Xóa (Soft Delete) món ăn và Combo.
-  - Quản lý danh mục món ăn (Category).
-- **Quản Lý Đơn Hàng**:
-  - Duyệt đơn hàng, Gán Shipper, Cập nhật trạng thái.
-  - Xem chi tiết từng đơn hàng.
-- **Hệ Thống Nhật Ký Hoạt Động (Activity Logs)**:
-  - **Theo dõi toàn diện**: Ghi lại mọi hành động quan trọng (Đăng nhập, Tạo đơn, Xóa món, Restore...).
-  - **Bộ lọc mạnh mẽ**: Lọc theo thời gian, loại hành động, người thực hiện.
-- **Quản Lý Thùng Rác (Trash/Recycle Bin)**:
-  - Cơ chế **Soft Delete** giữ lại dữ liệu an toàn.
-  - Khôi phục (Restore) hoặc Xóa vĩnh viễn các đối tượng (User, Food, Order) đã xóa.
-- **Quản Lý Tài Khoản**:
-  - Quản lý danh sách người dùng, phân quyền (Admin, Staff, Customer).
-
-### 🚚 Dành Cho Shipper (Nhân viên giao hàng)
-
-- **Quản Lý Giao Vận**:
-  - Xem danh sách đơn hàng được phân công.
-  - Cập nhật trạng thái giao hàng (Đang giao $\to$ Thành công/Thất bại).
-  - Xem chi tiết địa chỉ và số điện thoại khách hàng.
+Hệ thống website đặt món ăn nhanh trực tuyến với đầy đủ tính năng cho khách hàng, admin và shipper. Xây dựng trên **ASP.NET Core 8.0**.
 
 ---
 
-## 💻 Công Nghệ & Kỹ Thuật
+## ✨ Tính Năng Chính
 
-- **Backend Framework**: ASP.NET Core 8.0 MVC
-- **Database**: SQL Server 2019+
-- **ORM**: Entity Framework Core (Code-First Approach)
-- **Frontend**: Razor Views (CSHTML), Bootstrap 5, Custom CSS/JS
-- **Authentication**: ASP.NET Core Identity & Cookie Auth
-- **Logging**: Custom Async Activity Logging Service
-- **Design Pattern**: Repository Pattern, Dependency Injection (DI), ViewModel
+### 👤 Khách Hàng
 
-## 🚀 Hướng Dẫn Cài Đặt
+- Đăng ký/Đăng nhập (Email + Google OAuth)
+- Duyệt menu món ăn & combo
+- Tìm kiếm, lọc theo danh mục, khoảng giá, đánh giá
+- Giỏ hàng & Thanh toán (COD/QR)
+- Theo dõi & hủy đơn hàng
+- Đánh giá đơn hàng đã nhận
+- Chat hỗ trợ trực tuyến (SignalR)
+- Wishlist yêu thích
+- Tích điểm loyalty
 
-1. **Clone Source Code**:
+### 🛠️ Quản Trị (Admin)
 
-   ```bash
-   git clone https://github.com/Bimchuche/ASM_NET_FastFood.git
-   cd ASM_NET_FastFood
-   ```
+- Dashboard thống kê doanh thu, biểu đồ
+- CRUD Món ăn, Combo, Danh mục
+- Quản lý đơn hàng, gán shipper
+- Quản lý người dùng & phân quyền
+- Activity Logs - theo dõi hoạt động
+- Soft Delete & Trash (khôi phục/xóa vĩnh viễn)
+- Chat hỗ trợ khách hàng
 
-2. **Cấu Hình Database**:
-   - Mở `appsettings.json`.
-   - Chỉnh sửa `DefaultConnection` trỏ đến SQL Server của bạn.
+### 🚚 Shipper
 
-3. **Khởi Tạo Database**:
-
-   ```bash
-   dotnet ef database update
-   ```
-
-4. **Chạy Dự Án**:
-
-   ```bash
-   dotnet run
-   ```
-
-   - Truy cập Web: `http://localhost:####`
+- Xem đơn được phân công
+- Cập nhật trạng thái giao hàng
+- Xem thông tin khách hàng
 
 ---
 
-**Developed by [Phạm Nguyễn Bảo Minh] - 2026**
+## 🛠️ Công Nghệ
+
+| Layer     | Tech                                    |
+| --------- | --------------------------------------- |
+| Backend   | ASP.NET Core 8.0 MVC                    |
+| Database  | SQL Server + EF Core                    |
+| Frontend  | Razor Views, Bootstrap 5, Custom CSS/JS |
+| Real-time | SignalR (Chat)                          |
+| Auth      | Cookie Auth + Google OAuth              |
+| Pattern   | Repository, DI, Async Services          |
+
+---
+
+## 📁 Cấu Trúc Thư Mục
+
+```
+ASM1_NET/
+├── Areas/Admin/           # Admin area (Controllers, Views)
+├── Controllers/           # Client controllers
+├── Models/                # Entity models
+├── Repositories/          # Data access layer
+├── Services/              # Business logic
+├── Views/                 # Client views
+├── wwwroot/
+│   ├── admin/
+│   │   ├── css/           # Admin styles
+│   │   └── js/            # Admin scripts
+│   └── client/
+│       ├── css/           # Client styles
+│       └── js/            # Client scripts
+└── Hubs/                  # SignalR hubs
+```
+
+---
+
+## 🚀 Cài Đặt
+
+### Yêu cầu
+
+- .NET 8.0 SDK
+- SQL Server 2019+
+- Visual Studio 2022 / VS Code
+
+### Các bước
+
+```bash
+# 1. Clone repo
+git clone https://github.com/Bimchuche/ASM_NET_FastFood.git
+cd ASM_NET_FastFood
+
+# 2. Cấu hình database trong appsettings.json
+# Sửa ConnectionStrings:DefaultConnection
+
+# 3. Chạy migration
+dotnet ef database update
+
+# 4. Chạy ứng dụng
+dotnet run
+```
+
+Truy cập: `https://localhost:5001`
+
+---
+
+## 👥 Tài Khoản Test
+
+| Role     | Email              | Password  |
+| -------- | ------------------ | --------- |
+| Admin    | admin@fastfood.com | Admin@123 |
+| Customer | user@test.com      | User@123  |
+
+---
+
+## 📸 Screenshots
+
+### Trang chủ
+
+![Home](wwwroot/images/screenshots/home.png)
+
+### Admin Dashboard
+
+![Dashboard](wwwroot/images/screenshots/dashboard.png)
+
+---
+
+## 📄 License
+
+MIT License © 2026 Phạm Nguyễn Bảo Minh

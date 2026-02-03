@@ -1,0 +1,150 @@
+@{
+    ViewData["Title"] = "Xuất báo cáo Excel";
+}
+
+<div class="admin-page">
+    <div class="page-header">
+        <h2>📥 Xuất báo cáo Excel</h2>
+        <p>Tải xuống báo cáo dữ liệu dưới dạng file Excel</p>
+    </div>
+
+    <style>
+        .export-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+        .export-card {
+            background: linear-gradient(145deg, #1e1e32, #16213e);
+            border-radius: 16px;
+            padding: 30px;
+            border: 1px solid rgba(255,255,255,0.08);
+            text-align: center;
+            transition: all 0.3s;
+        }
+        .export-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+        .export-icon {
+            font-size: 3.5rem;
+            margin-bottom: 15px;
+        }
+        .export-card h3 {
+            color: #fff;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+        }
+        .export-card p {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+        .export-btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: #fff;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .export-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(34, 197, 94, 0.4);
+            color: #fff;
+        }
+        .export-btn.orange {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+        .export-btn.orange:hover {
+            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4);
+        }
+        .export-btn.blue {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+        }
+        .export-btn.blue:hover {
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+        }
+        .filter-section {
+            background: rgba(255,255,255,0.03);
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 15px;
+        }
+        .filter-section label {
+            color: #94a3b8;
+            font-size: 0.85rem;
+            display: block;
+            margin-bottom: 8px;
+        }
+        .filter-section input, .filter-section select {
+            width: 100%;
+            padding: 10px;
+            background: #fff;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            color: #000;
+            margin-bottom: 10px;
+        }
+        .filter-section select option {
+            background: #fff;
+            color: #000;
+        }
+    </style>
+
+    <div class="export-grid">
+        <!-- Orders Export -->
+        <div class="export-card">
+            <div class="export-icon">📦</div>
+            <h3>Xuất đơn hàng</h3>
+            <p>Xuất danh sách tất cả đơn hàng với thông tin chi tiết</p>
+            <div class="filter-section">
+                <form asp-area="Admin" asp-controller="Export" asp-action="Orders" method="get">
+                    <label>Từ ngày</label>
+                    <input type="date" name="fromDate" />
+                    <label>Đến ngày</label>
+                    <input type="date" name="toDate" />
+                    <label>Trạng thái</label>
+                    <select name="status">
+                        <option value="">Tất cả</option>
+                        <option value="Pending">Đang chờ</option>
+                        <option value="Confirmed">Đã xác nhận</option>
+                        <option value="Delivering">Đang giao</option>
+                        <option value="Completed">Hoàn thành</option>
+                        <option value="Cancelled">Đã hủy</option>
+                    </select>
+                    <button type="submit" class="export-btn">📥 Tải Excel</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Revenue Report -->
+        <div class="export-card">
+            <div class="export-icon">💰</div>
+            <h3>Báo cáo doanh thu</h3>
+            <p>Thống kê doanh thu theo ngày, tuần, tháng</p>
+            <div class="filter-section">
+                <form asp-area="Admin" asp-controller="Export" asp-action="Revenue" method="get">
+                    <label>Từ ngày</label>
+                    <input type="date" name="fromDate" />
+                    <label>Đến ngày</label>
+                    <input type="date" name="toDate" />
+                    <button type="submit" class="export-btn orange">📊 Tải báo cáo</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Products Export -->
+        <div class="export-card">
+            <div class="export-icon">🍕</div>
+            <h3>Xuất sản phẩm</h3>
+            <p>Danh sách tất cả món ăn với giá, danh mục, đánh giá</p>
+            <a asp-area="Admin" asp-controller="Export" asp-action="Products" class="export-btn blue">
+                📥 Tải ngay
+            </a>
+        </div>
+    </div>
+</div>

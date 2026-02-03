@@ -5,6 +5,14 @@
     var categories = ViewBag.Categories as List<Category> ?? new List<Category>();
     int? currentCategoryId = ViewBag.CategoryId;
     var keyword = ViewBag.Keyword as string ?? "";
+    var minPrice = ViewBag.MinPrice as decimal?;
+    var maxPrice = ViewBag.MaxPrice as decimal?;
+    var minRating = ViewBag.MinRating as int?;
+    var sortBy = ViewBag.SortBy as string ?? "";
+    var currentPage = (int)(ViewBag.CurrentPage ?? 1);
+    var totalPages = (int)(ViewBag.TotalPages ?? 1);
+    var totalCount = (int)(ViewBag.TotalCount ?? 0);
+    var wishlistIds = ViewBag.WishlistIds as List<int> ?? new List<int>();
 }
 
 <link rel="stylesheet" href="~/client/css/menu.css" />
@@ -20,99 +28,197 @@
             </div>
         </div>
 
-        <!-- SEARCH BAR -->
-        <div class="menu-search-container animate-slide-up">
-            <form method="get" asp-action="Index" class="menu-search-form">
-                <div class="search-input-wrapper">
-                    <span class="search-icon">🔍</span>
-                    <input type="text" name="keyword" placeholder="Tìm món ăn yêu thích..." value="@keyword" />
-                    <input type="hidden" name="categoryId" value="@currentCategoryId" />
-                    @if (!string.IsNullOrEmpty(keyword))
+        <div class="menu-layout">
+            <!-- FILTER SIDEBAR -->
+            <aside class="filter-sidebar">
+                <form method="get" asp-action="Index" id="filterForm">
+                    <input type="hidden" name="keyword" value="@keyword" />
+                    
+                    <div class="filter-section">
+                        <h4>📁 Danh mục</h4>
+                        <div class="filter-options">
+                            <label class="filter-option">
+                                <input type="radio" name="categoryId" value="" @(currentCategoryId == null ? "checked" : "") onchange="this.form.submit()" />
+                                <span>Tất cả</span>
+                            </label>
+                            @foreach (var cat in categories)
+                            {
+                                <label class="filter-option">
+                                    <input type="radio" name="categoryId" value="@cat.Id" @(currentCategoryId == cat.Id ? "checked" : "") onchange="this.form.submit()" />
+                                    <span>@cat.Name</span>
+                                </label>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="filter-section">
+                        <h4>💰 Khoảng giá</h4>
+                        <div class="price-inputs">
+                            <input type="number" name="minPrice" placeholder="Từ" value="@minPrice" />
+                            <span>-</span>
+                            <input type="number" name="maxPrice" placeholder="Đến" value="@maxPrice" />
+                        </div>
+                    </div>
+
+                    <div class="filter-section">
+                        <h4>⭐ Đánh giá</h4>
+                        <div class="filter-options">
+                            <label class="filter-option">
+                                <input type="radio" name="minRating" value="" @(minRating == null ? "checked" : "") />
+                                <span>Tất cả</span>
+                            </label>
+                            @for (int i = 5; i >= 3; i--)
+                            {
+                                <label class="filter-option">
+                                    <input type="radio" name="minRating" value="@i" @(minRating == i ? "checked" : "") />
+                                    <span>@(new string('⭐', i)) trở lên</span>
+                                </label>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="filter-section">
+                        <h4>🔀 Sắp xếp</h4>
+                        <select name="sortBy" onchange="this.form.submit()">
+                            <option value="" selected="@(string.IsNullOrEmpty(sortBy))">Mặc định</option>
+                            <option value="price_asc" selected="@(sortBy == "price_asc")">Giá thấp → cao</option>
+                            <option value="price_desc" selected="@(sortBy == "price_desc")">Giá cao → thấp</option>
+                            <option value="rating" selected="@(sortBy == "rating")">Đánh giá cao nhất</option>
+                            <option value="newest" selected="@(sortBy == "newest")">Mới nhất</option>
+                            <option value="name_asc" selected="@(sortBy == "name_asc")">A → Z</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn-apply-filter">🔍 Áp dụng bộ lọc</button>
+                    <a href="/Food" class="btn-clear-filter">🗑️ Xóa bộ lọc</a>
+                </form>
+            </aside>
+
+            <!-- MAIN CONTENT -->
+            <main class="menu-main">
+                <!-- SEARCH BAR -->
+                <div class="menu-search-container">
+                    <form method="get" asp-action="Index" class="menu-search-form">
+                        <div class="search-input-wrapper">
+                            <span class="search-icon">🔍</span>
+                            <input type="text" name="keyword" placeholder="Tìm món ăn yêu thích..." value="@keyword" />
+                            @if (!string.IsNullOrEmpty(keyword))
+                            {
+                                <a href="/Food@(currentCategoryId.HasValue ? $"?categoryId={currentCategoryId}" : "")" class="clear-search">✕</a>
+                            }
+                        </div>
+                        <button type="submit" class="search-btn">Tìm kiếm</button>
+                    </form>
+                </div>
+
+                <!-- RESULTS INFO -->
+                <div class="results-info">
+                    <span>Hiển thị <strong>@Model.Count()</strong> / @totalCount món</span>
+                </div>
+
+                <!-- FOOD GRID -->
+                <div class="menu-grid">
+                    @if (!Model.Any())
                     {
-                        <a href="/Food@(currentCategoryId.HasValue ? $"?categoryId={currentCategoryId}" : "")" class="clear-search">✕</a>
+                        <div style="grid-column: 1 / -1;">
+                            <div class="menu-empty-state animate-fade-in">
+                                <div class="empty-icon">🔍</div>
+                                <h3>Không tìm thấy món ăn</h3>
+                                <p>Hãy thử tìm kiếm với từ khóa khác</p>
+                                <a href="/Food" class="btn btn-primary btn-lg rounded-pill px-4">Xem tất cả món ăn</a>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        var delay = 0.0;
+                        @foreach (var item in Model)
+                        {
+                            var isInWishlist = wishlistIds.Contains(item.Id);
+                            var avgRating = item.Reviews?.Any() == true ? item.Reviews.Average(r => r.Rating) : 0;
+                            
+                            <div class="menu-card animate-scale-in" style="animation-delay: @(delay)s;">
+                                <!-- Wishlist Button -->
+                                <button class="btn-wishlist @(isInWishlist ? "active" : "")" 
+                                        onclick="event.stopPropagation(); toggleWishlist(@item.Id, this)" 
+                                        title="@(isInWishlist ? "Xóa khỏi yêu thích" : "Thêm vào yêu thích")">
+                                    @(isInWishlist ? "❤️" : "🤍")
+                                </button>
+                                
+                                <!-- Badge -->
+                                @if (item.Category != null)
+                                {
+                                    <span class="card-badge">@item.Category.Name</span>
+                                }
+                                
+                                <!-- Image -->
+                                <div class="card-image" onclick="openFoodModal(@item.Id)">
+                                    <img src="@item.ImageUrl" alt="@item.Name" onerror="this.src='/images/no-image.png'" loading="lazy" />
+                                    <div class="card-overlay">
+                                        <span class="view-detail">👁️ Xem chi tiết</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Info -->
+                                <div class="card-content">
+                                    <h3 class="card-title">@item.Name</h3>
+                                    
+                                    @if (avgRating > 0)
+                                    {
+                                        <div class="card-rating">
+                                            <span class="stars">@(new string('⭐', (int)Math.Round(avgRating)))</span>
+                                            <span class="rating-value">@avgRating.ToString("0.0")</span>
+                                            <span class="review-count">(@item.Reviews!.Count)</span>
+                                        </div>
+                                    }
+                                    
+                                    <p class="card-description">@(item.Description?.Length > 50 ? item.Description.Substring(0, 50) + "..." : item.Description)</p>
+                                    
+                                    <div class="card-footer">
+                                        <div class="card-price">
+                                            <span class="price-value">@item.Price.ToString("N0")</span>
+                                            <span class="price-unit">₫</span>
+                                        </div>
+                                        <button class="card-add-btn" onclick="event.stopPropagation(); addToCart(@item.Id)">
+                                            <span>🛒</span> Thêm
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            delay += 0.05;
+                            if (delay > 0.3) delay = 0;
+                        }
                     }
                 </div>
-                <button type="submit" class="search-btn">Tìm kiếm</button>
-            </form>
-        </div>
 
-        <!-- CATEGORY FILTER -->
-        <div class="category-filter animate-slide-up">
-            <a href="/Food" class="category-chip @(currentCategoryId == null ? "active" : "")">
-                <span>🍽️</span> Tất cả
-            </a>
-            @foreach (var cat in categories)
-            {
-                <a href="/Food?categoryId=@cat.Id" 
-                   class="category-chip @(currentCategoryId == cat.Id ? "active" : "")">
-                    @cat.Name
-                </a>
-            }
-        </div>
-
-        <!-- SEARCH RESULT INFO -->
-        @if (!string.IsNullOrEmpty(keyword))
-        {
-            <div class="d-flex justify-content-center mb-4">
-                <div class="search-result-info">
-                    Tìm thấy <strong>@Model.Count()</strong> kết quả cho "<em>@keyword</em>"
-                </div>
-            </div>
-        }
-
-        <!-- FOOD GRID -->
-        <div class="menu-grid">
-            @if (!Model.Any())
-            {
-                <div style="grid-column: 1 / -1;">
-                    <div class="menu-empty-state animate-fade-in">
-                        <div class="empty-icon">🔍</div>
-                        <h3>Không tìm thấy món ăn</h3>
-                        <p>Hãy thử tìm kiếm với từ khóa khác</p>
-                        <a href="/Food" class="btn btn-primary btn-lg rounded-pill px-4">Xem tất cả món ăn</a>
-                    </div>
-                </div>
-            }
-            else
-            {
-                var delay = 0.0;
-                @foreach (var item in Model)
+                <!-- PAGINATION -->
+                @if (totalPages > 1)
                 {
-                    <div class="menu-card animate-scale-in" style="animation-delay: @(delay)s;" onclick="openFoodModal(@item.Id)">
-                        <!-- Badge -->
-                        @if (item.Category != null)
+                    <div class="pagination">
+                        @if (currentPage > 1)
                         {
-                            <span class="card-badge">@item.Category.Name</span>
+                            <a href="@BuildPageUrl(currentPage - 1)" class="page-btn">« Trước</a>
                         }
                         
-                        <!-- Image -->
-                        <div class="card-image">
-                            <img src="@item.ImageUrl" alt="@item.Name" onerror="this.src='/images/no-image.png'" loading="lazy" />
-                            <div class="card-overlay">
-                                <span class="view-detail">👁️ Xem chi tiết</span>
-                            </div>
-                        </div>
+                        @for (int i = 1; i <= totalPages; i++)
+                        {
+                            if (i == 1 || i == totalPages || (i >= currentPage - 2 && i <= currentPage + 2))
+                            {
+                                <a href="@BuildPageUrl(i)" class="page-btn @(i == currentPage ? "active" : "")">@i</a>
+                            }
+                            else if (i == currentPage - 3 || i == currentPage + 3)
+                            {
+                                <span class="page-dots">...</span>
+                            }
+                        }
                         
-                        <!-- Info -->
-                        <div class="card-content">
-                            <h3 class="card-title">@item.Name</h3>
-                            <p class="card-description">@(item.Description?.Length > 60 ? item.Description.Substring(0, 60) + "..." : item.Description)</p>
-                            
-                            <div class="card-footer">
-                                <div class="card-price">
-                                    <span class="price-value">@item.Price.ToString("N0")</span>
-                                    <span class="price-unit">₫</span>
-                                </div>
-                                <button class="card-add-btn" onclick="event.stopPropagation(); addToCart(@item.Id)">
-                                    <span>🛒</span> Thêm
-                                </button>
-                            </div>
-                        </div>
+                        @if (currentPage < totalPages)
+                        {
+                            <a href="@BuildPageUrl(currentPage + 1)" class="page-btn">Sau »</a>
+                        }
                     </div>
-                    delay += 0.05;
-                    if (delay > 0.5) delay = 0;
                 }
-            }
+            </main>
         </div>
     </div>
 </div>
@@ -124,3 +230,19 @@
         <div id="foodModalBody"></div>
     </div>
 </div>
+
+@functions {
+    string BuildPageUrl(int page)
+    {
+        var query = new List<string> { $"page={page}" };
+        if (ViewBag.CategoryId != null) query.Add($"categoryId={ViewBag.CategoryId}");
+        if (!string.IsNullOrEmpty(ViewBag.Keyword as string)) query.Add($"keyword={ViewBag.Keyword}");
+        if (ViewBag.MinPrice != null) query.Add($"minPrice={ViewBag.MinPrice}");
+        if (ViewBag.MaxPrice != null) query.Add($"maxPrice={ViewBag.MaxPrice}");
+        if (ViewBag.MinRating != null) query.Add($"minRating={ViewBag.MinRating}");
+        if (!string.IsNullOrEmpty(ViewBag.SortBy as string)) query.Add($"sortBy={ViewBag.SortBy}");
+        return "/Food?" + string.Join("&", query);
+    }
+}
+
+<script src="~/client/js/food-page.js"></script>

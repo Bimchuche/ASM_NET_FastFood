@@ -17,13 +17,33 @@
     {
         <div class="alert alert-success">✅ @TempData["Success"]</div>
     }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">⚠️ @TempData["Error"]</div>
+    }
 
     @if (Model.Any())
     {
+        <form id="bulkRestoreForm" asp-action="BulkRestoreCombos" method="post" style="display:none;">
+            @Html.AntiForgeryToken()
+            <div id="restoreIds"></div>
+        </form>
+        <form id="bulkDeleteForm" asp-action="BulkDeleteCombos" method="post" style="display:none;">
+            @Html.AntiForgeryToken()
+            <div id="deleteIds"></div>
+        </form>
+
+        <div class="bulk-actions mb-3">
+            <button type="button" class="btn btn-success" onclick="submitBulk('restore')">♻️ Khôi phục đã chọn</button>
+            <button type="button" class="btn btn-danger" onclick="submitBulk('delete')">🗑️ Xóa vĩnh viễn đã chọn</button>
+            <span class="ms-3 text-muted">Đã chọn: <strong id="selectedCount">0</strong></span>
+        </div>
+
         <div class="table-card">
             <table class="table table-hover">
                 <thead>
                     <tr>
+                        <th style="width: 40px;"><input type="checkbox" id="selectAll" onclick="toggleAll(this)"></th>
                         <th>Ảnh</th>
                         <th>Tên combo</th>
                         <th>Giá</th>
@@ -35,24 +55,20 @@
                     @foreach (var combo in Model)
                     {
                         <tr>
-                            <td>
-                                @if (!string.IsNullOrEmpty(combo.ImageUrl))
-                                {
-                                    <img src="@combo.ImageUrl" alt="" style="width:50px;height:50px;object-fit:cover;border-radius:8px;">
-                                }
-                            </td>
+                            <td><input type="checkbox" class="item-checkbox" data-id="@combo.Id" onclick="updateCount()"></td>
+                            <td><img src="@combo.ImageUrl" style="width:50px;height:50px;object-fit:cover;border-radius:8px;"></td>
                             <td><strong>@combo.Name</strong></td>
                             <td>@combo.Price.ToString("N0")₫</td>
                             <td>@combo.DeletedAt?.ToString("dd/MM/yyyy HH:mm")</td>
                             <td>
                                 <form asp-action="RestoreCombo" asp-route-id="@combo.Id" method="post" style="display:inline;">
                                     @Html.AntiForgeryToken()
-                                    <button type="submit" class="btn btn-success btn-sm">♻️ Khôi phục</button>
+                                    <button type="submit" class="btn btn-success btn-sm">♻️</button>
                                 </form>
                                 <form asp-action="PermanentDeleteCombo" asp-route-id="@combo.Id" method="post" style="display:inline;"
                                       onsubmit="return confirm('Xóa vĩnh viễn combo này?')">
                                     @Html.AntiForgeryToken()
-                                    <button type="submit" class="btn btn-danger btn-sm">🗑️ Xóa</button>
+                                    <button type="submit" class="btn btn-danger btn-sm">🗑️</button>
                                 </form>
                             </td>
                         </tr>
@@ -67,10 +83,10 @@
     }
 </div>
 
-<style>
-    .trash-list-page { padding: 20px 0; }
-    .table-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
-    .table-card table { margin: 0; }
-    .table-card th { background: #fef2f2; font-weight: 600; }
-    .empty-state { text-align: center; padding: 40px; background: white; border-radius: 12px; color: #6b7280; }
-</style>
+<link rel="stylesheet" href="~/admin/css/trash.css" />
+<script src="~/admin/js/admin-trash.js"></script>
+<script>
+function submitBulk(action) {
+    window.submitBulk(action, 'combo');
+}
+</script>

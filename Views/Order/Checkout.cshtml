@@ -82,7 +82,70 @@
                             </div>
                             <div class="checkout-card-body">
                                 <!-- Address Type Selector -->
-                                @if (!string.IsNullOrEmpty(ViewBag.UserAddress))
+                                @{
+                                    var savedAddresses = ViewBag.SavedAddresses as List<ASM1_NET.Models.UserAddress>;
+                                    var hasAddresses = savedAddresses != null && savedAddresses.Count > 0;
+                                }
+                                
+                                @if (hasAddresses)
+                                {
+                                    <div class="address-type-selector">
+                                        <div class="address-type-option active" onclick="selectAddressType('saved', this)">
+                                            <span class="icon">🏠</span>
+                                            <span class="label">Địa chỉ đã lưu</span>
+                                            <span class="desc">Chọn từ @savedAddresses.Count địa chỉ</span>
+                                        </div>
+                                        <div class="address-type-option" onclick="selectAddressType('new', this)">
+                                            <span class="icon">📍</span>
+                                            <span class="label">Địa chỉ khác</span>
+                                            <span class="desc">Nhập địa chỉ mới</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Saved Addresses Dropdown -->
+                                    <div class="saved-address-section" id="savedAddressDisplay">
+                                        <div class="checkout-form-group">
+                                            <label class="checkout-label">
+                                                <span class="icon">📍</span>Chọn địa chỉ giao hàng
+                                            </label>
+                                            <select name="savedAddressId" id="savedAddressSelect" class="checkout-input"
+                                                    style="cursor: pointer;" onchange="onSavedAddressChange(this)">
+                                                @foreach (var addr in savedAddresses)
+                                                {
+                                                    if (addr.IsDefault)
+                                                    {
+                                                        <option value="@addr.Id" selected
+                                                                data-address="@addr.FullAddress" 
+                                                                data-phone="@addr.Phone"
+                                                                data-lat="@addr.Latitude"
+                                                                data-lng="@addr.Longitude">
+                                                            @addr.Name - @(addr.FullAddress.Length > 50 ? addr.FullAddress.Substring(0, 50) + "..." : addr.FullAddress)
+                                                        </option>
+                                                    }
+                                                    else
+                                                    {
+                                                        <option value="@addr.Id"
+                                                                data-address="@addr.FullAddress" 
+                                                                data-phone="@addr.Phone"
+                                                                data-lat="@addr.Latitude"
+                                                                data-lng="@addr.Longitude">
+                                                            @addr.Name - @(addr.FullAddress.Length > 50 ? addr.FullAddress.Substring(0, 50) + "..." : addr.FullAddress)
+                                                        </option>
+                                                    }
+                                                }
+                                            </select>
+                                        </div>
+                                        <div class="selected-address-display" id="selectedAddressText">
+                                            ✅ @(ViewBag.DefaultAddress != null ? ((ASM1_NET.Models.UserAddress)ViewBag.DefaultAddress).FullAddress : ViewBag.UserAddress)
+                                        </div>
+                                        <a href="/Address" class="manage-addresses-link">⚙️ Quản lý địa chỉ</a>
+                                    </div>
+                                    
+                                    <!-- Hidden input for saved address -->
+                                    <input type="hidden" name="addressType" id="addressType" value="saved" />
+                                    <input type="hidden" id="savedAddress" value="@ViewBag.UserAddress" />
+                                }
+                                else if (!string.IsNullOrEmpty(ViewBag.UserAddress))
                                 {
                                     <div class="address-type-selector">
                                         <div class="address-type-option active" onclick="selectAddressType('saved', this)">
@@ -177,26 +240,31 @@
                                         <span class="radio-custom"></span>
                                         <span class="payment-method-icon">📱</span>
                                         <div class="payment-method-info">
-                                            <h4>Chuyển khoản QR</h4>
-                                            <p>Quét mã QR để thanh toán</p>
+                                            <h4>Thanh toán QR (PayOS)</h4>
+                                            <p>Chuyển đến trang thanh toán an toàn</p>
                                         </div>
                                     </label>
-                                
-                                <!-- QR Code Section -->
-                                <div id="qrSection" class="qr-section">
-                                    <div class="qr-code">
-                                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=FastFood-Order-@totalAmount" alt="QR Code" />
-                                    </div>
-                                    <div class="qr-info">
-                                        <p>Quét mã QR để thanh toán</p>
-                                        <p>Số tiền: <strong>@totalAmount.ToString("N0")₫</strong></p>
-                                        <p style="font-size: 0.8rem; margin-top: 10px;">
-                                            Ngân hàng: <strong>Vietcombank</strong><br/>
-                                            STK: <strong>1234567890</strong><br/>
-                                            Chủ TK: <strong>FASTFOOD VN</strong>
-                                        </p>
-                                    </div>
                                 </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Coupon Code -->
+                        <div class="checkout-card" style="margin-bottom: 25px;">
+                            <div class="checkout-card-header">
+                                <h3>🎟️ Mã giảm giá</h3>
+                            </div>
+                            <div class="checkout-card-body">
+                                <div class="coupon-input-wrapper">
+                                    <input type="text" id="couponCode" name="couponCode" 
+                                           placeholder="Nhập mã giảm giá..." 
+                                           style="text-transform: uppercase; font-family: monospace;" />
+                                    <button type="button" id="applyCouponBtn" onclick="applyCoupon()">
+                                        Áp dụng
+                                    </button>
+                                </div>
+                                <div id="couponMessage" style="margin-top: 10px; font-size: 0.9rem;"></div>
+                                <input type="hidden" id="discountAmount" name="discountAmount" value="0" />
+                                <input type="hidden" id="couponId" name="couponId" value="" />
                             </div>
                         </div>
                         
@@ -209,24 +277,30 @@
                                 <div class="checkout-summary">
                                     <div class="checkout-summary-row">
                                         <span>Tạm tính (@totalItems món)</span>
-                                        <span>@totalAmount.ToString("N0")₫</span>
+                                        <span id="subtotalDisplay">@totalAmount.ToString("N0")₫</span>
                                     </div>
-                                    <div class="checkout-summary-row">
+                                    <div class="checkout-summary-row" id="distanceRow" style="color: #94a3b8;">
+                                        <span>📍 Khoảng cách giao</span>
+                                        <span id="distanceDisplay">Chọn địa chỉ...</span>
+                                    </div>
+                                    <div class="checkout-summary-row" id="shippingRow">
                                         <span>Phí giao hàng</span>
-                                        <span style="color: #22c55e;">Miễn phí</span>
+                                        <span id="shippingFeeDisplay" style="color: #94a3b8;">Chọn địa chỉ...</span>
                                     </div>
-                                    <div class="checkout-summary-row">
+                                    <div class="checkout-summary-row" id="discountRow">
                                         <span>Giảm giá</span>
-                                        <span>0₫</span>
+                                        <span id="discountDisplay">-0₫</span>
                                     </div>
                                     <div class="checkout-summary-row total">
                                         <span>Tổng cộng</span>
-                                        <span>@totalAmount.ToString("N0")₫</span>
+                                        <span id="totalDisplay">@totalAmount.ToString("N0")₫</span>
                                     </div>
+                                    <input type="hidden" id="shippingFee" name="shippingFee" value="0" />
+                                    <input type="hidden" id="subtotal" value="@totalAmount" />
                                 </div>
-                                
+
                                 <div class="checkout-actions">
-                                    <button type="submit" class="btn-checkout-submit">
+                                    <button type="submit" id="submitBtn" class="btn-checkout-submit">
                                         ✅ Xác nhận đặt hàng
                                     </button>
                                     <a href="/Cart" class="btn-checkout-back">
@@ -263,12 +337,13 @@
         // Check radio
         element.querySelector('input[type="radio"]').checked = true;
         
-        // Show/hide QR section
+        // Show/hide QR section and confirmation
         const qrSection = document.getElementById('qrSection');
+        const qrConfirm = document.getElementById('qrPaymentConfirm');
+        const submitBtn = document.getElementById('submitBtn');
+        
         if (type === 'qr') {
-            qrSection.classList.add('active');
-        } else {
-            qrSection.classList.remove('active');
+            // PayOS will handle payment - no QR display needed
         }
     }
     
@@ -292,6 +367,12 @@
             // Remove required to prevent validation error on hidden field
             addressInput.removeAttribute('required');
             addressInput.value = ''; // clear value
+            
+            // Geocode saved address to calculate shipping fee
+            var savedAddr = document.getElementById('savedAddress');
+            if (savedAddr && savedAddr.value) {
+                geocodeSavedAddress(savedAddr.value);
+            }
         } else {
             savedDisplay.style.display = 'none';
             newSection.classList.add('active');
@@ -300,12 +381,92 @@
             // Initialize map if not already
             if (!window.addressMapInitialized) {
                 setTimeout(() => {
-                    initAddressMap('checkoutMap', 'addressInput', { lat: 10.8231, lng: 106.6297, zoom: 13 });
+                    // Default to Biên Hòa, Đồng Nai (near FPT PolySchool)
+                    initAddressMap('checkoutMap', 'addressInput', { lat: 10.9452, lng: 106.8274, zoom: 14 });
                     initAddressAutocomplete('addressInput', 'addressSuggestions');
                     window.addressMapInitialized = true;
                 }, 100);
             }
         }
+    }
+    
+    // Handle saved address dropdown change
+    function onSavedAddressChange(select) {
+        var option = select.options[select.selectedIndex];
+        var address = option.getAttribute('data-address');
+        var phone = option.getAttribute('data-phone');
+        var lat = option.getAttribute('data-lat');
+        var lng = option.getAttribute('data-lng');
+        
+        // Update display
+        var displayText = document.getElementById('selectedAddressText');
+        if (displayText) {
+            displayText.textContent = '✅ ' + address;
+        }
+        
+        // Update hidden input
+        var savedAddrInput = document.getElementById('savedAddress');
+        if (savedAddrInput) {
+            savedAddrInput.value = address;
+        }
+        
+        // Update phone if available
+        if (phone) {
+            var phoneInput = document.querySelector('input[name="phone"]');
+            if (phoneInput && !phoneInput.value) {
+                phoneInput.value = phone;
+            }
+        }
+        
+        // Calculate shipping fee
+        if (lat && lng && lat !== 'null' && lng !== 'null') {
+            var latVal = parseFloat(lat);
+            var lngVal = parseFloat(lng);
+            if (!isNaN(latVal) && !isNaN(lngVal) && typeof updateShippingFeeFromCoordinates === 'function') {
+                updateShippingFeeFromCoordinates(latVal, lngVal);
+                return;
+            }
+        }
+        
+        // If no coordinates, geocode the address
+        if (address) {
+            geocodeSavedAddress(address);
+        }
+    }
+    
+    // Geocode saved address and calculate shipping
+    function geocodeSavedAddress(address) {
+        if (!address) return;
+        
+        var url = 'https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(address) + '&limit=1&accept-language=vi&countrycodes=vn';
+        
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.length > 0) {
+                    var lat = parseFloat(data[0].lat);
+                    var lng = parseFloat(data[0].lon);
+                    console.log('Saved address geocoded:', lat, lng);
+                    
+                    // Calculate distance and update shipping fee
+                    if (typeof updateShippingFeeFromCoordinates === 'function') {
+                        updateShippingFeeFromCoordinates(lat, lng);
+                    }
+                } else {
+                    // Fallback: use default shipping fee (15km estimate for Dong Nai)
+                    console.log('Could not geocode saved address, using default');
+                    if (typeof calculateShippingFee === 'function') {
+                        calculateShippingFee(5); // Default 5km
+                    }
+                }
+            })
+            .catch(err => {
+                console.log('Geocode error:', err);
+                // Fallback
+                if (typeof calculateShippingFee === 'function') {
+                    calculateShippingFee(5);
+                }
+            });
     }
     
     // Handle form submit
@@ -351,6 +512,127 @@
             // If all good, form submits naturally
         });
     }
+    
+    // Coupon functionality
+    var originalTotal = @totalAmount;
+    var currentDiscount = 0;
+    
+    function applyCoupon() {
+        var code = document.getElementById('couponCode').value.trim().toUpperCase();
+        var messageDiv = document.getElementById('couponMessage');
+        var btn = document.getElementById('applyCouponBtn');
+        
+        if (!code) {
+            messageDiv.innerHTML = '<span style="color: #ef4444;">⚠️ Vui lòng nhập mã giảm giá!</span>';
+            return;
+        }
+        
+        btn.disabled = true;
+        btn.innerText = 'Đang kiểm tra...';
+        
+        fetch('/Order/ValidateCoupon?code=' + encodeURIComponent(code) + '&totalAmount=' + originalTotal)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    currentDiscount = data.discountAmount;
+                    document.getElementById('discountAmount').value = currentDiscount;
+                    document.getElementById('couponId').value = data.couponId;
+                    messageDiv.innerHTML = '<span style="color: #22c55e;">✅ ' + data.message + '</span>';
+                    updateOrderSummary();
+                } else {
+                    messageDiv.innerHTML = '<span style="color: #ef4444;">❌ ' + data.message + '</span>';
+                    currentDiscount = 0;
+                    document.getElementById('discountAmount').value = 0;
+                    document.getElementById('couponId').value = '';
+                    updateOrderSummary();
+                }
+            })
+            .catch(error => {
+                messageDiv.innerHTML = '<span style="color: #ef4444;">⚠️ Có lỗi xảy ra!</span>';
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerText = 'Áp dụng';
+            });
+    }
+    
+    function updateOrderSummary() {
+        var discountDisplay = document.getElementById('discountDisplay');
+        var totalDisplay = document.getElementById('totalDisplay');
+        var shippingFeeVal = parseFloat(document.getElementById('shippingFee').value) || 0;
+        var subtotal = parseFloat(document.getElementById('subtotal').value) || originalTotal;
+        
+        if (discountDisplay) {
+            discountDisplay.innerText = currentDiscount > 0 ? '-' + currentDiscount.toLocaleString('vi-VN') + '₫' : '-0₫';
+            discountDisplay.style.color = currentDiscount > 0 ? '#22c55e' : 'inherit';
+        }
+        if (totalDisplay) {
+            var finalTotal = subtotal + shippingFeeVal - currentDiscount;
+            totalDisplay.innerText = finalTotal.toLocaleString('vi-VN') + '₫';
+        }
+    }
+    
+    // Variable to store current shipping fee
+    var currentShippingFee = 0;
+    
+    // Calculate shipping fee based on distance
+    function calculateShippingFee(distance) {
+        if (!distance || distance <= 0) {
+            document.getElementById('shippingFeeDisplay').innerText = 'Chọn địa chỉ để tính';
+            document.getElementById('shippingFeeDisplay').style.color = '#94a3b8';
+            document.getElementById('shippingFee').value = 0;
+            currentShippingFee = 0;
+            updateOrderSummary();
+            return;
+        }
+        
+        fetch('/Order/GetShippingFee?distance=' + distance)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    currentShippingFee = data.fee;
+                    document.getElementById('shippingFee').value = data.fee;
+                    
+                    var feeDisplay = document.getElementById('shippingFeeDisplay');
+                    if (data.fee == 0) {
+                        feeDisplay.innerText = 'Miễn phí';
+                        feeDisplay.style.color = '#22c55e';
+                    } else {
+                        feeDisplay.innerText = '+' + data.fee.toLocaleString('vi-VN') + '₫';
+                        feeDisplay.style.color = '#f59e0b';
+                    }
+                    
+                    updateOrderSummary();
+                }
+            })
+            .catch(error => {
+                console.error('Error calculating shipping:', error);
+            });
+    }
+    
+    // Calculate distance and get shipping fee when address changes
+    // This is now handled by address-picker.js when user selects/moves marker
+    document.addEventListener('DOMContentLoaded', function() {
+        // Check if saved address is selected by default
+        var addressType = document.getElementById('addressType');
+        var savedAddress = document.getElementById('savedAddress');
+        
+        if (addressType && addressType.value === 'saved' && savedAddress && savedAddress.value) {
+            // Geocode saved address to get shipping fee
+            geocodeSavedAddress(savedAddress.value);
+        } else {
+            // Check if user has coordinates in hidden inputs
+            var savedLat = document.querySelector('input[name="latitude"]');
+            var savedLng = document.querySelector('input[name="longitude"]');
+            if (savedLat && savedLng && savedLat.value && savedLng.value) {
+                var lat = parseFloat(savedLat.value);
+                var lng = parseFloat(savedLng.value);
+                if (!isNaN(lat) && !isNaN(lng) && typeof updateShippingFeeFromCoordinates === 'function') {
+                    updateShippingFeeFromCoordinates(lat, lng);
+                }
+            }
+        }
+    });
 </script>
 
 @section Styles {

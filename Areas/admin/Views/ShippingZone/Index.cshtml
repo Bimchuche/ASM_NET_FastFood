@@ -1,0 +1,109 @@
+@model IEnumerable<ASM1_NET.Models.ShippingZone>
+@{
+    ViewData["Title"] = "Quản lý khu vực giao hàng";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<link rel="stylesheet" href="~/admin/css/admin-theme.css" />
+
+<div class="admin-page-header">
+    <div>
+        <h1>🚚 Quản lý khu vực giao hàng</h1>
+        <p>Thiết lập phí giao hàng theo khoảng cách</p>
+    </div>
+    <a asp-action="Create" class="btn-admin primary">
+        ➕ Thêm khu vực
+    </a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert-admin success">✅ @TempData["Success"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert-admin danger">⚠️ @TempData["Error"]</div>
+}
+
+<div class="admin-table-card">
+    <div class="table-header">
+        <h3>📋 Danh sách khu vực</h3>
+    </div>
+    
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>Tên khu vực</th>
+                <th>Khoảng cách</th>
+                <th>Phí giao hàng</th>
+                <th>Trạng thái</th>
+                <th style="width: 150px;">Hành động</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var zone in Model)
+            {
+                <tr>
+                    <td><strong>@zone.Name</strong></td>
+                    <td>
+                        <span class="badge-admin info">
+                            @zone.MinDistance km - @zone.MaxDistance km
+                        </span>
+                    </td>
+                    <td>
+                        @if (zone.ShippingFee == 0)
+                        {
+                            <span style="color: #22c55e; font-weight: 600;">Miễn phí</span>
+                        }
+                        else
+                        {
+                            <span style="font-weight: 600;">@zone.ShippingFee.ToString("N0")₫</span>
+                        }
+                    </td>
+                    <td>
+                        @if (zone.IsActive)
+                        {
+                            <span class="badge-admin success">✅ Hoạt động</span>
+                        }
+                        else
+                        {
+                            <span class="badge-admin danger">❌ Tạm tắt</span>
+                        }
+                    </td>
+                    <td>
+                        <div style="display: flex; gap: 8px;">
+                            <a asp-action="Edit" asp-route-id="@zone.Id" class="action-btn" 
+                               style="background: linear-gradient(135deg, #667eea, #764ba2);" title="Sửa">
+                                ✏️
+                            </a>
+                            <form asp-action="ToggleActive" method="post" style="display: inline;">
+                                <input type="hidden" name="id" value="@zone.Id" />
+                                <button type="submit" class="action-btn" 
+                                        style="background: linear-gradient(135deg, @(zone.IsActive ? "#f59e0b" : "#10b981"), @(zone.IsActive ? "#d97706" : "#059669"));"
+                                        title="@(zone.IsActive ? "Tắt" : "Bật")">
+                                    @(zone.IsActive ? "⏸️" : "▶️")
+                                </button>
+                            </form>
+                            <form asp-action="Delete" method="post" style="display: inline;"
+                                  onsubmit="return confirm('Xóa khu vực @zone.Name?');">
+                                <input type="hidden" name="id" value="@zone.Id" />
+                                <button type="submit" class="action-btn" 
+                                        style="background: linear-gradient(135deg, #ef4444, #dc2626);" title="Xóa">
+                                    🗑️
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            }
+            @if (!Model.Any())
+            {
+                <tr>
+                    <td colspan="5" class="text-center text-muted" style="padding: 40px;">
+                        🚚 Chưa có khu vực giao hàng nào. <a asp-action="Create">Tạo ngay!</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

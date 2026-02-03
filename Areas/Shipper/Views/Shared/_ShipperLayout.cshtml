@@ -13,6 +13,10 @@
 </head>
 
 <body class="shipper-body">
+    @{
+        var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+        var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+    }
 
     <!-- NAVBAR -->
     <nav class="shipper-navbar">
@@ -22,13 +26,13 @@
         </a>
         
         <div class="shipper-nav-links">
-            <a href="/Shipper/Dashboard" class="shipper-nav-btn light">
+            <a href="/Shipper/Dashboard" class="shipper-nav-btn light @(currentController == "Dashboard" ? "active" : "")">
                 📋 Đơn chờ giao
             </a>
-            <a href="/Shipper/Orders/MyOrders" class="shipper-nav-btn warning">
+            <a href="/Shipper/Orders/MyOrders" class="shipper-nav-btn warning @(currentAction == "MyOrders" ? "active" : "")">
                 📦 Đơn của tôi
             </a>
-            <a href="/Shipper/Orders/History" class="shipper-nav-btn" style="background: #e0f2fe; color: #0369a1;">
+            <a href="/Shipper/Orders/History" class="shipper-nav-btn @(currentAction == "History" ? "active" : "")" style="background: #e0f2fe; color: #0369a1;">
                 📊 Lịch sử
             </a>
             <form method="post" action="/Account/Logout" style="display: inline;">

@@ -1,43 +1,67 @@
 @{
     ViewData["Title"] = "Tổng quan";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
 }
 
-<!-- STATS ROW -->
+<link rel="stylesheet" href="~/admin/css/dashboard.css" />
+
+<!-- REVENUE STATS ROW -->
+<div class="stats-grid" style="margin-bottom: 20px;">
+    <div class="stat-card">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #10b981, #059669);">💰</div>
+        <div class="stat-info">
+            <h3>@(((decimal)ViewBag.TodayRevenue).ToString("N0"))₫</h3>
+            <p>Doanh thu hôm nay</p>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">📊</div>
+        <div class="stat-info">
+            <h3>@(((decimal)ViewBag.MonthRevenue).ToString("N0"))₫</h3>
+            <p>Doanh thu tháng này</p>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9);">💎</div>
+        <div class="stat-info">
+            <h3>@(((decimal)ViewBag.TotalRevenue).ToString("N0"))₫</h3>
+            <p>Tổng doanh thu</p>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">👥</div>
+        <div class="stat-info">
+            <h3>@ViewBag.TotalUser</h3>
+            <p>Người dùng</p>
+        </div>
+    </div>
+</div>
+
+<!-- ENTITY STATS ROW -->
 <div class="stats-grid">
     <div class="stat-card">
-        <div class="stat-icon primary">
-            📂
-        </div>
+        <div class="stat-icon primary">📂</div>
         <div class="stat-info">
             <h3>@ViewBag.TotalCategory</h3>
             <p>Danh mục</p>
         </div>
     </div>
-
     <div class="stat-card">
-        <div class="stat-icon success">
-            🍕
-        </div>
+        <div class="stat-icon success">🍕</div>
         <div class="stat-info">
             <h3>@ViewBag.TotalFood</h3>
             <p>Món ăn</p>
         </div>
     </div>
-
     <div class="stat-card">
-        <div class="stat-icon warning">
-            🎁
-        </div>
+        <div class="stat-icon warning">🎁</div>
         <div class="stat-info">
             <h3>@ViewBag.TotalCombo</h3>
             <p>Combo</p>
         </div>
     </div>
-
     <div class="stat-card">
-        <div class="stat-icon danger">
-            🧾
-        </div>
+        <div class="stat-icon danger">🧾</div>
         <div class="stat-info">
             <h3>@ViewBag.TotalOrder</h3>
             <p>Đơn hàng</p>
@@ -45,22 +69,87 @@
     </div>
 </div>
 
-<div class="row g-4">
-    <!-- CHART -->
-    <div class="col-lg-7">
-        <div class="admin-table-card p-4 h-100">
-            <h3 class="mb-4" style="font-size: 1.1rem; font-weight: 600;">Thống kê món ăn theo danh mục</h3>
+<!-- ORDER STATUS CARDS -->
+<div class="stats-grid" style="margin-top: 20px;">
+    <div class="stat-card" style="border-left: 4px solid #f59e0b;">
+        <div class="stat-info">
+            <h3 style="color: #f59e0b;">@ViewBag.PendingOrders</h3>
+            <p>⏳ Chờ xử lý</p>
+        </div>
+    </div>
+    <div class="stat-card" style="border-left: 4px solid #3b82f6;">
+        <div class="stat-info">
+            <h3 style="color: #3b82f6;">@ViewBag.DeliveringOrders</h3>
+            <p>🚚 Đang giao</p>
+        </div>
+    </div>
+    <div class="stat-card" style="border-left: 4px solid #10b981;">
+        <div class="stat-info">
+            <h3 style="color: #10b981;">@ViewBag.CompletedOrders</h3>
+            <p>✅ Hoàn thành</p>
+        </div>
+    </div>
+    <div class="stat-card" style="border-left: 4px solid #ef4444;">
+        <div class="stat-info">
+            <h3 style="color: #ef4444;">@ViewBag.CancelledOrders</h3>
+            <p>❌ Đã hủy</p>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4" style="margin-top: 10px;">
+    <!-- REVENUE CHART -->
+    <div class="col-lg-8">
+        <div class="admin-table-card p-4">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="font-size: 1.1rem; font-weight: 600; margin: 0;">📈 Doanh thu 7 ngày gần nhất</h3>
+            </div>
             <div style="position: relative; height: 300px; width: 100%;">
+                <canvas id="revenueChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOP PRODUCTS -->
+    <div class="col-lg-4">
+        <div class="admin-table-card p-4 h-100">
+            <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 20px;">🏆 Top món bán chạy</h3>
+            <div class="top-products-list">
+                @if (ViewBag.TopFoods != null)
+                {
+                    var rank = 1;
+                    foreach (var food in ViewBag.TopFoods)
+                    {
+                        var medal = rank == 1 ? "🥇" : (rank == 2 ? "🥈" : (rank == 3 ? "🥉" : $"#{rank}"));
+                        <div class="top-product-item">
+                            <span class="rank">@medal</span>
+                            <span class="name">@food.Name</span>
+                            <span class="qty">@food.Quantity</span>
+                        </div>
+                        rank++;
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4" style="margin-top: 10px;">
+    <!-- CATEGORY CHART -->
+    <div class="col-lg-5">
+        <div class="admin-table-card p-4 h-100">
+            <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 20px;">🍕 Món ăn theo danh mục</h3>
+            <div style="position: relative; height: 280px; width: 100%;">
                 <canvas id="foodChart"></canvas>
             </div>
         </div>
     </div>
 
     <!-- RECENT ORDERS -->
-    <div class="col-lg-5">
+    <div class="col-lg-7">
         <div class="admin-table-card h-100">
             <div class="table-header">
-                <h3>Đơn hàng mới nhất</h3>
+                <h3>🧾 Đơn hàng mới nhất</h3>
                 <a href="/Admin/Order" class="btn-admin sm outline">Xem tất cả</a>
             </div>
             
@@ -69,6 +158,7 @@
                     <thead>
                         <tr>
                             <th>Mã đơn</th>
+                            <th>Khách hàng</th>
                             <th>Tổng tiền</th>
                             <th>Trạng thái</th>
                         </tr>
@@ -77,18 +167,19 @@
                         @foreach (var o in ViewBag.LatestOrders)
                         {
                             <tr>
-                                <td>
-                                    <span class="id-badge">@o.OrderCode</span>
-                                </td>
-                                <td class="fw-bold">@o.TotalAmount.ToString("N0") ₫</td>
+                                <td><span class="id-badge">@o.OrderCode</span></td>
+                                <td>@(o.Customer?.FullName ?? "N/A")</td>
+                                <td class="fw-bold">@o.TotalAmount.ToString("N0")₫</td>
                                 <td>
                                     @{
                                         var statusClass = "info";
-                                        if (o.Status == "Completed") statusClass = "success";
-                                        else if (o.Status == "Cancelled") statusClass = "danger";
-                                        else if (o.Status == "Pending") statusClass = "warning";
+                                        var statusText = o.Status;
+                                        if (o.Status == "Completed") { statusClass = "success"; statusText = "Hoàn thành"; }
+                                        else if (o.Status == "Cancelled") { statusClass = "danger"; statusText = "Đã hủy"; }
+                                        else if (o.Status == "Pending") { statusClass = "warning"; statusText = "Chờ xử lý"; }
+                                        else if (o.Status == "Delivering") { statusClass = "info"; statusText = "Đang giao"; }
                                     }
-                                    <span class="badge-admin @statusClass">@o.Status</span>
+                                    <span class="badge-admin @statusClass">@statusText</span>
                                 </td>
                             </tr>
                         }
@@ -96,23 +187,64 @@
                 </table>
             </div>
         </div>
-    </div>
+</div>
 </div>
 
 @section Scripts {
     <script>
-        // CHART SETUP
-        const ctx = document.getElementById('foodChart').getContext('2d');
+        // REVENUE CHART - 7 days
+        fetch('/Admin/Dashboard/RevenueByDate')
+            .then(res => res.json())
+            .then(data => {
+                const ctx = document.getElementById('revenueChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: data.map(d => d.date),
+                        datasets: [{
+                            label: 'Doanh thu (₫)',
+                            data: data.map(d => d.revenue),
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4,
+                            pointBackgroundColor: '#10b981',
+                            pointRadius: 5,
+                            pointHoverRadius: 8
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return value.toLocaleString('vi-VN') + '₫';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            });
+
+        // CATEGORY CHART
+        const ctx2 = document.getElementById('foodChart').getContext('2d');
         const categoryNames = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.CategoryNames));
         const foodCounts = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.FoodCounts));
 
-        // Generate colors
         const colors = [
             '#4f46e5', '#06b6d4', '#10b981', '#f59e0b', '#ef4444', 
             '#8b5cf6', '#ec4899', '#6366f1', '#14b8a6', '#84cc16'
         ];
 
-        new Chart(ctx, {
+        new Chart(ctx2, {
             type: 'doughnut',
             data: {
                 labels: categoryNames,
@@ -126,16 +258,14 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                cutout: '70%',
+                cutout: '65%',
                 plugins: {
                     legend: {
-                        position: 'right',
+                        position: 'bottom',
                         labels: {
                             usePointStyle: true,
-                            padding: 20,
-                            font: {
-                                size: 12
-                            }
+                            padding: 15,
+                            font: { size: 11 }
                         }
                     }
                 }

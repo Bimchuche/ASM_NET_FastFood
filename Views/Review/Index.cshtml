@@ -1,0 +1,65 @@
+@model List<ASM1_NET.Models.Review>
+@{
+    ViewData["Title"] = "Đánh giá từ khách hàng";
+}
+
+<link rel="stylesheet" href="~/client/css/fastfood-theme.css" />
+<link rel="stylesheet" href="~/client/css/review-list.css" />
+
+<div class="review-list-page">
+    <div class="container">
+        <div class="review-hero">
+            <h1>⭐ Đánh giá từ khách hàng</h1>
+            <p>Xem những nhận xét từ khách hàng đã mua hàng</p>
+        </div>
+
+        <div class="reviews-grid">
+            @if (Model == null || !Model.Any())
+            {
+                <div class="review-empty-state">
+                    <div class="review-empty-icon">💬</div>
+                    <h3>Chưa có đánh giá nào</h3>
+                    <p>Hãy là người đầu tiên đánh giá sau khi mua hàng!</p>
+                </div>
+            }
+            else
+            {
+                @foreach (var review in Model)
+                {
+                    var productName = review.Food?.Name ?? review.Combo?.Name ?? "Sản phẩm";
+                    var productImage = review.Food?.ImageUrl ?? review.Combo?.ImageUrl ?? "/images/no-image.png";
+                    var userName = review.User?.FullName ?? "Khách hàng";
+                    var initial = userName.Length > 0 ? userName[0].ToString().ToUpper() : "K";
+                    
+                    <div class="review-card">
+                        <div class="review-header">
+                            <div class="review-user">
+                                <div class="review-avatar">@initial</div>
+                                <div class="review-meta">
+                                    <h4>@userName</h4>
+                                    <span>@review.CreatedAt.ToString("dd/MM/yyyy")</span>
+                                </div>
+                            </div>
+                            <div class="review-stars">
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    @(i <= review.Rating ? "★" : "☆")
+                                }
+                            </div>
+                        </div>
+                        
+                        <div class="review-product">
+                            <img src="@productImage" alt="@productName" onerror="this.src='/images/no-image.png'" />
+                            <span class="review-product-name">@productName</span>
+                        </div>
+                        
+                        @if (!string.IsNullOrEmpty(review.Comment))
+                        {
+                            <p class="review-comment">"@review.Comment"</p>
+                        }
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</div>

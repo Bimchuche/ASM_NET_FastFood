@@ -1,0 +1,60 @@
+@model List<ASM1_NET.Models.Wishlist>
+@{
+    ViewData["Title"] = "Yêu thích";
+}
+
+<link rel="stylesheet" href="~/client/css/fastfood-theme.css" />
+<link rel="stylesheet" href="~/client/css/wishlist.css" />
+
+<div class="wishlist-page">
+    <div class="container">
+        <div class="wishlist-hero">
+            <h1>❤️ Món ăn yêu thích</h1>
+            <p>Danh sách các món ăn bạn đã lưu</p>
+        </div>
+        
+        @if (Model.Count == 0)
+        {
+            <div class="empty-wishlist">
+                <div class="empty-icon">💔</div>
+                <h3>Chưa có món yêu thích</h3>
+                <p>Hãy thêm các món ăn bạn thích vào danh sách!</p>
+                <a href="/Food" class="btn-explore">🍔 Khám phá Menu</a>
+            </div>
+        }
+        else
+        {
+            <div class="wishlist-stats">
+                <span>📊 @Model.Count món trong danh sách</span>
+            </div>
+            
+            <div class="wishlist-grid">
+                @foreach (var item in Model)
+                {
+                    <div class="wishlist-card" data-food-id="@item.FoodId">
+                        <div class="wishlist-img">
+                            <img src="@item.Food?.ImageUrl" alt="@item.Food?.Name" 
+                                 onerror="this.src='/images/placeholder.png'" />
+                            <button class="btn-remove" onclick="removeFromWishlist(@item.FoodId)" title="Xóa">
+                                ✕
+                            </button>
+                        </div>
+                        <div class="wishlist-info">
+                            <span class="wishlist-category">@item.Food?.Category?.Name</span>
+                            <h3>@item.Food?.Name</h3>
+                            <p class="wishlist-desc">@item.Food?.Description</p>
+                            <div class="wishlist-bottom">
+                                <span class="wishlist-price">@item.Food?.Price.ToString("N0")₫</span>
+                                <button class="btn-add-cart" onclick="addToCart(@item.FoodId)">
+                                    🛒 Thêm giỏ
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+<script src="~/client/js/wishlist-page.js"></script>

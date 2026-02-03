@@ -1,0 +1,170 @@
+@model ASM1_NET.Models.ChatSession
+@using System.Security.Claims
+@{
+    ViewData["Title"] = "Chat với " + (Model.Customer?.FullName ?? "Khách");
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    var adminIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+    var adminId = !string.IsNullOrEmpty(adminIdClaim) ? int.Parse(adminIdClaim) : (Context.Session.GetInt32("UserId") ?? 0);
+    var isOpen = Model.Status == "Open";
+    var customerInitial = Model.Customer?.FullName?.Substring(0, 1).ToUpper() ?? "K";
+}
+
+<link rel="stylesheet" href="~/admin/css/chat-session.css" />
+
+<div class="chat-session-container">
+    <!-- Sidebar: Customer Info -->
+    <div class="chat-sidebar">
+        <div class="sidebar-header">
+            <a href="/Admin/Chat" class="back-link">
+                <span>←</span>
+                <span>Quay lại</span>
+            </a>
+        </div>
+        
+        <div class="customer-profile">
+            <div class="customer-avatar" style="background: linear-gradient(135deg, @(isOpen ? "#10b981, #059669" : "#6b7280, #4b5563"));">
+                <span>@customerInitial</span>
+            </div>
+            <h3>@(Model.Customer?.FullName ?? "Khách hàng")</h3>
+            <span class="status-badge @(isOpen ? "open" : "closed")">
+                @(isOpen ? "● Đang chat" : "○ Đã đóng")
+            </span>
+        </div>
+        
+        <div class="customer-details">
+            <div class="detail-item">
+                <span class="detail-icon">📧</span>
+                <div class="detail-content">
+                    <span class="detail-label">Email</span>
+                    <span class="detail-value">@(Model.Customer?.Email ?? "Không có")</span>
+                </div>
+            </div>
+            <div class="detail-item">
+                <span class="detail-icon">📱</span>
+                <div class="detail-content">
+                    <span class="detail-label">Điện thoại</span>
+                    <span class="detail-value">@(Model.Customer?.Phone ?? "Không có")</span>
+                </div>
+            </div>
+            <div class="detail-item">
+                <span class="detail-icon">🕐</span>
+                <div class="detail-content">
+                    <span class="detail-label">Bắt đầu chat</span>
+                    <span class="detail-value">@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</span>
+                </div>
+            </div>
+            <div class="detail-item">
+                <span class="detail-icon">💬</span>
+                <div class="detail-content">
+                    <span class="detail-label">Số tin nhắn</span>
+                    <span class="detail-value">@Model.Messages.Count tin nhắn</span>
+                </div>
+            </div>
+        </div>
+        
+        @if (isOpen)
+        {
+            <div class="sidebar-actions">
+                <form method="post" action="/Admin/Chat/CloseSession/@Model.Id">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="close-session-btn" onclick="return confirm('Đóng cuộc trò chuyện này?')">
+                        <span>✕</span>
+                        <span>Đóng cuộc trò chuyện</span>
+                    </button>
+                </form>
+            </div>
+        }
+    </div>
+
+    <!-- Main Chat Area -->
+    <div class="chat-main">
+        <div class="chat-main-header">
+            <div class="header-info">
+                <h2>💬 Cuộc trò chuyện</h2>
+                <span>với @(Model.Customer?.FullName ?? "Khách hàng")</span>
+            </div>
+            <div class="header-badge">
+                @if (isOpen)
+                {
+                    <span class="live-indicator">
+                        <span class="pulse"></span>
+                        Realtime
+                    </span>
+                }
+            </div>
+        </div>
+        
+        <div class="chat-messages-container" id="messagesArea">
+            @if (!Model.Messages.Any())
+            {
+                <div class="no-messages">
+                    <div class="no-msg-icon">💬</div>
+                    <p>Cuộc trò chuyện mới bắt đầu.<br>Chưa có tin nhắn nào.</p>
+                </div>
+            }
+            else
+            {
+                @foreach (var msg in Model.Messages)
+                {
+                    var isCustomer = msg.IsFromCustomer;
+                    <div class="message-wrapper @(isCustomer ? "customer" : "admin")">
+                        @if (isCustomer)
+                        {
+                            <div class="msg-avatar customer-avatar-small">
+                                @customerInitial
+                            </div>
+                        }
+                        <div class="message-bubble">
+                            <div class="msg-text">@msg.Message</div>
+                            <div class="msg-info">
+                                <span class="msg-sender">@(msg.Sender?.FullName ?? (isCustomer ? "Khách" : "Hỗ trợ"))</span>
+                                <span class="msg-time">@msg.CreatedAt.ToString("HH:mm")</span>
+                            </div>
+                        </div>
+                        @if (!isCustomer)
+                        {
+                            <div class="msg-avatar admin-avatar-small">
+                                🎧
+                            </div>
+                        }
+                    </div>
+                }
+            }
+        </div>
+        
+        @if (isOpen)
+        {
+            <div class="chat-input-container">
+                <div class="input-wrapper">
+                    <input type="text" id="adminMessageInput" placeholder="Gõ tin nhắn để trả lời khách hàng..." maxlength="1000">
+                    <button id="sendAdminMessage" class="send-btn">
+                        <span>➤</span>
+                    </button>
+                </div>
+                <div class="input-hint">
+                    Nhấn <kbd>Enter</kbd> để gửi
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="chat-closed-banner">
+                <div class="closed-icon">🔒</div>
+                <div class="closed-text">
+                    <strong>Cuộc trò chuyện đã kết thúc</strong>
+                    <span>Đóng lúc @(Model.ClosedAt?.ToString("dd/MM/yyyy HH:mm"))</span>
+                </div>
+            </div>
+        }
+</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+<script>
+    // Razor variables required by chat-session.js
+    const sessionId = @Model.Id;
+    const adminId = @adminId;
+    const customerInitial = '@customerInitial';
+</script>
+<script src="~/admin/js/chat-session.js"></script>
+

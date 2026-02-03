@@ -50,4 +50,23 @@ public class User
 
     [Display(Name = "Ngày xóa")]
     public DateTime? DeletedAt { get; set; }
+
+    // Email verification
+    [Display(Name = "Email đã xác thực")]
+    public bool EmailVerified { get; set; } = false;
+
+    public string? EmailVerificationToken { get; set; }
+
+    public DateTime? EmailVerificationTokenExpiry { get; set; }
+
+    // Password change verification
+    public string? PasswordChangeOTP { get; set; }
+    public DateTime? PasswordChangeOTPExpiry { get; set; }
+    public string? NewPasswordPending { get; set; }
+
+    // Loyalty Points
+    [Display(Name = "Điểm tích lũy")]
+    public int TotalPoints { get; set; } = 0;
+
+    public virtual ICollection<LoyaltyPoint> LoyaltyPoints { get; set; } = new List<LoyaltyPoint>();
 }

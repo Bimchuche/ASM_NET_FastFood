@@ -1,0 +1,74 @@
+@{
+    ViewData["Title"] = "Đánh giá đơn hàng";
+    var order = ViewBag.Order as ASM1_NET.Models.Order;
+}
+
+<link rel="stylesheet" href="~/client/css/fastfood-theme.css" />
+<link rel="stylesheet" href="~/client/css/review.css" />
+
+<div class="review-page">
+    <div class="review-container">
+        <div class="review-card">
+            <div class="review-header">
+                <h1>⭐ Đánh giá đơn hàng</h1>
+                <p>Mã đơn: <span class="order-code">#@order.OrderCode</span></p>
+            </div>
+            
+            <div class="order-items">
+                <h3>📦 Sản phẩm trong đơn hàng:</h3>
+                @foreach (var item in order.OrderDetails)
+                {
+                    <div class="order-item">
+                        @if (item.Food != null)
+                        {
+                            <img src="@item.Food.ImageUrl" alt="@item.Food.Name" onerror="this.src='/images/placeholder.png'" />
+                            <div class="order-item-info">
+                                <div class="order-item-name">@item.Food.Name</div>
+                                <div class="order-item-qty">x@item.Quantity</div>
+                            </div>
+                        }
+                        else if (item.Combo != null)
+                        {
+                            <img src="@item.Combo.ImageUrl" alt="@item.Combo.Name" onerror="this.src='/images/placeholder.png'" />
+                            <div class="order-item-info">
+                                <div class="order-item-name">🔥 @item.Combo.Name</div>
+                                <div class="order-item-qty">x@item.Quantity</div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+            
+            <form method="post" asp-action="Create" asp-route-orderId="@order.Id">
+                @Html.AntiForgeryToken()
+                
+                <div class="rating-section">
+                    <label>Bạn hài lòng như thế nào?</label>
+                    <div class="star-rating">
+                        <input type="radio" id="star5" name="rating" value="5" required />
+                        <label for="star5" title="5 sao">★</label>
+                        <input type="radio" id="star4" name="rating" value="4" />
+                        <label for="star4" title="4 sao">★</label>
+                        <input type="radio" id="star3" name="rating" value="3" />
+                        <label for="star3" title="3 sao">★</label>
+                        <input type="radio" id="star2" name="rating" value="2" />
+                        <label for="star2" title="2 sao">★</label>
+                        <input type="radio" id="star1" name="rating" value="1" />
+                        <label for="star1" title="1 sao">★</label>
+                    </div>
+                </div>
+                
+                <div class="comment-section">
+                    <label>💬 Nhận xét của bạn (tùy chọn)</label>
+                    <textarea name="comment" placeholder="Chia sẻ trải nghiệm của bạn về đơn hàng..."></textarea>
+                </div>
+                
+                <button type="submit" class="btn-submit-review">
+                    ✨ Gửi đánh giá
+                </button>
+            </form>
+            
+            <a href="/Order/History" class="btn-back">← Quay lại lịch sử đơn hàng</a>
+        </div>
+    </div>
+</div>

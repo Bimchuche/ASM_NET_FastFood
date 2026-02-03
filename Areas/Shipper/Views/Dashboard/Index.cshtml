@@ -78,6 +78,30 @@ else
                         @order.Address
                     </div>
                     
+                    @if (order.DeliveryLatitude.HasValue && order.DeliveryLongitude.HasValue)
+                    {
+                        // Calculate distance from shop (HCM center)
+                        double shopLat = 10.8231;
+                        double shopLng = 106.6297;
+                        double dLat = (order.DeliveryLatitude.Value - shopLat) * Math.PI / 180;
+                        double dLng = (order.DeliveryLongitude.Value - shopLng) * Math.PI / 180;
+                        double a = Math.Sin(dLat/2) * Math.Sin(dLat/2) +
+                                   Math.Cos(shopLat * Math.PI / 180) * Math.Cos(order.DeliveryLatitude.Value * Math.PI / 180) *
+                                   Math.Sin(dLng/2) * Math.Sin(dLng/2);
+                        double c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1-a));
+                        double distance = 6371 * c;
+                        int estimatedMinutes = Math.Max(5, (int)(distance * 3));
+                        
+                        <div class="order-info-row" style="display: flex; gap: 20px; margin: 10px 0; font-size: 0.9rem;">
+                            <span style="color: #3b82f6;">
+                                🚗 <strong>@distance.ToString("F1") km</strong>
+                            </span>
+                            <span style="color: #f59e0b;">
+                                ⏱️ ~@estimatedMinutes phút
+                            </span>
+                        </div>
+                    }
+                    
                     <div class="order-total">
                         <span class="total-label">Tổng tiền:</span>
                         <span class="total-value">@order.TotalAmount.ToString("N0") ₫</span>

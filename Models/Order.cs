@@ -68,6 +68,25 @@ public class Order
     [Display(Name = "Thời gian dự kiến (phút)")]
     public int? EstimatedMinutes { get; set; }
 
+    [Display(Name = "Trạng thái thanh toán")]
+    public string? PaymentStatus { get; set; }
+    
+    [Display(Name = "PayOS Link ID")]
+    public string? PaymentLinkId { get; set; }
+    
+    [Display(Name = "PayOS Order Code")]
+    public long? PaymentOrderCode { get; set; }
+    
+    [Display(Name = "Mã giảm giá")]
+    public int? CouponId { get; set; }
+    public virtual Coupon? Coupon { get; set; }
+    
+    [Display(Name = "Số tiền giảm")]
+    public decimal DiscountAmount { get; set; } = 0;
+    
+    [Display(Name = "Thời điểm hủy")]
+    public DateTime? CancelledAt { get; set; }
+
     [Display(Name = "Đã xóa")]
     public bool IsDeleted { get; set; } = false;
 

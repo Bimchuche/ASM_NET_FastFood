@@ -17,32 +17,51 @@
     {
         <div class="alert alert-success">✅ @TempData["Success"]</div>
     }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">⚠️ @TempData["Error"]</div>
+    }
 
     @if (Model.Any())
     {
+        <form id="bulkRestoreForm" asp-action="BulkRestoreCategories" method="post" style="display:none;">
+            @Html.AntiForgeryToken()
+            <div id="restoreIds"></div>
+        </form>
+        <form id="bulkDeleteForm" asp-action="BulkDeleteCategories" method="post" style="display:none;">
+            @Html.AntiForgeryToken()
+            <div id="deleteIds"></div>
+        </form>
+
+        <div class="bulk-actions mb-3">
+            <button type="button" class="btn btn-success" onclick="submitBulk('restore')">♻️ Khôi phục đã chọn</button>
+            <button type="button" class="btn btn-danger" onclick="submitBulk('delete')">🗑️ Xóa vĩnh viễn đã chọn</button>
+            <span class="ms-3 text-muted">Đã chọn: <strong id="selectedCount">0</strong></span>
+        </div>
+
         <div class="table-card">
             <table class="table table-hover">
                 <thead>
                     <tr>
+                        <th style="width: 40px;"><input type="checkbox" id="selectAll" onclick="toggleAll(this)"></th>
                         <th>Tên danh mục</th>
-                        <th>Mô tả</th>
                         <th>Ngày xóa</th>
                         <th style="width: 200px;">Thao tác</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var category in Model)
+                    @foreach (var cat in Model)
                     {
                         <tr>
-                            <td><strong>@category.Name</strong></td>
-                            <td>@category.Description</td>
-                            <td>@category.DeletedAt?.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td><input type="checkbox" class="item-checkbox" data-id="@cat.Id" onclick="updateCount()"></td>
+                            <td><strong>@cat.Name</strong></td>
+                            <td>@cat.DeletedAt?.ToString("dd/MM/yyyy HH:mm")</td>
                             <td>
-                                <form asp-action="RestoreCategory" asp-route-id="@category.Id" method="post" style="display:inline;">
+                                <form asp-action="RestoreCategory" asp-route-id="@cat.Id" method="post" style="display:inline;">
                                     @Html.AntiForgeryToken()
                                     <button type="submit" class="btn btn-success btn-sm">♻️ Khôi phục</button>
                                 </form>
-                                <form asp-action="PermanentDeleteCategory" asp-route-id="@category.Id" method="post" style="display:inline;"
+                                <form asp-action="PermanentDeleteCategory" asp-route-id="@cat.Id" method="post" style="display:inline;"
                                       onsubmit="return confirm('Xóa vĩnh viễn danh mục này?')">
                                     @Html.AntiForgeryToken()
                                     <button type="submit" class="btn btn-danger btn-sm">🗑️ Xóa</button>
@@ -60,10 +79,10 @@
     }
 </div>
 
-<style>
-    .trash-list-page { padding: 20px 0; }
-    .table-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
-    .table-card table { margin: 0; }
-    .table-card th { background: #fef2f2; font-weight: 600; }
-    .empty-state { text-align: center; padding: 40px; background: white; border-radius: 12px; color: #6b7280; }
-</style>
+<link rel="stylesheet" href="~/admin/css/trash.css" />
+<script src="~/admin/js/admin-trash.js"></script>
+<script>
+function submitBulk(action) {
+    window.submitBulk(action, 'danh mục');
+}
+</script>

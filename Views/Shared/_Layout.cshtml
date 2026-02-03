@@ -16,6 +16,10 @@
     <link href="~/client/css/modal.css" rel="stylesheet" />
     <link href="~/client/css/site.css" rel="stylesheet" />
     <link href="~/client/css/mini-cart.css" rel="stylesheet" />
+    <!-- Light Theme (for dark mode toggle) -->
+    <link href="~/client/css/light-theme.css" rel="stylesheet" />
+    <!-- Chat Widget -->
+    <link href="~/client/css/chat-widget.css" rel="stylesheet" />
 
     <!-- GLOBAL FONT: Times New Roman Bold -->
     <link href="~/css/global-font.css" rel="stylesheet" />
@@ -24,13 +28,17 @@
 </head>
 
 <body>
+    @{
+        var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+        var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+    }
 
     <!-- NAVBAR -->
     <nav class="navbar navbar-expand-lg navbar-dark navbar-glass fixed-top">
         <div class="container-fluid px-5">
 
             <!-- LOGO -->
-            <a class="navbar-brand fw-bold logo" asp-controller="Home" asp-action="Index">
+            <a class="navbar-brand fw-bold logo @(currentController == "Home" ? "active" : "")" asp-controller="Home" asp-action="Index">
                 🍔 FastFood
             </a>
 
@@ -44,30 +52,35 @@
                 <ul class="navbar-nav ms-auto align-items-center">
 
                     <li class="nav-item">
-                        <a class="nav-link" asp-controller="Food" asp-action="Index">Menu</a>
+                        <a class="nav-link @(currentController == "Food" ? "active" : "")" asp-controller="Food" asp-action="Index">Menu</a>
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link" asp-controller="Combo" asp-action="Index">Combo</a>
+                        <a class="nav-link @(currentController == "Combo" ? "active" : "")" asp-controller="Combo" asp-action="Index">Combo</a>
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link" asp-controller="About" asp-action="Index">Giới thiệu</a>
+                        <a class="nav-link @(currentController == "About" ? "active" : "")" asp-controller="About" asp-action="Index">Giới thiệu</a>
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link" asp-controller="Contact" asp-action="Index">Liên hệ</a>
+                        <a class="nav-link @(currentController == "Contact" ? "active" : "")" asp-controller="Contact" asp-action="Index">Liên hệ</a>
                     </li>
-
                     <li class="nav-item">
-                        <a class="nav-link" asp-controller="Order" asp-action="History">
+                        <a class="nav-link @(currentController == "Wishlist" ? "active" : "")" asp-controller="Wishlist" asp-action="Index">Yêu thích</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link @(currentController == "Order" && currentAction == "History" ? "active" : "")" asp-controller="Order" asp-action="History">
                             📦 Đơn hàng
                         </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link @(currentController == "Review" && currentAction == "index" ? "active" : "")" asp-controller="Review" asp-action="Index">Đánh giá</a>
                     </li>
 
                     <!-- MINI CART -->
                     <li class="nav-item dropdown">
-                        <a class="nav-link cart-icon dropdown-toggle" href="#" id="cartDropdown" role="button"
+                        <a class="nav-link cart-icon dropdown-toggle @(currentController == "Cart" ? "active" : "")" href="#" id="cartDropdown" role="button"
                             data-bs-toggle="dropdown">
                             🛒
                         </a>
@@ -103,7 +116,7 @@
                         }
                         
                         <li class="nav-item ms-2">
-                            <a class="btn btn-outline-light btn-sm" asp-controller="Account" asp-action="Profile">
+                            <a class="btn btn-outline-light btn-sm @(currentController == "Account" && currentAction == "Profile" ? "active" : "")" asp-controller="Account" asp-action="Profile">
                                 👤 Tài khoản
                             </a>
                         </li>
@@ -119,7 +132,7 @@
                     else
                     {
                         <li class="nav-item ms-3">
-                            <a class="btn btn-outline-light btn-sm" asp-controller="Account" asp-action="Login">
+                            <a class="btn btn-outline-light btn-sm @(currentController == "Account" && currentAction == "Login" ? "active" : "")" asp-controller="Account" asp-action="Login">
                                 Đăng nhập
                             </a>
                         </li>
@@ -152,6 +165,18 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.2/anime.min.js"></script>
     <!-- Custom Animations -->
     <script src="~/client/js/animations.js"></script>
+    <!-- Theme Switcher (Dark/Light Mode) -->
+    <script src="~/client/js/theme-switcher.js"></script>
+    
+    <!-- SignalR -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+    <!-- Chat Widget -->
+    <script>
+        window.chatUserId = @(Context.Session.GetInt32("UserId") ?? 0);
+    </script>
+    <script src="~/client/js/chat-widget.js"></script>
+    <!-- Push Notifications -->
+    <script src="~/client/js/push-notification.js"></script>
 
 </body>
 

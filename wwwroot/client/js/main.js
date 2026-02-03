@@ -52,12 +52,12 @@ function register() {
   const pass = regPassword.value.trim();
 
   if (!name || !email || !pass) {
-    alert("Vui lòng nhập đầy đủ thông tin");
+    showToast("Vui lòng nhập đầy đủ thông tin", "error");
     return;
   }
 
   if (users.some(u => u.email === email)) {
-    alert("Email đã tồn tại");
+    showToast("Email đã tồn tại", "error");
     return;
   }
 
@@ -84,7 +84,7 @@ function login(e) {
 
   const user = users.find(u => u.email === email && u.password === pass);
   if (!user) {
-    alert("Sai email hoặc mật khẩu");
+    showToast("Sai email hoặc mật khẩu", "error");
     return;
   }
 
@@ -127,7 +127,7 @@ function updateProfile() {
   renderDashboardAvatar();
   renderPosts();
 
-  alert("Cập nhật thành công!");
+  showToast("Cập nhật thành công!", "success");
 }
 
 /* ================= PUBLIC FEED ================= */
@@ -154,14 +154,14 @@ function renderPostsPublic() {
 }
 
 function needLogin() {
-  alert("Vui lòng đăng nhập");
+  showToast("Vui lòng đăng nhập", "error");
   location.href = "login.html";
 }
 
 /* ================= ADD POST ================= */
 function addPost() {
   if (!postTitle.value.trim() || !postContent.value.trim()) {
-    alert("Nhập tiêu đề và nội dung");
+    showToast("Nhập tiêu đề và nội dung", "error");
     return;
   }
 

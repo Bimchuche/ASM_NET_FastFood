@@ -1,0 +1,68 @@
+@model ASM1_NET.Models.User
+@{
+    ViewData["Title"] = "Hoàn thiện thông tin";
+}
+
+<link rel="stylesheet" href="~/client/css/complete-profile.css" />
+
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <div class="auth-icon">🎉</div>
+            <h2>Chào mừng bạn!</h2>
+            <p>Vui lòng hoàn thiện thông tin để tiếp tục</p>
+        </div>
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger">@TempData["Error"]</div>
+        }
+        @if (TempData["Info"] != null)
+        {
+            <div class="alert alert-info">@TempData["Info"]</div>
+        }
+
+        <form method="post" asp-action="CompleteProfile" class="auth-form">
+            <div class="form-group">
+                <label class="form-label">
+                    <span class="label-icon">👤</span> Họ tên
+                </label>
+                <input type="text" name="FullName" class="form-control" value="@Model.FullName" required placeholder="Nhập họ tên..." />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">
+                    <span class="label-icon">📧</span> Email
+                </label>
+                <input type="email" class="form-control" value="@Model.Email" readonly />
+                <small class="text-muted">Email từ Google không thể thay đổi</small>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">
+                    <span class="label-icon">📞</span> Số điện thoại <span class="text-danger">*</span>
+                </label>
+                <input type="tel" name="Phone" class="form-control" value="@Model.Phone" required placeholder="Nhập số điện thoại..." />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">
+                    <span class="label-icon">📍</span> Địa chỉ <span class="text-danger">*</span>
+                </label>
+                <input type="text" name="Address" class="form-control" value="@Model.Address" required placeholder="Nhập địa chỉ giao hàng..." />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">
+                    <span class="label-icon">🔐</span> Mật khẩu (tùy chọn)
+                </label>
+                <input type="password" name="Password" class="form-control" placeholder="Đặt mật khẩu nếu muốn đăng nhập bằng email..." />
+                <small class="text-muted">Bạn có thể bỏ qua nếu chỉ dùng Google để đăng nhập</small>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">
+                ✅ Hoàn thành đăng ký
+            </button>
+        </form>
+    </div>
+</div>

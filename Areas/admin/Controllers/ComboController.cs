@@ -229,5 +229,28 @@ namespace ASM1_NET.Areas.Admin.Controllers
             TempData["Success"] = $"Đã chuyển '{combo.Name}' vào thùng rác!";
             return RedirectToAction(nameof(Index));
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> BulkDelete(int[] ids)
+        {
+            if (ids == null || ids.Length == 0)
+            {
+                TempData["Error"] = "Vui lòng chọn ít nhất 1 combo";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var combos = await _context.Combos.Where(c => ids.Contains(c.Id)).ToListAsync();
+            foreach (var combo in combos)
+            {
+                combo.IsDeleted = true;
+                combo.DeletedAt = DateTime.Now;
+            }
+            await _context.SaveChangesAsync();
+            
+            await _activityLog.LogWithUserAsync("SoftDelete", "Combo", null, null, $"Xóa hàng loạt {combos.Count} combo");
+            TempData["Success"] = $"Đã chuyển {combos.Count} combo vào thùng rác";
+            return RedirectToAction(nameof(Index));
+        }
     }
 }

@@ -16,17 +16,20 @@ namespace ASM1_NET.Areas.Admin.Controllers
         private readonly ICategoryRepository _categoryRepository;
         private readonly IWebHostEnvironment _env;
         private readonly IActivityLogService _activityLog;
+        private readonly AppDbContext _context;
 
         public FoodController(
             IFoodRepository foodRepository,
             ICategoryRepository categoryRepository,
             IWebHostEnvironment env,
-            IActivityLogService activityLog)
+            IActivityLogService activityLog,
+            AppDbContext context)
         {
             _foodRepository = foodRepository;
             _categoryRepository = categoryRepository;
             _env = env;
             _activityLog = activityLog;
+            _context = context;
         }
 
         public async Task<IActionResult> Index()
@@ -51,34 +54,43 @@ namespace ASM1_NET.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Food model, IFormFile? imageFile)
         {
-            ModelState.Remove("Category");
+            try
+            {
+                ModelState.Remove("Category");
 
-            if (!ModelState.IsValid)
+                if (!ModelState.IsValid)
+                {
+                    ViewBag.Categories = await _categoryRepository.GetActiveAsync();
+                    return View(model);
+                }
+
+                if (imageFile != null && imageFile.Length > 0)
+                {
+                    var folder = Path.Combine(_env.WebRootPath, "uploads/foods");
+                    Directory.CreateDirectory(folder);
+
+                    var fileName = Guid.NewGuid() + Path.GetExtension(imageFile.FileName);
+                    var filePath = Path.Combine(folder, fileName);
+
+                    using var stream = new FileStream(filePath, FileMode.Create);
+                    await imageFile.CopyToAsync(stream);
+
+                    model.ImageUrl = "/uploads/foods/" + fileName;
+                }
+
+                await _foodRepository.AddAsync(model);
+
+                await _activityLog.LogWithUserAsync("Create", "Food", model.Id, model.Name, $"Tạo món ăn mới: {model.Name}");
+
+                TempData["Success"] = "Thêm món ăn thành công!";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (OverflowException)
             {
                 ViewBag.Categories = await _categoryRepository.GetActiveAsync();
+                TempData["Error"] = "Giá trị nhập vào quá lớn! Vui lòng nhập giá từ 1,000đ - 50,000,000đ";
                 return View(model);
             }
-
-            if (imageFile != null && imageFile.Length > 0)
-            {
-                var folder = Path.Combine(_env.WebRootPath, "uploads/foods");
-                Directory.CreateDirectory(folder);
-
-                var fileName = Guid.NewGuid() + Path.GetExtension(imageFile.FileName);
-                var filePath = Path.Combine(folder, fileName);
-
-                using var stream = new FileStream(filePath, FileMode.Create);
-                await imageFile.CopyToAsync(stream);
-
-                model.ImageUrl = "/uploads/foods/" + fileName;
-            }
-
-            await _foodRepository.AddAsync(model);
-
-            await _activityLog.LogWithUserAsync("Create", "Food", model.Id, model.Name, $"Tạo món ăn mới: {model.Name}");
-
-            TempData["Success"] = "Thêm món ăn thành công!";
-            return RedirectToAction(nameof(Index));
         }
 
         public async Task<IActionResult> Edit(int id)
@@ -157,6 +169,29 @@ namespace ASM1_NET.Areas.Admin.Controllers
             
             ViewBag.Keyword = keyword;
             return View("Index", foods);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> BulkDelete(int[] ids)
+        {
+            if (ids == null || ids.Length == 0)
+            {
+                TempData["Error"] = "Vui lòng chọn ít nhất 1 món ăn";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var foods = await _context.Foods.Where(f => ids.Contains(f.Id)).ToListAsync();
+            foreach (var food in foods)
+            {
+                food.IsDeleted = true;
+                food.DeletedAt = DateTime.Now;
+            }
+            await _context.SaveChangesAsync();
+            
+            await _activityLog.LogWithUserAsync("SoftDelete", "Food", null, null, $"Xóa hàng loạt {foods.Count} món ăn");
+            TempData["Success"] = $"Đã chuyển {foods.Count} món ăn vào thùng rác";
+            return RedirectToAction(nameof(Index));
         }
     }
 }

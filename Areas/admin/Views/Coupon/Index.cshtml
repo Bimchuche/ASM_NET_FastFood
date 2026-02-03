@@ -1,0 +1,186 @@
+@model IEnumerable<ASM1_NET.Models.Coupon>
+@{
+    ViewData["Title"] = "Quản lý mã giảm giá";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<link rel="stylesheet" href="~/admin/css/admin-theme.css" />
+
+<!-- PAGE HEADER -->
+<div class="admin-page-header">
+    <div>
+        <h1>🎟️ Quản lý mã giảm giá</h1>
+        <p>Tạo và quản lý mã khuyến mãi cho khách hàng</p>
+    </div>
+    <a asp-action="Create" class="btn-admin primary">
+        ➕ Thêm mã giảm giá
+    </a>
+</div>
+
+<!-- STATS -->
+<div class="stats-grid" style="margin-bottom: 30px;">
+    <div class="stat-card">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #667eea, #764ba2);">🎟️</div>
+        <div class="stat-info">
+            <h3>@Model.Count()</h3>
+            <p>Tổng mã</p>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #10b981, #059669);">✅</div>
+        <div class="stat-info">
+            <h3>@Model.Count(c => c.IsActive)</h3>
+            <p>Đang hoạt động</p>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">📊</div>
+        <div class="stat-info">
+            <h3>@Model.Sum(c => c.UsedCount)</h3>
+            <p>Lượt sử dụng</p>
+        </div>
+    </div>
+</div>
+
+<!-- MESSAGES -->
+@if (TempData["Success"] != null)
+{
+    <div class="alert-admin success">✅ @TempData["Success"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert-admin danger">⚠️ @TempData["Error"]</div>
+}
+
+<!-- TABLE -->
+<div class="admin-table-card">
+    <div class="table-header">
+        <h3>📋 Danh sách mã giảm giá</h3>
+    </div>
+    
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>Mã</th>
+                <th>Giảm giá</th>
+                <th>Đơn tối thiểu</th>
+                <th>Giảm tối đa</th>
+                <th>Hạn sử dụng</th>
+                <th>Lượt dùng</th>
+                <th>Trạng thái</th>
+                <th style="width: 180px;">Hành động</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var coupon in Model)
+            {
+                var isExpired = coupon.ExpiryDate.HasValue && coupon.ExpiryDate < DateTime.Now;
+                var isLimitReached = coupon.UsageLimit > 0 && coupon.UsedCount >= coupon.UsageLimit;
+                
+                <tr>
+                    <td>
+                        <strong class="text-primary" style="font-family: monospace; font-size: 1.1rem;">
+                            @coupon.Code
+                        </strong>
+                    </td>
+                    <td>
+                        <span class="badge-admin success">@coupon.DiscountPercent%</span>
+                    </td>
+                    <td>
+                        @if (coupon.MinOrderAmount.HasValue)
+                        {
+                            <span>@coupon.MinOrderAmount.Value.ToString("N0")₫</span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">Không</span>
+                        }
+                    </td>
+                    <td>
+                        @if (coupon.MaxDiscountAmount.HasValue)
+                        {
+                            <span>@coupon.MaxDiscountAmount.Value.ToString("N0")₫</span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">Không giới hạn</span>
+                        }
+                    </td>
+                    <td>
+                        @if (coupon.ExpiryDate.HasValue)
+                        {
+                            <span class="@(isExpired ? "text-danger" : "")">
+                                @coupon.ExpiryDate.Value.ToString("dd/MM/yyyy")
+                                @if (isExpired)
+                                {
+                                    <br /><small>⚠️ Đã hết hạn</small>
+                                }
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">Không giới hạn</span>
+                        }
+                    </td>
+                    <td>
+                        <span>@coupon.UsedCount</span>
+                        @if (coupon.UsageLimit > 0)
+                        {
+                            <span class="text-muted">/ @coupon.UsageLimit</span>
+                        }
+                    </td>
+                    <td>
+                        @if (!coupon.IsActive)
+                        {
+                            <span class="badge-admin danger">❌ Tạm tắt</span>
+                        }
+                        else if (isExpired)
+                        {
+                            <span class="badge-admin warning">⏰ Hết hạn</span>
+                        }
+                        else if (isLimitReached)
+                        {
+                            <span class="badge-admin warning">📊 Hết lượt</span>
+                        }
+                        else
+                        {
+                            <span class="badge-admin success">✅ Hoạt động</span>
+                        }
+                    </td>
+                    <td>
+                        <div style="display: flex; gap: 8px;">
+                            <a asp-action="Edit" asp-route-id="@coupon.Id" class="action-btn" 
+                               style="background: linear-gradient(135deg, #667eea, #764ba2);" title="Sửa">
+                                ✏️
+                            </a>
+                            <form asp-action="ToggleActive" method="post" style="display: inline;">
+                                <input type="hidden" name="id" value="@coupon.Id" />
+                                <button type="submit" class="action-btn" 
+                                        style="background: linear-gradient(135deg, @(coupon.IsActive ? "#f59e0b" : "#10b981"), @(coupon.IsActive ? "#d97706" : "#059669"));"
+                                        title="@(coupon.IsActive ? "Tắt" : "Bật")">
+                                    @(coupon.IsActive ? "⏸️" : "▶️")
+                                </button>
+                            </form>
+                            <form asp-action="Delete" method="post" style="display: inline;"
+                                  onsubmit="return confirm('Xóa mã giảm giá @coupon.Code?');">
+                                <input type="hidden" name="id" value="@coupon.Id" />
+                                <button type="submit" class="action-btn" 
+                                        style="background: linear-gradient(135deg, #ef4444, #dc2626);" title="Xóa">
+                                    🗑️
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            }
+            @if (!Model.Any())
+            {
+                <tr>
+                    <td colspan="8" class="text-center text-muted" style="padding: 40px;">
+                        🎟️ Chưa có mã giảm giá nào. <a asp-action="Create">Tạo ngay!</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

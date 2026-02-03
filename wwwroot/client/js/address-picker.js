@@ -3,9 +3,46 @@
    Free OpenStreetMap-based address selection
    ============================================ */
 
+// Shop location: FPT PolySchool Đồng Nai (Cơ sở 2)
+// 193 Đỗ Văn Thi, Hiệp Hoà, Biên Hòa, Đồng Nai 76126
+var SHOP_LOCATION = {
+    lat: 10.9452,   // Biên Hòa, Đồng Nai
+    lng: 106.8274,
+    name: "FPT PolySchool Đồng Nai"
+};
+
 // Initialize map and marker (use var to allow re-declaration)
 var addressMap = window.addressMap || null;
 var addressMarker = window.addressMarker || null;
+
+// Calculate distance between two coordinates (Haversine formula)
+function calculateDistance(lat1, lng1, lat2, lng2) {
+    var R = 6371; // Earth's radius in km
+    var dLat = (lat2 - lat1) * Math.PI / 180;
+    var dLng = (lng2 - lng1) * Math.PI / 180;
+    var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLng/2) * Math.sin(dLng/2);
+    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c; // Distance in km
+}
+
+// Calculate and update shipping fee based on current marker position
+function updateShippingFeeFromCoordinates(lat, lng) {
+    var distance = calculateDistance(SHOP_LOCATION.lat, SHOP_LOCATION.lng, lat, lng);
+    console.log('Distance from shop:', distance.toFixed(2), 'km');
+    
+    // Call the shipping fee API if it exists
+    if (typeof calculateShippingFee === 'function') {
+        calculateShippingFee(distance);
+    }
+    
+    // Update distance display if element exists
+    var distanceDisplay = document.getElementById('distanceDisplay');
+    if (distanceDisplay) {
+        distanceDisplay.innerText = distance.toFixed(1) + ' km';
+    }
+}
 
 // Initialize Leaflet map
 function initAddressMap(containerId, inputId, options = {}) {
@@ -43,12 +80,14 @@ function initAddressMap(containerId, inputId, options = {}) {
     addressMap.on('click', function(e) {
         addressMarker.setLatLng(e.latlng);
         reverseGeocode(e.latlng.lat, e.latlng.lng, inputId);
+        updateShippingFeeFromCoordinates(e.latlng.lat, e.latlng.lng);
     });
 
     // Drag marker to update address
     addressMarker.on('dragend', function(e) {
         var pos = addressMarker.getLatLng();
         reverseGeocode(pos.lat, pos.lng, inputId);
+        updateShippingFeeFromCoordinates(pos.lat, pos.lng);
     });
 
     // If we have existing address, try to geocode it
@@ -66,11 +105,14 @@ function updateCoordinateInputs(lat, lng) {
     var lngInput = document.getElementById('addressLongitude');
     if (latInput) latInput.value = lat;
     if (lngInput) lngInput.value = lng;
+    
+    // Also calculate shipping fee
+    updateShippingFeeFromCoordinates(lat, lng);
 }
 
 // Reverse geocode (lat/lng -> address)
 function reverseGeocode(lat, lng, inputId) {
-    // Update coordinate inputs
+    // Update coordinate inputs (this also triggers shipping calculation)
     updateCoordinateInputs(lat, lng);
     
     var url = 'https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lng + '&accept-language=vi';

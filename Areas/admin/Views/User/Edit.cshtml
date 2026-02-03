@@ -50,9 +50,13 @@
                 <div class="col-md-6">
                     <div class="form-group">
                         <label class="form-label">
-                            <span class="label-icon">🔐</span> Mật khẩu (để trống nếu không đổi)
+                            <span class="label-icon">🔐</span> Mật khẩu mới (để trống nếu không đổi)
                         </label>
-                        <input asp-for="Password" type="password" class="form-control" placeholder="Nhập mật khẩu mới..." />
+                        <input type="password" name="NewPassword" class="form-control" placeholder="Nhập mật khẩu mới..." autocomplete="new-password" />
+                        @if (string.IsNullOrEmpty(Model.Password))
+                        {
+                            <small class="text-warning">⚠️ Tài khoản đăng nhập bằng Google, không có mật khẩu</small>
+                        }
                     </div>
                 </div>
                 <div class="col-md-6">

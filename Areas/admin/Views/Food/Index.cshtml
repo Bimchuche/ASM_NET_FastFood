@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = "Quản lý món ăn";
+    var categories = Model.Where(f => f.Category != null).Select(f => f.Category!).DistinctBy(c => c.Id).OrderBy(c => c.Name).ToList();
 }
 
 <!-- ALERTS -->
@@ -11,8 +12,14 @@
 }
 @if (TempData["Error"] != null)
 {
-    <div class="admin-alert danger">❌ @TempData["Error"]</div>
+    <div class="admin-alert danger">⚠️ @TempData["Error"]</div>
 }
+
+<!-- Hidden form for bulk delete -->
+<form id="bulkDeleteForm" asp-action="BulkDelete" method="post" style="display:none;">
+    @Html.AntiForgeryToken()
+    <div id="deleteIds"></div>
+</form>
 
 <!-- HEADER -->
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -20,9 +27,14 @@
         <h2 class="mb-1">🍕 Quản lý món ăn</h2>
         <p class="text-muted mb-0">Tổng: <strong>@Model.Count()</strong> món</p>
     </div>
-    <a asp-action="Create" class="btn-admin primary">
-        <span>➕</span> Thêm món mới
-    </a>
+    <div class="d-flex gap-2">
+        <button type="button" class="btn-admin danger" onclick="submitBulkDelete()">
+            🗑️ Xóa đã chọn (<span id="selectedCount">0</span>)
+        </button>
+        <a asp-action="Create" class="btn-admin primary">
+            <span>➕</span> Thêm món mới
+        </a>
+    </div>
 </div>
 
 <!-- TABLE CARD -->
@@ -30,6 +42,13 @@
     <div class="table-header">
         <h3>📋 Danh sách món ăn</h3>
         <div class="table-search">
+            <select id="filterCategory" onchange="filterByCategory()" class="form-select form-select-sm" style="width: auto; min-width: 150px;">
+                <option value="">Tất cả danh mục</option>
+                @foreach (var cat in categories)
+                {
+                    <option value="@cat.Name">@cat.Name</option>
+                }
+            </select>
             <input type="text" id="searchFood" placeholder="Tìm kiếm..." onkeyup="filterTable()" />
         </div>
     </div>
@@ -37,6 +56,7 @@
     <table class="admin-table" id="foodTable">
         <thead>
             <tr>
+                <th style="width: 40px;"><input type="checkbox" id="selectAll" onclick="toggleAll(this)"></th>
                 <th style="width: 80px;">Ảnh</th>
                 <th>Tên món</th>
                 <th>Danh mục</th>
@@ -48,7 +68,8 @@
         <tbody>
             @foreach (var f in Model)
             {
-                <tr>
+                <tr data-category="@(f.Category?.Name ?? "")">
+                    <td><input type="checkbox" class="item-checkbox" data-id="@f.Id" onclick="updateCount()"></td>
                     <td>
                         @if (!string.IsNullOrEmpty(f.ImageUrl))
                         {
@@ -100,24 +121,16 @@
 </div>
 
 @section Scripts {
+<script src="~/admin/js/admin-table.js"></script>
 <script>
-function filterTable() {
-    var input = document.getElementById("searchFood");
-    var filter = input.value.toLowerCase();
-    var table = document.getElementById("foodTable");
-    var rows = table.getElementsByTagName("tr");
-    
-    for (var i = 1; i < rows.length; i++) {
-        var cells = rows[i].getElementsByTagName("td");
-        var found = false;
-        for (var j = 0; j < cells.length; j++) {
-            if (cells[j].textContent.toLowerCase().indexOf(filter) > -1) {
-                found = true;
-                break;
-            }
-        }
-        rows[i].style.display = found ? "" : "none";
-    }
+function filterTable() { 
+    filterByCategory('filterCategory', 'searchFood', 'foodTable'); 
+}
+function filterByCategory() {
+    filterTable();
+}
+function submitBulkDelete() {
+    window.submitBulkDelete('món ăn');
 }
 </script>
 }

@@ -4,8 +4,23 @@
     var adminCount = Model.Count(u => u.Role == "Admin");
     var shipperCount = Model.Count(u => u.Role == "Shipper");
     var customerCount = Model.Count(u => u.Role == "Customer");
-    var activeCount = Model.Count(u => u.IsActive);
 }
+
+<!-- ALERTS -->
+@if (TempData["Success"] != null)
+{
+    <div class="admin-alert success">✅ @TempData["Success"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="admin-alert danger">⚠️ @TempData["Error"]</div>
+}
+
+<!-- Hidden form for bulk delete -->
+<form id="bulkDeleteForm" asp-action="BulkDelete" method="post" style="display:none;">
+    @Html.AntiForgeryToken()
+    <div id="deleteIds"></div>
+</form>
 
 <!-- Page Header -->
 <div class="admin-page-header">
@@ -14,9 +29,14 @@
             <h2 class="admin-page-title">👥 Quản lý người dùng</h2>
             <p class="admin-page-subtitle">Quản lý tài khoản người dùng hệ thống</p>
         </div>
-        <a asp-action="Create" class="btn btn-admin btn-admin-add">
-            ➕ Thêm người dùng
-        </a>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-admin btn-admin-delete" onclick="submitBulkDelete()">
+                🗑️ Xóa đã chọn (<span id="selectedCount">0</span>)
+            </button>
+            <a asp-action="Create" class="btn btn-admin btn-admin-add">
+                ➕ Thêm người dùng
+            </a>
+        </div>
     </div>
 </div>
 
@@ -73,6 +93,7 @@
     <table class="admin-table" id="userTable">
         <thead>
             <tr>
+                <th width="40"><input type="checkbox" id="selectAll" onclick="toggleAll(this)"></th>
                 <th width="50">ID</th>
                 <th>Họ tên</th>
                 <th>Email</th>
@@ -99,6 +120,7 @@
                 };
                 
                 <tr data-role="@u.Role">
+                    <td><input type="checkbox" class="item-checkbox" data-id="@u.Id" onclick="updateCount()"></td>
                     <td>
                         <span class="id-badge">#@u.Id</span>
                     </td>
@@ -168,6 +190,7 @@
     }
 </div>
 
+<script src="~/admin/js/admin-table.js"></script>
 <script>
 function filterTable() {
     const searchInput = document.getElementById('searchInput').value.toLowerCase();
@@ -181,5 +204,8 @@ function filterTable() {
         const matchRole = !roleFilter || role === roleFilter;
         row.style.display = (matchSearch && matchRole) ? '' : 'none';
     });
+}
+function submitBulkDelete() {
+    window.submitBulkDelete('người dùng');
 }
 </script>

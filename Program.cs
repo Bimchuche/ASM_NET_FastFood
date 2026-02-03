@@ -11,6 +11,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 );
 
 builder.Services.AddControllersWithViews();
+builder.Services.AddSignalR();
 
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<IFoodRepository, FoodRepository>();
@@ -21,12 +22,30 @@ builder.Services.AddScoped<ASM1_NET.Services.IEmailService, ASM1_NET.Services.Em
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ASM1_NET.Services.IActivityLogService, ASM1_NET.Services.ActivityLogService>();
+builder.Services.AddScoped<ASM1_NET.Services.ILoyaltyService, ASM1_NET.Services.LoyaltyService>();
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
         options.LoginPath = "/Account/Login";
         options.AccessDeniedPath = "/Account/AccessDenied";
+        options.ExpireTimeSpan = TimeSpan.FromHours(24);
+        options.SlidingExpiration = true;
+        options.Events = new CookieAuthenticationEvents
+        {
+            OnRedirectToLogin = context =>
+            {
+                // For AJAX/API requests, return 401 instead of redirect
+                if (context.Request.Headers["X-Requested-With"] == "XMLHttpRequest" ||
+                    context.Request.Path.StartsWithSegments("/api"))
+                {
+                    context.Response.StatusCode = 401;
+                    return Task.CompletedTask;
+                }
+                context.Response.Redirect(context.RedirectUri);
+                return Task.CompletedTask;
+            }
+        };
     })
     .AddGoogle(options =>
     {
@@ -64,5 +83,8 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}"
 );
+
+// SignalR Hubs
+app.MapHub<ASM1_NET.Hubs.ChatHub>("/chathub");
 
 app.Run();

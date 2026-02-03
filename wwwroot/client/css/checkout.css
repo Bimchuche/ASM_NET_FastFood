@@ -261,15 +261,16 @@
 }
 
 .qr-code {
-    width: 200px;
-    height: 200px;
+    width: 280px;
+    height: 280px;
     background: #ffffff;
-    border-radius: 12px;
-    margin: 0 auto 15px;
-    padding: 10px;
+    border-radius: 16px;
+    margin: 0 auto 20px;
+    padding: 15px;
     display: flex;
     align-items: center;
     justify-content: center;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
 }
 
 .qr-code img {
@@ -280,11 +281,96 @@
 
 .qr-info {
     color: #94a3b8;
-    font-size: 0.85rem;
+    font-size: 0.9rem;
 }
 
 .qr-info strong {
     color: #fbbf24;
+}
+
+.qr-info .text-danger {
+    color: #ef4444 !important;
+    font-size: 1.2rem;
+}
+
+.bank-info {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    padding: 12px 15px;
+    margin: 12px 0;
+    text-align: left;
+}
+
+.bank-info p {
+    margin: 5px 0;
+    color: #e2e8f0;
+    font-size: 0.85rem;
+}
+
+.bank-info strong {
+    color: #10b981;
+}
+
+.qr-note {
+    color: #fbbf24;
+    font-size: 0.8rem;
+    padding: 8px 12px;
+    background: rgba(251, 191, 36, 0.1);
+    border-radius: 8px;
+    margin-top: 10px;
+}
+
+/* QR Payment Confirmation */
+.qr-payment-confirm {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(34, 197, 94, 0.05));
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 12px;
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.confirm-checkbox-wrapper {
+    margin-bottom: 12px;
+}
+
+.confirm-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.confirm-checkbox input {
+    width: 22px;
+    height: 22px;
+    accent-color: #10b981;
+    cursor: pointer;
+}
+
+.confirm-text {
+    color: #10b981;
+    font-weight: 600;
+}
+
+.confirm-note {
+    color: #f59e0b;
+    font-size: 0.85rem;
+    margin: 0;
+    padding: 10px;
+    background: rgba(245, 158, 11, 0.1);
+    border-radius: 8px;
+}
+
+.btn-checkout-submit.disabled {
+    background: linear-gradient(135deg, #4b5563 0%, #374151 100%) !important;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.btn-checkout-submit.disabled:hover {
+    transform: none;
+    box-shadow: none;
 }
 
 /* Summary */
@@ -381,4 +467,111 @@
 .checkout-empty p {
     color: #94a3b8;
     margin-bottom: 25px;
+}
+
+/* Coupon Input */
+.coupon-input-wrapper {
+    display: flex;
+    gap: 10px;
+}
+
+.coupon-input-wrapper input {
+    flex: 1;
+    padding: 12px 16px;
+    border: 2px solid #374151;
+    border-radius: 10px;
+    background: #1f2937;
+    color: #ffffff;
+    font-size: 1rem;
+    transition: border-color 0.3s;
+}
+
+.coupon-input-wrapper input:focus {
+    outline: none;
+    border-color: #10b981;
+}
+
+.coupon-input-wrapper input::placeholder {
+    color: #6b7280;
+}
+
+.coupon-input-wrapper button {
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.coupon-input-wrapper button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
+}
+
+.coupon-input-wrapper button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Checkout Address Dropdown */
+#savedAddressSelect,
+.checkout-input[type="select"],
+select.checkout-input {
+    width: 100%;
+    padding: 14px 18px;
+    border: 2px solid #374151;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2310b981' stroke-width='2'%3E%3Cpolyline points='6,9 12,15 18,9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 15px center;
+    background-size: 20px;
+}
+
+#savedAddressSelect:hover,
+select.checkout-input:hover {
+    border-color: #10b981;
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
+}
+
+#savedAddressSelect:focus,
+select.checkout-input:focus {
+    outline: none;
+    border-color: #10b981;
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+}
+
+#savedAddressSelect option {
+    background: #1a1a2e;
+    padding: 12px;
+}
+
+/* Selected address display */
+.selected-address-display {
+    padding: 15px 20px;
+    background: rgba(16, 185, 129, 0.1);
+    border-radius: 12px;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    margin-top: 12px;
+    font-size: 0.95rem;
+}
+
+/* Manage addresses link */
+.manage-addresses-link {
+    display: inline-block;
+    margin-top: 12px;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.manage-addresses-link:hover {
+    text-decoration: underline;
 }
