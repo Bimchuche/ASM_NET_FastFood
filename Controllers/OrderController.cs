@@ -316,7 +316,10 @@ namespace ASM1_NET.Controllers
         {
             var claim = User.FindFirst(ClaimTypes.NameIdentifier);
             if (claim == null)
-                return RedirectToAction("Login", "Account");
+            {
+                ViewBag.RequireLogin = true;
+                return View(new List<Order>());
+            }
 
             int userId = int.Parse(claim.Value);
 

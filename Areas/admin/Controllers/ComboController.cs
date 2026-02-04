@@ -23,9 +23,32 @@ namespace ASM1_NET.Areas.Admin.Controllers
             _activityLog = activityLog;
         }
 
-        public IActionResult Index()
+        public IActionResult Index(string? keyword, string? status)
         {
-            var combos = _context.Combos.Where(c => !c.IsDeleted).ToList();
+            var query = _context.Combos.Where(c => !c.IsDeleted).AsQueryable();
+
+            // Tìm kiếm theo tên hoặc mô tả
+            if (!string.IsNullOrWhiteSpace(keyword))
+            {
+                keyword = keyword.ToLower();
+                query = query.Where(c => c.Name.ToLower().Contains(keyword) 
+                    || (c.Description != null && c.Description.ToLower().Contains(keyword)));
+            }
+
+            // Lọc theo trạng thái
+            if (!string.IsNullOrWhiteSpace(status))
+            {
+                if (status == "active")
+                    query = query.Where(c => c.IsActive);
+                else if (status == "inactive")
+                    query = query.Where(c => !c.IsActive);
+            }
+
+            var combos = query.OrderByDescending(c => c.Id).ToList();
+
+            ViewBag.Keyword = keyword;
+            ViewBag.Status = status;
+
             return View(combos);
         }
 

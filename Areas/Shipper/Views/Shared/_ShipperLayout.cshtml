@@ -10,9 +10,35 @@
     
     <!-- GLOBAL FONT: Times New Roman Bold -->
     <link href="~/css/global-font.css" rel="stylesheet" />
+    <!-- Page Loader -->
+    <link href="~/client/css/page-loader.css" rel="stylesheet" />
 </head>
 
 <body class="shipper-body">
+    <!-- LOADING OVERLAY -->
+    <div id="page-loader" class="page-loader">
+        <div class="loader-float-item">🚚</div>
+        <div class="loader-float-item">📦</div>
+        <div class="loader-float-item">📍</div>
+        <div class="loader-float-item">🏁</div>
+        <div class="loader-float-item">✅</div>
+        <div class="loader-float-item">📱</div>
+        
+        <div class="loader-content">
+            <div class="loader-main">
+                <div class="loader-ring"></div>
+                <div class="loader-ring"></div>
+                <div class="loader-ring"></div>
+                <div class="loader-icon">🚚</div>
+            </div>
+            <div class="loader-brand">SHIPPER</div>
+            <div class="loader-text">Đang tải</div>
+            <div class="loader-progress">
+                <div class="loader-progress-bar"></div>
+            </div>
+        </div>
+    </div>
+
     @{
         var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
         var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
@@ -51,6 +77,8 @@
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/client/js/popup.js"></script>
+    <!-- Page Loader -->
+    <script src="~/client/js/page-loader.js"></script>
     @RenderSection("Scripts", required: false)
 
 </body>

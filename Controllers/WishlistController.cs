@@ -20,7 +20,8 @@ public class WishlistController : Controller
         var userId = HttpContext.Session.GetInt32("UserId");
         if (userId == null)
         {
-            return RedirectToAction("Login", "Account");
+            ViewBag.RequireLogin = true;
+            return View(new List<Wishlist>());
         }
 
         var wishlistItems = await _context.Wishlists

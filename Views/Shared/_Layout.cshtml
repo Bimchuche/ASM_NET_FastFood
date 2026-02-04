@@ -20,6 +20,8 @@
     <link href="~/client/css/light-theme.css" rel="stylesheet" />
     <!-- Chat Widget -->
     <link href="~/client/css/chat-widget.css" rel="stylesheet" />
+    <!-- Page Loader -->
+    <link href="~/client/css/page-loader.css" rel="stylesheet" />
 
     <!-- GLOBAL FONT: Times New Roman Bold -->
     <link href="~/css/global-font.css" rel="stylesheet" />
@@ -28,6 +30,38 @@
 </head>
 
 <body>
+    <!-- LOADING OVERLAY -->
+    <div id="page-loader" class="page-loader">
+        <!-- Floating food items -->
+        <div class="loader-float-item">🍕</div>
+        <div class="loader-float-item">🍟</div>
+        <div class="loader-float-item">🌮</div>
+        <div class="loader-float-item">🍦</div>
+        <div class="loader-float-item">🥤</div>
+        <div class="loader-float-item">🍩</div>
+        
+        <div class="loader-content">
+            <!-- Rotating rings with center icon -->
+            <div class="loader-main">
+                <div class="loader-ring"></div>
+                <div class="loader-ring"></div>
+                <div class="loader-ring"></div>
+                <div class="loader-icon">🍔</div>
+            </div>
+            
+            <!-- Brand name -->
+            <div class="loader-brand">FASTFOOD</div>
+            
+            <!-- Loading text -->
+            <div class="loader-text">Đang tải</div>
+            
+            <!-- Progress bar -->
+            <div class="loader-progress">
+                <div class="loader-progress-bar"></div>
+            </div>
+        </div>
+    </div>
+
     @{
         var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
         var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
@@ -177,6 +211,8 @@
     <script src="~/client/js/chat-widget.js"></script>
     <!-- Push Notifications -->
     <script src="~/client/js/push-notification.js"></script>
+    <!-- Page Loader -->
+    <script src="~/client/js/page-loader.js"></script>
 
 </body>
 

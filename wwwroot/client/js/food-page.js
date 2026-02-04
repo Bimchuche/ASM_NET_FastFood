@@ -9,37 +9,38 @@ async function toggleWishlist(foodId, btn) {
         });
         const data = await response.json();
         if (data.requireLogin) {
-            window.location.href = '/Account/Login';
+            showToast('Vui lòng đăng nhập để sử dụng tính năng yêu thích!', 'error');
             return;
         }
         if (data.success) {
             btn.innerHTML = data.isAdded ? '❤️' : '🤍';
             btn.classList.toggle('active', data.isAdded);
+            showToast(data.message, 'success');
         }
     } catch (e) {
         console.error('Error:', e);
+        showToast('Có lỗi xảy ra, thử lại sau!', 'error');
     }
 }
 
 async function addToCart(foodId) {
     try {
-        const response = await fetch('/Cart/AddFood', {
+        const response = await fetch('/Cart/Add', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: 'foodId=' + foodId + '&quantity=1'
+            body: 'foodId=' + foodId
         });
         const data = await response.json();
         if (data.success) {
-            alert('✅ Đã thêm vào giỏ hàng!');
+            showToast('Đã thêm vào giỏ hàng!', 'success');
+            if (typeof reloadMiniCart === 'function') reloadMiniCart();
+            if (typeof openMiniCart === 'function') openMiniCart();
         } else {
-            if (data.message?.includes('đăng nhập')) {
-                window.location.href = '/Account/Login';
-            } else {
-                alert(data.message || 'Có lỗi xảy ra!');
-            }
+            showToast('Vui lòng đăng nhập để thêm vào giỏ hàng!', 'error');
         }
     } catch (e) {
         console.error('Error:', e);
+        showToast('Có lỗi xảy ra, thử lại sau!', 'error');
     }
 }
 

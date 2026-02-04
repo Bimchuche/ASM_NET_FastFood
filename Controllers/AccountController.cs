@@ -23,11 +23,36 @@ public class AccountController : Controller
         _activityLog = activityLog;
     }
 
+    // Helper method để lấy UserId từ Claims hoặc Session
+    private int? GetCurrentUserId()
+    {
+        // Ưu tiên Claims (cookie authentication)
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (!string.IsNullOrEmpty(userIdClaim) && int.TryParse(userIdClaim, out int claimUserId))
+        {
+            // Đồng bộ lại Session nếu chưa có
+            if (HttpContext.Session.GetInt32("UserId") == null)
+            {
+                var user = _context.Users.Find(claimUserId);
+                if (user != null)
+                {
+                    HttpContext.Session.SetInt32("UserId", user.Id);
+                    HttpContext.Session.SetString("UserRole", user.Role);
+                    HttpContext.Session.SetString("UserName", user.FullName);
+                }
+            }
+            return claimUserId;
+        }
+        
+        // Fallback về Session
+        return HttpContext.Session.GetInt32("UserId");
+    }
+
     // Complete profile for Google login users
     [HttpGet]
     public IActionResult CompleteProfile()
     {
-        var userId = HttpContext.Session.GetInt32("UserId");
+        var userId = GetCurrentUserId();
         if (userId == null)
             return RedirectToAction("Login");
 
@@ -46,7 +71,7 @@ public class AccountController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> CompleteProfile(string FullName, string Phone, string Address, string? Password)
     {
-        var userId = HttpContext.Session.GetInt32("UserId");
+        var userId = GetCurrentUserId();
         if (userId == null)
             return RedirectToAction("Login");
 
@@ -83,7 +108,7 @@ public class AccountController : Controller
     [HttpGet]
     public IActionResult Profile()
     {
-        var userId = HttpContext.Session.GetInt32("UserId");
+        var userId = GetCurrentUserId();
         if (userId == null)
         {
             return RedirectToAction("Login");
@@ -109,7 +134,7 @@ public class AccountController : Controller
     [ValidateAntiForgeryToken]
     public IActionResult Profile(string FullName, string Phone, string Address, string Password)
     {
-        var userId = HttpContext.Session.GetInt32("UserId");
+        var userId = GetCurrentUserId();
         if (userId == null)
         {
             return RedirectToAction("Login");
@@ -147,7 +172,7 @@ public class AccountController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> UpdateAvatar(IFormFile avatar)
     {
-        var userId = HttpContext.Session.GetInt32("UserId");
+        var userId = GetCurrentUserId();
         if (userId == null)
         {
             return RedirectToAction("Login");
@@ -194,7 +219,7 @@ public class AccountController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> RequestPasswordChange(string newPassword)
     {
-        var userId = HttpContext.Session.GetInt32("UserId");
+        var userId = GetCurrentUserId();
         if (userId == null) return RedirectToAction("Login");
 
         if (string.IsNullOrWhiteSpace(newPassword) || newPassword.Length < 6)
@@ -235,7 +260,7 @@ public class AccountController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ConfirmPasswordChange(string otp)
     {
-        var userId = HttpContext.Session.GetInt32("UserId");
+        var userId = GetCurrentUserId();
         if (userId == null) return RedirectToAction("Login");
 
         var user = await _context.Users.FindAsync(userId);
@@ -453,7 +478,12 @@ public class AccountController : Controller
 
         await HttpContext.SignInAsync(
             CookieAuthenticationDefaults.AuthenticationScheme,
-            new ClaimsPrincipal(identity)
+            new ClaimsPrincipal(identity),
+            new AuthenticationProperties
+            {
+                IsPersistent = model.RememberMe,
+                ExpiresUtc = model.RememberMe ? DateTimeOffset.UtcNow.AddDays(30) : null
+            }
         );
 
         await _activityLog.LogAsync("Login", "User", user.Id, user.FullName, $"{user.FullName} ({user.Role}) đã đăng nhập");

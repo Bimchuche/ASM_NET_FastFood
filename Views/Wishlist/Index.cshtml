@@ -13,7 +13,16 @@
             <p>Danh sách các món ăn bạn đã lưu</p>
         </div>
         
-        @if (Model.Count == 0)
+        @if (ViewBag.RequireLogin == true)
+        {
+            <div class="empty-wishlist">
+                <div class="empty-icon">🔒</div>
+                <h3>Vui lòng đăng nhập</h3>
+                <p>Bạn cần đăng nhập để xem danh sách yêu thích của mình!</p>
+                <a href="/Account/Login" class="btn-explore">🔑 Đăng nhập ngay</a>
+            </div>
+        }
+        else if (Model.Count == 0)
         {
             <div class="empty-wishlist">
                 <div class="empty-icon">💔</div>

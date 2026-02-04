@@ -24,7 +24,7 @@
                             <img src="@item.Food.ImageUrl" alt="@item.Food.Name" onerror="this.src='/images/placeholder.png'" />
                             <div class="order-item-info">
                                 <div class="order-item-name">@item.Food.Name</div>
-                                <div class="order-item-qty">x@item.Quantity</div>
+                                <div class="order-item-qty">x@(item.Quantity)</div>
                             </div>
                         }
                         else if (item.Combo != null)
@@ -32,7 +32,7 @@
                             <img src="@item.Combo.ImageUrl" alt="@item.Combo.Name" onerror="this.src='/images/placeholder.png'" />
                             <div class="order-item-info">
                                 <div class="order-item-name">🔥 @item.Combo.Name</div>
-                                <div class="order-item-qty">x@item.Quantity</div>
+                                <div class="order-item-qty">x@(item.Quantity)</div>
                             </div>
                         }
                     </div>

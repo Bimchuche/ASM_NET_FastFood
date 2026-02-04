@@ -120,9 +120,7 @@ function addToCart(foodId) {
             // Close modal if open
             if (document.getElementById('foodModal').style.display === 'flex') closeFoodModal();
         } else {
-            // Check if redirect due to no auth
-            if (data.redirect) window.location.href = data.redirect;
-            else showToast('Vui lòng đăng nhập để đặt món!', 'error');
+            showToast('Vui lòng đăng nhập để thêm vào giỏ hàng!', 'error');
         }
     })
     .catch(() => showToast('Có lỗi xảy ra, thử lại sau!', 'error'));

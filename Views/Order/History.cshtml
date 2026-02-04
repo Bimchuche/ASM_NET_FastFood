@@ -42,7 +42,16 @@
         </div>
         
         <!-- ORDER TABLE -->
-        @if (!Model.Any())
+        @if (ViewBag.RequireLogin == true)
+        {
+            <div class="menu-empty-state animate-fade-in">
+                <div class="empty-icon">🔒</div>
+                <h3>Vui lòng đăng nhập</h3>
+                <p>Bạn cần đăng nhập để xem lịch sử đơn hàng của mình!</p>
+                <a href="/Account/Login" class="btn btn-primary btn-lg rounded-pill px-4">🔑 Đăng nhập ngay</a>
+            </div>
+        }
+        else if (!Model.Any())
         {
             <div class="menu-empty-state animate-fade-in">
                 <div class="empty-icon">📦</div>

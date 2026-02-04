@@ -54,6 +54,7 @@ namespace ASM1_NET.Controllers
         }
 
         [HttpPost]
+        [AllowAnonymous]
         public IActionResult Add(int foodId)
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
@@ -101,6 +102,7 @@ namespace ASM1_NET.Controllers
         }
 
         [HttpPost]
+        [AllowAnonymous]
         public IActionResult AddCombo(int comboId)
         {
             var userClaim = User.FindFirst(ClaimTypes.NameIdentifier);

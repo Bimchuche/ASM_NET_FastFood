@@ -152,6 +152,21 @@ namespace ASM1_NET.Areas.Admin.Controllers
             var food = await _foodRepository.GetByIdAsync(id);
             if (food == null) return NotFound();
 
+            // Kiểm tra món ăn có nằm trong combo nào không
+            var combosUsingFood = await _context.ComboDetails
+                .Where(cd => cd.FoodId == id && cd.Combo != null && !cd.Combo.IsDeleted)
+                .Include(cd => cd.Combo)
+                .Select(cd => cd.Combo!.Name)
+                .Distinct()
+                .ToListAsync();
+
+            if (combosUsingFood.Any())
+            {
+                var comboNames = string.Join(", ", combosUsingFood);
+                TempData["Error"] = $"Không thể xóa '{food.Name}' vì đang nằm trong combo: {comboNames}";
+                return RedirectToAction(nameof(Index));
+            }
+
             food.IsDeleted = true;
             food.DeletedAt = DateTime.Now;
             await _foodRepository.UpdateAsync(food);
@@ -178,6 +193,24 @@ namespace ASM1_NET.Areas.Admin.Controllers
             if (ids == null || ids.Length == 0)
             {
                 TempData["Error"] = "Vui lòng chọn ít nhất 1 món ăn";
+                return RedirectToAction(nameof(Index));
+            }
+
+            // Kiểm tra các món ăn có nằm trong combo nào không
+            var foodsInCombos = await _context.ComboDetails
+                .Where(cd => ids.Contains(cd.FoodId) && cd.Combo != null && !cd.Combo.IsDeleted)
+                .Include(cd => cd.Combo)
+                .Include(cd => cd.Food)
+                .Select(cd => new { FoodName = cd.Food!.Name, ComboName = cd.Combo!.Name })
+                .Distinct()
+                .ToListAsync();
+
+            if (foodsInCombos.Any())
+            {
+                var messages = foodsInCombos
+                    .GroupBy(x => x.FoodName)
+                    .Select(g => $"'{g.Key}' (trong combo: {string.Join(", ", g.Select(x => x.ComboName))})");
+                TempData["Error"] = $"Không thể xóa các món ăn sau vì đang nằm trong combo: {string.Join("; ", messages)}";
                 return RedirectToAction(nameof(Index));
             }
 

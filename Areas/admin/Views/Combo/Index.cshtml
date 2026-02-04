@@ -40,9 +40,22 @@
 <div class="admin-table-card">
     <div class="table-header">
         <h3>📋 Danh sách combo</h3>
-        <div class="table-search">
-            <input type="text" id="searchCombo" placeholder="Tìm kiếm..." onkeyup="filterTable()" />
-        </div>
+        <form method="get" asp-action="Index" class="d-flex gap-2 align-items-center">
+            <select name="status" class="form-select" style="width: 150px;" onchange="this.form.submit()">
+                <option value="">-- Trạng thái --</option>
+                @{
+                    var currentStatus = ViewBag.Status as string;
+                }
+                <option value="active" selected="@(currentStatus == "active")">✓ Đang bán</option>
+                <option value="inactive" selected="@(currentStatus == "inactive")">✕ Ngừng bán</option>
+            </select>
+            <input type="text" name="keyword" value="@ViewBag.Keyword" placeholder="Tìm theo tên, mô tả..." style="width: 250px;" />
+            <button type="submit" class="btn-admin primary" style="padding: 8px 16px;">🔍 Tìm</button>
+            @if (!string.IsNullOrEmpty(ViewBag.Keyword as string) || !string.IsNullOrEmpty(ViewBag.Status as string))
+            {
+                <a asp-action="Index" class="btn-admin warning" style="padding: 8px 16px;">✕ Xóa lọc</a>
+            }
+        </form>
     </div>
     
     <table class="admin-table" id="comboTable">
@@ -111,9 +124,6 @@
 @section Scripts {
 <script src="~/admin/js/admin-table.js"></script>
 <script>
-function filterTable() { 
-    window.filterTable('searchCombo', 'comboTable'); 
-}
 function submitBulkDelete() {
     window.submitBulkDelete('combo');
 }

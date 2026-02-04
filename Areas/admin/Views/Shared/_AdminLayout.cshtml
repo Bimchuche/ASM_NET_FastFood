@@ -10,11 +10,37 @@
     
     <!-- GLOBAL FONT: Times New Roman Bold -->
     <link href="~/css/global-font.css" rel="stylesheet" />
+    <!-- Page Loader -->
+    <link href="~/client/css/page-loader.css" rel="stylesheet" />
     
     @RenderSection("Styles", required: false)
 </head>
 
 <body class="admin-body">
+    <!-- LOADING OVERLAY -->
+    <div id="page-loader" class="page-loader">
+        <div class="loader-float-item">📊</div>
+        <div class="loader-float-item">📦</div>
+        <div class="loader-float-item">👥</div>
+        <div class="loader-float-item">📋</div>
+        <div class="loader-float-item">⚙️</div>
+        <div class="loader-float-item">📥</div>
+        
+        <div class="loader-content">
+            <div class="loader-main">
+                <div class="loader-ring"></div>
+                <div class="loader-ring"></div>
+                <div class="loader-ring"></div>
+                <div class="loader-icon">⚙️</div>
+            </div>
+            <div class="loader-brand">ADMIN PANEL</div>
+            <div class="loader-text">Đang tải</div>
+            <div class="loader-progress">
+                <div class="loader-progress-bar"></div>
+            </div>
+        </div>
+    </div>
+
     @{
         var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
         var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
@@ -78,7 +104,7 @@
                     <a asp-area="Admin" asp-controller="Order" asp-action="Completed"
                        class="@(ViewContext.RouteData.Values["action"]?.ToString() == "Completed" ? "active" : "")">
                         <span class="icon">✅</span>
-                        <span>Đơn đã giao</span>
+                        <span>Shipper</span>
                     </a>
                 </li>
 
@@ -213,6 +239,8 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="~/admin/js/dashboard.js"></script>
+    <!-- Page Loader -->
+    <script src="~/client/js/page-loader.js"></script>
     @RenderSection("Scripts", required: false)
 
 </body>
